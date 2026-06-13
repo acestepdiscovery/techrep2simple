@@ -1,0 +1,119 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Android 13+ requires explicit permission to post notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Audio recording for AI vocal report feature -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <application
+        android:label="Compte Rendu Technique IA"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!--
+                raptech:// deep link — ramène l'app au premier plan depuis Chrome externe.
+
+                HISTORIQUE (long chemin pour arriver ici) :
+                ──────────────────────────────────────────
+                Tentative 1 : raptech:// directement comme success_url Stripe
+                  → Stripe redirige mais Chrome ne peut pas ouvrir un custom scheme
+                    depuis la page de confirmation Stripe. Echec.
+
+                Tentative 2 : Page intermédiaire Firebase Hosting
+                  → Rejetée par le dev (ne pas déployer Firebase Hosting sur ce projet).
+
+                Tentative 3 : Page Cloudflare Worker + auto-redirect JS (window.location)
+                  → flutter_web_auth_2 utilise un Chrome Custom Tab sur Android.
+                    Le JS s'exécute mais Chrome revient à la page Stripe "You're all done"
+                    au lieu d'ouvrir l'app. Echec.
+
+                Tentative 4 : Page Cloudflare Worker + bouton <a href="raptech://...">
+                    (sans JS auto-redirect)
+                  → Toujours dans Chrome Custom Tab : le tab "contrôlé" par
+                    flutter_web_auth_2 bloque silencieusement la navigation vers
+                    les custom schemes. Le bouton ne fait rien. Echec.
+
+                Cause racine identifiée : Chrome Custom Tab (utilisé par flutter_web_auth_2)
+                  intercepte et bloque toute navigation vers un custom URL scheme
+                  (raptech://) pour des raisons de sécurité Android. Pas de workaround
+                  possible depuis l'intérieur du Custom Tab.
+
+                Solution finale : url_launcher avec LaunchMode.externalApplication
+                  → Ouvre Chrome RÉEL (pas Custom Tab). Chrome passe raptech:// au
+                    système Android via intent, MainActivity reçoit le deep link,
+                    l'app revient au premier plan.
+                  → Le paywall se ferme via ref.listen(effectiveSubscriptionProvider)
+                    quand le webhook Stripe → Firestore confirme le paiement.
+                  → Sur iOS : url_launcher ouvre Safari, qui gère raptech:// nativement.
+
+                BUG rencontré après la solution : dialogue "Open with" avec 2 entrées
+                  identiques "Compte Rendu Technique IA".
+                  → Cause : raptech:// était enregistré à la fois ici (MainActivity)
+                    ET dans CallbackActivity (vestige de quand flutter_web_auth_2
+                    gérait Stripe). Corrigé en supprimant raptech:// de CallbackActivity.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="raptech" />
+            </intent-filter>
+        </activity>
+        <!--
+            OAuth callback pour OneDrive + Dropbox via flutter_web_auth_2.
+            Scheme : com.tec.reportnew1cld (≠ raptech://)
+            NE PAS ajouter raptech:// ici — ça créerait un double enregistrement
+            et Android afficherait "Open with" avec deux entrées identiques.
+        -->
+        <activity
+            android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
+            android:exported="true">
+            <intent-filter android:label="flutter_web_auth_2">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.tec.reportnew1cld" />
+            </intent-filter>
+        </activity>
+        <!-- FCM notification channel and icon.
+             Replace @mipmap/ic_launcher with a white-on-transparent drawable
+             (e.g. res/drawable/ic_notification.png) for a proper notification icon. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher"/>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="raptech_default"/>
+
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+    <!-- Required to query activities that can process text, see:
+         https://developer.android.com/training/package-visibility and
+         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
+
+         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>

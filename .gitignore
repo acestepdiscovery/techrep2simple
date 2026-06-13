@@ -1,0 +1,88 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# ════════════════════════════════════════════════════════════════════
+#  Ajouts perso (2026-06-04)
+# ════════════════════════════════════════════════════════════════════
+
+# ─── Archives / zip ──────────────────────────────────────────────────
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+
+# ─── Docs & notes (markdown / texte) ─────────────────────────────────
+*.md
+*.txt
+
+# ─── VRAIS secrets — JAMAIS dans git (injectés via secrets CI) ───────
+*.env
+.env
+*service-account*.json
+*-service-account*.json
+key.properties
+*.keystore
+*.jks
+
+# ─── Config Firebase CLIENT — COMMITTÉE (le CI/CD en a besoin pour ────
+#     builder ; ces fichiers sont de toute façon embarqués dans l'app,
+#     ce ne sont pas de vrais secrets → sécurité = règles Firestore +
+#     App Check). Décommente SEULEMENT si repo PUBLIC + injection via CI.
+# **/google-services.json
+# **/GoogleService-Info.plist
+
+# ─── Firebase local / logs debug ─────────────────────────────────────
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# ─── Divers ──────────────────────────────────────────────────────────
+.claude/
+Thumbs.db

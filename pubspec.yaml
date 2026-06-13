@@ -1,0 +1,116 @@
+name: reportnew1cld
+description: "Tech Report - Application de rapports d'intervention"
+publish_to: 'none'
+version: 1.0.0+10
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # Navigation
+  go_router: ^14.6.3
+
+  # State management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Local storage (offline-first)
+  sqflite: ^2.4.2
+  path: ^1.9.1
+  path_provider: ^2.1.5
+  shared_preferences: ^2.3.5
+
+  # PDF generation & sharing
+  pdf: ^3.11.3
+  printing: ^5.14.1
+  share_plus: ^10.1.4
+
+  # Signature
+  signature: ^6.3.0
+
+  # Photos + Audio + Documents (AI features)
+  image_picker: ^1.1.2
+  record: 5.1.2
+  audioplayers: ^6.1.0
+  file_picker: ^8.0.0
+
+  # Utils
+  intl: ^0.20.1
+  uuid: ^4.5.1
+  url_launcher: ^6.3.1
+  connectivity_plus: ^6.1.3
+  http: ^1.2.2
+
+  # In-App Purchase (IAP-only billing — Apple StoreKit + Google Play Billing).
+  # [PAUSED-STRIPE] Stripe checkout web flow is commented out; IAP is the live channel.
+  in_app_purchase: ^3.2.3
+  # Android-specific types (ChangeSubscriptionParam / ReplacementMode) for the
+  # team-bracket upgrade/downgrade flow (#1).
+  in_app_purchase_android: ^0.4.0
+
+  # --- Google Drive (requires google-services.json in android/app/ — see 05_cloud_drives_setup.md) ---
+  google_sign_in: ^6.2.2
+
+  # --- OneDrive + Dropbox (OAuth browser flow + PKCE) ---
+  flutter_web_auth_2: ^4.0.1
+  crypto: ^3.0.6
+
+  # --- Social auth (Google + Apple) ---
+  sign_in_with_apple: ^6.1.4
+
+  # --- Firebase (team mode — add google-services.json / GoogleService-Info.plist before building) ---
+  firebase_core: ^3.13.1
+  firebase_auth: ^5.5.1
+  cloud_firestore: ^5.6.6
+  firebase_messaging: ^15.2.6
+  flutter_local_notifications: ^18.0.0
+
+  # Stripe Checkout uses flutter_web_auth_2 (already present for OneDrive/Dropbox)
+
+dependency_overrides:
+  # record_linux 0.7.2 (transitive dep) never implemented `startStream` nor the updated
+  # `hasPermission` signature — these abstract methods exist in record_platform_interface
+  # 1.5.0 and 1.6.0. record_linux 2.0.0 (which fixes this) requires Dart SDK >=3.12.
+  # Fix: override record_linux to 1.3.1 which implements the full 1.5.0 interface
+  # and is compatible with our Dart SDK (Flutter 3.35.3 / Dart 3.9.2).
+  # We don't use startStream (file-based recording only). No functionality lost.
+  # DO NOT remove these overrides until Flutter upgrades to Dart >=3.12.
+  # Tested 2026-05-27: record 5.1.2 + record_linux 1.3.1 + record_platform_interface 1.5.0 → OK.
+  record_linux: 1.3.1
+  record_platform_interface: '>=1.5.0 <1.6.0'
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.15
+  riverpod_generator: ^2.6.1
+  # Génère les icônes d'app Android + iOS depuis une seule image.
+  flutter_launcher_icons: ^0.14.3
+
+# ─── Icône de l'app (lancée par `dart run flutter_launcher_icons`) ────────────
+# 1. Dépose ton image carrée 1024x1024 PNG ici : assets/launcher/icon.png
+#    (PAS de transparence pour iOS → l'App Store la refuse).
+# 2. Lance :  cd app  puis  dart run flutter_launcher_icons
+# Ça écrase les icônes Android (mipmap ic_launcher) ET iOS (AppIcon) — rien
+# d'autre à toucher.
+flutter_launcher_icons:
+  android: true            # remplace ic_launcher (pas de modif manifest requise)
+  ios: true
+  image_path: "assets/launcher/icon.png"
+  remove_alpha_ios: true   # iOS/App Store interdit la transparence
+  min_sdk_android: 21
+  # (optionnel) icône ADAPTATIVE Android (logo centré sur un fond). Si tu veux,
+  # décommente + fournis un PNG transparent du logo (zone de sécurité ~66%) :
+  # adaptive_icon_background: "#FFFFFF"
+  # adaptive_icon_foreground: "assets/launcher/icon_foreground.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
