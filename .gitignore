@@ -83,6 +83,9 @@ firebase-debug.log
 firestore-debug.log
 ui-debug.log
 
+# ─── Scratch / captures perso (pas dans le repo) ─────────────────────
+FIRST LOOK/
+
 # ─── Divers ──────────────────────────────────────────────────────────
 .claude/
 Thumbs.db

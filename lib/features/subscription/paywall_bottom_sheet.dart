@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/config/app_build.dart';
 import '../../shared/services/billing_config.dart';
 import '../../shared/services/team_service.dart';
 import '../../shared/services/iap_service.dart';
@@ -155,6 +156,20 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
     final url = Platform.isIOS
         ? 'https://apps.apple.com/account/subscriptions'
         : 'https://play.google.com/store/account/subscriptions';
+    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  }
+
+  // Ouvre une page légale (CGU / Confidentialité). Tant que l'URL n'est pas
+  // renseignée (app_build), on affiche un message au lieu d'un lien mort.
+  Future<void> _openLegalUrl(String url) async {
+    if (url.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Page bientôt disponible.')),
+        );
+      }
+      return;
+    }
     await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
   }
 
@@ -526,12 +541,51 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                           style: TextStyle(color: Colors.grey)),
                     ),
                     const SizedBox(height: 8),
+                    // (Apple Review 3.1.2 + Google) Mention d'abonnement OBLIGATOIRE
+                    // près du bouton d'achat + liens CGU/Confidentialité fonctionnels.
                     Text(
-                      'Paiement géré par l\'App Store / Google Play. '
-                      'Sans engagement pour les formules mensuelles.',
+                      'Abonnement à renouvellement automatique. Le paiement est '
+                      'débité via l\'App Store ou Google Play à la confirmation de '
+                      'l\'achat. Sauf résiliation au moins 24 h avant la fin de la '
+                      'période en cours, l\'abonnement se renouvelle automatiquement '
+                      'au même tarif. Gérez ou résiliez à tout moment dans les '
+                      'réglages d\'abonnement de votre compte (App Store / Google '
+                      'Play). Les formules mensuelles sont sans engagement ; '
+                      'l\'achat « à vie » est un paiement unique non récurrent.',
                       textAlign: TextAlign.center,
                       style:
                           TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton(
+                          onPressed: () => _openLegalUrl(kTermsUrl),
+                          style: TextButton.styleFrom(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8),
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text("Conditions d'utilisation",
+                              style: TextStyle(fontSize: 11)),
+                        ),
+                        Text('·',
+                            style: TextStyle(
+                                fontSize: 11, color: Colors.grey.shade500)),
+                        TextButton(
+                          onPressed: () => _openLegalUrl(kPrivacyPolicyUrl),
+                          style: TextButton.styleFrom(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8),
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text('Politique de confidentialité',
+                              style: TextStyle(fontSize: 11)),
+                        ),
+                      ],
                     ),
                   ],
                 ),

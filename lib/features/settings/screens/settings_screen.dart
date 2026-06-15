@@ -157,6 +157,20 @@ class SettingsScreen extends ConsumerWidget {
                   size: 16, color: Colors.grey),
               onTap: () => _openLegal(context, kTermsUrl),
             ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Suppression des données'),
+              trailing: const Icon(Icons.open_in_new,
+                  size: 16, color: Colors.grey),
+              onTap: () => _openLegal(context, kDataDeletionUrl),
+            ),
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: const Text('Aide & support'),
+              trailing: const Icon(Icons.open_in_new,
+                  size: 16, color: Colors.grey),
+              onTap: () => _openLegal(context, kSupportUrl),
+            ),
 
             // (B) Faire connaître l'appli — tout en bas.
             const _ShareAppTile(),
@@ -1666,9 +1680,11 @@ class _CompanySectionState extends ConsumerState<_CompanySection> {
         (s['company_siret'] ?? '').toString().isNotEmpty ||
         (s['company_address'] ?? '').toString().isNotEmpty;
 
+    // (prefill) Le « Nom du technicien » est désormais pré-rempli avec le nom du
+    // compte → on ne le compte PLUS comme « identité renseignée », sinon le cue
+    // « à compléter » disparaîtrait alors que les infos ENTREPRISE sont vides.
     final isFilled = soloCompanyName.isNotEmpty ||
-        teamCompanyName.isNotEmpty ||
-        (s['technician_name'] ?? '').isNotEmpty;
+        teamCompanyName.isNotEmpty;
     final borderColor =
         isFilled ? Colors.grey.shade300 : AppColors.primary;
 
