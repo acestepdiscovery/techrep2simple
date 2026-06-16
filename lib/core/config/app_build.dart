@@ -8,7 +8,8 @@
 // const int kAppBuildNumber = 10;
 // const int kAppBuildNumber = 11;
 // const int kAppBuildNumber = 12;
-const int kAppBuildNumber = 13;
+// const int kAppBuildNumber = 13;
+const int kAppBuildNumber = 14;
 
 // Unique token baked into this specific build.
 // Change this value for each distinct distribution (demo, beta, prod release, etc.)
@@ -22,7 +23,8 @@ const int kAppBuildNumber = 13;
 // const String kAppInstanceToken = 'demo_v1_raptech_2026_SIMPLE5'; // il manquaqit un api pour que le json VALIDATOR des achats work etc lets see
 //const String kAppInstanceToken = 'Release_v1_raptech_2026_SIMPLE5'; // il manquaqit un api pour que le json VALIDATOR des achats work etc lets see
 // const String kAppInstanceToken = 'Release_v1B_raptech_2026_SIMPLE5';
-const String kAppInstanceToken = 'Release_v1Cok_raptech_2026_SIMPLE5';
+// const String kAppInstanceToken = 'Release_v1Cok_raptech_2026_SIMPLE5';
+const String kAppInstanceToken = 'Release_v1Dok_raptech_2026_SIMPLE5';
 
 // How long (in minutes) the instance token check result is cached in SharedPrefs.
 // Set to 1 for testing so you don't wait an hour to see the block take effect.
