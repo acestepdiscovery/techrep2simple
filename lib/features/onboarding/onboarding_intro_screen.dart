@@ -28,49 +28,61 @@ class OnboardingIntroScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Comment ça marche ?',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Comment ça marche ?',
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Tout ce dont vous avez besoin, en 3 étapes.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: Colors.black54),
+                      ),
+                      const SizedBox(height: 32),
+                      _FeatureRow(
+                        step: '1',
+                        icon: Icons.edit_note,
+                        title: 'Créez votre rapport',
+                        body:
+                            'Remplissez le formulaire guidé : infos client, équipement, travaux. '
+                            'Ajoutez des photos et la signature du client — sur place ou à distance.',
+                      ),
+                      const SizedBox(height: 24),
+                      _FeatureRow(
+                        step: '2',
+                        icon: Icons.picture_as_pdf_outlined,
+                        title: 'Exportez en PDF',
+                        body:
+                            'Un PDF professionnel est généré automatiquement. '
+                            'Partagez-le par WhatsApp, email ou enregistrez-le sur Drive / OneDrive / Dropbox.',
+                      ),
+                      const SizedBox(height: 24),
+                      _FeatureRow(
+                        step: '3',
+                        icon: Icons.auto_awesome,
+                        title: 'Laissez l\'IA vous aider',
+                        body:
+                            'Dictez votre rapport à voix haute ou photographiez un formulaire papier. '
+                            'L\'IA remplit les champs pour vous. (Fonctionnalité Pro)',
+                      ),
+                      const SizedBox(height: 28),
+                      const _WelcomeNote(),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                'Tout ce dont vous avez besoin, en 3 étapes.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: Colors.black54),
-              ),
-              const SizedBox(height: 36),
-              _FeatureRow(
-                step: '1',
-                icon: Icons.edit_note,
-                title: 'Créez votre rapport',
-                body:
-                    'Remplissez le formulaire guidé : infos client, équipement, travaux. '
-                    'Ajoutez des photos et la signature du client — sur place ou à distance.',
-              ),
-              const SizedBox(height: 24),
-              _FeatureRow(
-                step: '2',
-                icon: Icons.picture_as_pdf_outlined,
-                title: 'Exportez en PDF',
-                body:
-                    'Un PDF professionnel est généré automatiquement. '
-                    'Partagez-le par WhatsApp, email ou enregistrez-le sur Drive / OneDrive / Dropbox.',
-              ),
-              const SizedBox(height: 24),
-              _FeatureRow(
-                step: '3',
-                icon: Icons.auto_awesome,
-                title: 'Laissez l\'IA vous aider',
-                body:
-                    'Dictez votre rapport à voix haute ou photographiez un formulaire papier. '
-                    'L\'IA remplit les champs pour vous. (Fonctionnalité Pro)',
-              ),
-              const Spacer(),
+              const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => _start(context),
                 style: FilledButton.styleFrom(
@@ -142,6 +154,61 @@ class _FeatureRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Message d'accueil : on est une jeune équipe à l'écoute, on adapte l'app au
+/// métier de l'utilisateur, ses retours comptent. Ton professionnel et sincère.
+class _WelcomeNote extends StatelessWidget {
+  const _WelcomeNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.handshake_outlined,
+                  color: AppColors.primary, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Une application qui s\'adapte à vous',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15.5,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Nous concevons Compte Rendu Technique IA main dans la main avec des '
+            'professionnels du terrain. Il vous manque un champ ? Vous avez '
+            'besoin d\'un format de PDF particulier pour votre métier ? '
+            'Écrivez-nous : nous adaptons l\'application à votre activité.',
+            style: TextStyle(fontSize: 13.5, color: Colors.black87, height: 1.5),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Nous sommes une équipe réactive et à l\'écoute : chacun de vos '
+            'retours oriente directement nos prochaines mises à jour. '
+            'Votre avis compte — vraiment.',
+            style: TextStyle(fontSize: 13.5, color: Colors.black87, height: 1.5),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/config/app_build.dart';
 import '../../shared/services/billing_config.dart';
@@ -1015,13 +1016,17 @@ class _NoTeamInfoCard extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                if (user != null) {
-                  context.push('/team-setup');
-                } else {
-                  context.push('/auth');
+              onPressed: () async {
+                // (3a) On mémorise qu'on vient du PAYWALL → team_setup rouvrira le
+                // paywall après création (et team_intent route le login vers l'équipe).
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('team_from_paywall', true);
+                if (user == null) {
+                  await prefs.setString('team_intent', 'create');
                 }
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                context.push(user != null ? '/team-setup' : '/auth');
               },
               icon: const Icon(Icons.group_add, size: 18),
               label: const Text('Créer / rejoindre une équipe'),

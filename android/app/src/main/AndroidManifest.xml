@@ -1,8 +1,15 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Android 13+ requires explicit permission to post notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Audio recording for AI vocal report feature -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- (Advertising ID) firebase-analytics injecte automatiquement
+         com.google.android.gms.permission.AD_ID. L'app ne fait PAS de publicité →
+         on RETIRE la permission via le manifest merger, ce qui permet de déclarer
+         « pas d'identifiant publicitaire » sur le Play Store (Android 13+). -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove"/>
     <application
         android:label="Compte Rendu Technique IA"
         android:name="${applicationName}"

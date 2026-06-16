@@ -90,10 +90,11 @@ dependencies {
   implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
 
 
-  // TODO: Add the dependencies for Firebase products you want to use
-  // When using the BoM, don't specify versions in Firebase dependencies
-  implementation("com.google.firebase:firebase-analytics")
-
+  // Firebase : les produits utilisés (auth, messaging, firestore) sont fournis par
+  // les plugins Flutter (firebase_*). firebase-analytics a été RETIRÉ : NON utilisé
+  // (aucun appel dans le code Dart) et c'était la seule source de la permission
+  // Advertising ID (AD_ID). Le BoM ci-dessus aligne les versions si on rajoute un
+  // jour un produit Firebase NATIF ici.
 
   // Add the dependencies for any other desired Firebase products
   // https://firebase.google.com/docs/android/setup#available-libraries

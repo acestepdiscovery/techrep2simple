@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../subscription/paywall_bottom_sheet.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/services/team_service.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -79,11 +80,18 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
           .set('company_name', company.name);
       if (mounted) {
         _showInviteCodeDialog(company.inviteCode, company.name, () async {
-          // Équipe créée mais pas encore payée → on rouvre le paywall (onglet équipe)
-          // après le retour à l'accueil (drapeau lu par l'écran Rapports).
+          // (3a) Si la création d'équipe a été lancée DEPUIS le paywall, on rouvre
+          // le paywall (onglet équipe) pour que l'admin s'abonne tout de suite, PUIS
+          // on retourne à l'accueil. Sinon (page de garde) → directement l'accueil.
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setBool('show_team_paywall', true);
-          if (context.mounted) context.go('/home');
+          final fromPaywall = prefs.getBool('team_from_paywall') ?? false;
+          await prefs.remove('team_from_paywall');
+          if (!mounted) return;
+          if (fromPaywall) {
+            await PaywallBottomSheet.show(context, initialForTeam: true);
+            if (!mounted) return;
+          }
+          context.go('/home');
         });
       }
     } catch (e) {
