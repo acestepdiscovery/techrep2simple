@@ -196,6 +196,15 @@ class SettingsScreen extends ConsumerWidget {
                   size: 16, color: Colors.grey),
               onTap: () => _openLegal(context, kSupportUrl),
             ),
+            // Mentions légales / Impressum — masqué tant que l'URL n'est pas remplie.
+            if (kLegalNoticeUrl.isNotEmpty)
+              ListTile(
+                leading: const Icon(Icons.gavel_outlined),
+                title: Text('settings_legal_notice'.tr()),
+                trailing: const Icon(Icons.open_in_new,
+                    size: 16, color: Colors.grey),
+                onTap: () => _openLegal(context, kLegalNoticeUrl),
+              ),
 
             // (B) Faire connaître l'appli — tout en bas.
             const _ShareAppTile(),

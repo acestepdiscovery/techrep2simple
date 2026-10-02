@@ -44,6 +44,11 @@ const String kTermsUrl = 'https://sites.google.com/view/conditionsgnralesdutilis
 const String kDataDeletionUrl = 'https://sites.google.com/view/suppression-compte-fichetech/home'; // ex. https://sites.google.com/view/.../suppression
 // URL de la page « Aide & support ». REMPLIR après hébergement.
 const String kSupportUrl = 'https://sites.google.com/view/supfichetech/home'; // ex. https://sites.google.com/view/.../support
+// (2026-10-02) URL de la page « Mentions légales / Impressum / Legal notice / Aviso legal »
+// (source : legal/public_pages/MENTIONS_LEGALES_IMPRESSUM_2026-10-02.md). Obligatoire en
+// Allemagne/Autriche (Impressum), en France (LCEN) et en Espagne (LSSI) pour un service pro.
+// VIDE = la ligne est MASQUÉE dans Réglages (pas de lien mort). REMPLIR après hébergement.
+const String kLegalNoticeUrl = '';
 
 // ─── Feature flags ────────────────────────────────────────────────────────────
 
