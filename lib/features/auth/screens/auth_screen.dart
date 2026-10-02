@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -144,7 +145,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _resetPassword() async {
     if (_email.text.trim().isEmpty) {
       setState(() {
-        _error = 'Entrez votre email pour réinitialiser le mot de passe.';
+        _error = 'auth_reset_need_email'.tr();
       });
       return;
     }
@@ -153,7 +154,7 @@ class _AuthScreenState extends State<AuthScreen> {
           .sendPasswordResetEmail(email: _email.text.trim());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Email de réinitialisation envoyé.')),
+          SnackBar(content: Text('auth_reset_sent'.tr())),
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -185,7 +186,7 @@ class _AuthScreenState extends State<AuthScreen> {
     } on FirebaseAuthException catch (e) {
       setState(() { _error = _friendlyError(e.code); });
     } catch (e) {
-      setState(() { _error = 'Connexion Google échouée. Réessayez.'; });
+      setState(() { _error = 'auth_google_failed'.tr(); });
     } finally {
       if (mounted) setState(() { _loading = false; });
     }
@@ -230,12 +231,12 @@ class _AuthScreenState extends State<AuthScreen> {
       await _afterSignIn();
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code != AuthorizationErrorCode.canceled) {
-        setState(() { _error = 'Connexion Apple échouée. Réessayez.'; });
+        setState(() { _error = 'auth_apple_failed'.tr(); });
       }
     } on FirebaseAuthException catch (e) {
       setState(() { _error = _friendlyError(e.code); });
     } catch (e) {
-      setState(() { _error = 'Connexion Apple échouée. Réessayez.'; });
+      setState(() { _error = 'auth_apple_failed'.tr(); });
     } finally {
       if (mounted) setState(() { _loading = false; });
     }
@@ -253,16 +254,16 @@ class _AuthScreenState extends State<AuthScreen> {
   // ── Error messages ────────────────────────────────────────────────────────
 
   String _friendlyError(String code) => switch (code) {
-        'email-already-in-use' => 'Cet email est déjà utilisé.',
-        'invalid-email' => 'Email invalide.',
-        'weak-password' => 'Mot de passe trop faible (min. 6 caractères).',
+        'email-already-in-use' => 'auth_err_email_in_use'.tr(),
+        'invalid-email' => 'auth_err_invalid_email'.tr(),
+        'weak-password' => 'auth_err_weak_password'.tr(),
         'user-not-found' ||
         'wrong-password' ||
         'invalid-credential' =>
-          'Email ou mot de passe incorrect.',
-        'too-many-requests' => 'Trop de tentatives. Réessayez plus tard.',
-        'network-request-failed' => 'Pas de connexion internet.',
-        _ => 'Erreur : $code',
+          'auth_err_wrong_credentials'.tr(),
+        'too-many-requests' => 'auth_err_too_many'.tr(),
+        'network-request-failed' => 'auth_err_no_internet'.tr(),
+        _ => 'auth_err_generic'.tr(args: [code]),
       };
 
   // ── Build ─────────────────────────────────────────────────────────────────
@@ -277,13 +278,13 @@ class _AuthScreenState extends State<AuthScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Text(isRegister ? 'Créer un compte' : 'Connexion'),
+        title: Text(isRegister ? 'auth_create_account'.tr() : 'auth_title_login'.tr()),
         actions: [
           TextButton(
             onPressed: () => _continueOffline(context),
-            child: const Text(
-              'Sans compte',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
+            child: Text(
+              'auth_no_account_btn'.tr(),
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
             ),
           ),
         ],
@@ -302,16 +303,16 @@ class _AuthScreenState extends State<AuthScreen> {
                 if (isRegister) ...[
                   _Field(
                     controller: _displayName,
-                    label: 'Votre prénom / nom',
+                    label: 'auth_field_name'.tr(),
                     icon: Icons.person_outline,
                     validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                        (v == null || v.trim().isEmpty) ? 'auth_field_required'.tr() : null,
                   ),
                   const SizedBox(height: 14),
                 ],
                 _Field(
                   controller: _email,
-                  label: 'Email',
+                  label: 'auth_field_email'.tr(),
                   icon: Icons.email_outlined,
                   keyboard: TextInputType.emailAddress,
                   validator: (v) {
@@ -320,13 +321,13 @@ class _AuthScreenState extends State<AuthScreen> {
                     final re = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
                     return re.hasMatch(email)
                         ? null
-                        : 'Email invalide (ex : nom@domaine.com)';
+                        : 'auth_invalid_email_hint'.tr();
                   },
                 ),
                 const SizedBox(height: 14),
                 _Field(
                   controller: _password,
-                  label: 'Mot de passe',
+                  label: 'auth_field_password'.tr(),
                   icon: Icons.lock_outline,
                   obscure: _obscure,
                   suffix: IconButton(
@@ -338,16 +339,16 @@ class _AuthScreenState extends State<AuthScreen> {
                         setState(() => _obscure = !_obscure),
                   ),
                   validator: (v) =>
-                      (v == null || v.length < 6) ? 'Min. 6 caractères' : null,
+                      (v == null || v.length < 6) ? 'auth_password_min'.tr() : null,
                 ),
                 if (!isRegister) ...[
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _resetPassword,
-                      child: const Text(
-                        'Mot de passe oublié ?',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      child: Text(
+                        'auth_forgot_password'.tr(),
+                        style: const TextStyle(color: Colors.white70, fontSize: 13),
                       ),
                     ),
                   ),
@@ -391,13 +392,12 @@ class _AuthScreenState extends State<AuthScreen> {
                               setState(() => _marketing = v ?? false),
                         ),
                         const SizedBox(width: 4),
-                        const Expanded(
+                        Expanded(
                           child: Padding(
-                            padding: EdgeInsets.only(top: 11),
+                            padding: const EdgeInsets.only(top: 11),
                             child: Text(
-                              'Je souhaite recevoir par email des offres, nouveautés '
-                              'et bons plans (facultatif).',
-                              style: TextStyle(
+                              'auth_marketing_optin'.tr(),
+                              style: const TextStyle(
                                   color: Colors.white70, fontSize: 12.5),
                             ),
                           ),
@@ -423,7 +423,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : Text(
-                          isRegister ? 'Créer mon compte' : 'Se connecter',
+                          isRegister ? 'auth_create_my_account'.tr() : 'auth_sign_in'.tr(),
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 15),
                         ),
@@ -434,8 +434,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   children: [
                     Text(
                       isRegister
-                          ? 'Déjà un compte ? '
-                          : 'Pas encore de compte ? ',
+                          ? 'auth_already_account'.tr()
+                          : 'auth_no_account_yet'.tr(),
                       style: const TextStyle(color: Colors.white70),
                     ),
                     TextButton(
@@ -446,7 +446,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         _error = null;
                       }),
                       child: Text(
-                        isRegister ? 'Se connecter' : 'Créer un compte',
+                        isRegister ? 'auth_sign_in'.tr() : 'auth_create_account'.tr(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -464,7 +464,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           color: Colors.white.withValues(alpha: 0.25))),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('ou',
+                    child: Text('auth_or'.tr(),
                         style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.5),
                             fontSize: 13)),
@@ -530,14 +530,14 @@ class _GoogleButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _GoogleGIcon(),
-                  SizedBox(width: 10),
+                  const _GoogleGIcon(),
+                  const SizedBox(width: 10),
                   Text(
-                    'Continuer avec Google',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    'auth_continue_google'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                   ),
                 ],
               ),
@@ -626,14 +626,14 @@ class _AppleButton extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14)),
             padding: const EdgeInsets.symmetric(horizontal: 16),
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.apple, size: 24, color: Colors.white),
-              SizedBox(width: 8),
+              const Icon(Icons.apple, size: 24, color: Colors.white),
+              const SizedBox(width: 8),
               Text(
-                'Continuer avec Apple',
-                style: TextStyle(
+                'auth_continue_apple'.tr(),
+                style: const TextStyle(
                     fontWeight: FontWeight.w600, fontSize: 15, color: Colors.white),
               ),
             ],

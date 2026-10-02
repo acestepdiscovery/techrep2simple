@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -95,7 +96,7 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
         });
       }
     } catch (e) {
-      setState(() { _error = 'Erreur : $e'; });
+      setState(() { _error = 'common_error'.tr(args: ['$e']); });
     } finally {
       if (mounted) setState(() { _loading = false; });
     }
@@ -121,17 +122,14 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
             context: context,
             builder: (dlg) => AlertDialog(
               icon: Icon(Icons.groups_outlined, color: Colors.orange.shade700),
-              title: const Text('Vous êtes responsable d\'une équipe'),
+              title: Text('pw_you_are_admin'.tr()),
               content: Text(
-                'Votre équipe « ${current.companyName ?? ''} » a $others autre(s) '
-                'membre(s). Rejoindre une autre équipe la laisserait sans '
-                'responsable.\n\nGérez/retirez d\'abord vos membres dans l\'onglet '
-                'Équipe, puis revenez.',
+                'ts_admin_block_desc'.tr(args: [current.companyName ?? '', '$others']),
               ),
               actions: [
                 FilledButton(
                     onPressed: () => Navigator.pop(dlg),
-                    child: const Text('Compris')),
+                    child: Text('common_understood'.tr())),
               ],
             ),
           );
@@ -167,7 +165,7 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
         displayName: _user.displayName ?? _user.email ?? '',
       );
       if (company == null) {
-        setState(() { _error = 'Code d\'invitation incorrect.'; });
+        setState(() { _error = 'ts_invalid_code'.tr(); });
         return;
       }
       await ref.read(teamStateProvider.notifier).saveTeam(company, 'tech');
@@ -176,7 +174,7 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
           .set('company_name', company.name);
       if (mounted) context.go('/home');
     } catch (e) {
-      setState(() { _error = 'Erreur : $e'; });
+      setState(() { _error = 'common_error'.tr(args: ['$e']); });
     } finally {
       if (mounted) setState(() { _loading = false; });
     }
@@ -191,27 +189,23 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
       builder: (dlg) => AlertDialog(
         icon: Icon(isCeo ? Icons.warning_amber_rounded : Icons.swap_horiz,
             color: isCeo ? Colors.red : Colors.orange),
-        title: Text(isCeo ? 'Dissoudre votre équipe ?' : 'Quitter votre équipe ?'),
+        title: Text(isCeo ? 'ts_dissolve_q'.tr() : 'ts_leave_q'.tr()),
         content: Text(
           isCeo
-              ? 'Vous êtes le responsable de « $name » (aucun autre membre). '
-                  'Rejoindre une autre équipe va DISSOUDRE définitivement « $name ». '
-                  'Cette action est irréversible. Continuer ?'
-              : 'Vous êtes dans l\'équipe « $name ». Rejoindre une autre équipe '
-                  'vous en fera SORTIR (vous pourrez y revenir avec son code). '
-                  'Continuer ?',
+              ? 'ts_dissolve_desc'.tr(args: [name, name])
+              : 'ts_leave_desc'.tr(args: [name]),
           style: const TextStyle(fontSize: 13),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dlg, false),
-              child: const Text('Annuler')),
+              child: Text('common_cancel'.tr())),
           FilledButton(
             style: isCeo
                 ? FilledButton.styleFrom(backgroundColor: Colors.red)
                 : null,
             onPressed: () => Navigator.pop(dlg, true),
-            child: Text(isCeo ? 'Dissoudre et rejoindre' : 'Quitter et rejoindre'),
+            child: Text(isCeo ? 'ts_dissolve_join'.tr() : 'ts_leave_join'.tr()),
           ),
         ],
       ),
@@ -223,21 +217,21 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
       context: context,
       barrierDismissible: false,
       builder: (dialogCtx) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.group_add, color: AppColors.primary),
-            SizedBox(width: 8),
-            Text('Équipe créée !'),
+            const Icon(Icons.group_add, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text('ts_team_created'.tr()),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Votre équipe "$name" est prête.'),
+            Text('ts_team_ready'.tr(args: [name])),
             const SizedBox(height: 16),
-            const Text('Code d\'invitation pour vos techniciens :',
-                style: TextStyle(color: Colors.black54, fontSize: 13)),
+            Text('ts_invite_code_for_techs'.tr(),
+                style: const TextStyle(color: Colors.black54, fontSize: 13)),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -263,13 +257,13 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
                   const SizedBox(width: 10),
                   IconButton(
                     icon: const Icon(Icons.copy_outlined, size: 20, color: AppColors.primary),
-                    tooltip: 'Copier le code',
+                    tooltip: 'ts_copy_code'.tr(),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: code));
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Code copié !')),
+                        SnackBar(content: Text('ts_code_copied'.tr())),
                       );
                     },
                   ),
@@ -277,16 +271,16 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Pas d\'inquiétude, ce code est disponible à tout moment dans l\'onglet Équipe → Membres.',
-              style: TextStyle(fontSize: 12, color: Colors.black54),
+            Text(
+              'ts_code_available'.tr(),
+              style: const TextStyle(fontSize: 12, color: Colors.black54),
             ),
           ],
         ),
         actions: [
           FilledButton(
             onPressed: () { Navigator.pop(dialogCtx); onDone(); },
-            child: const Text('Commencer'),
+            child: Text('onboarding_start'.tr()),
           ),
         ],
       ),
@@ -298,16 +292,16 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
     // Guard: redirect unauthenticated users to auth screen
     if (FirebaseAuth.instance.currentUser == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Configuration équipe')),
+        appBar: AppBar(title: Text('ts_team_config'.tr())),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Connectez-vous pour configurer votre équipe.'),
+              Text('ts_login_to_config'.tr()),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => context.go('/auth'),
-                child: const Text('Se connecter'),
+                child: Text('auth_sign_in'.tr()),
               ),
             ],
           ),
@@ -321,15 +315,15 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Configurer votre équipe'),
+        title: Text('ts_configure_team'.tr()),
         actions: [
           // (#1) Échappatoire : abandonner la configuration et entrer dans l'app
           // (utile si on arrive ici depuis la page de garde et qu'on veut juste
           // voir l'app d'abord).
           TextButton(
             onPressed: () => context.go('/home'),
-            child: const Text('Plus tard',
-                style: TextStyle(color: Colors.white)),
+            child: Text('common_later'.tr(),
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
         bottom: TabBar(
@@ -337,9 +331,9 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white54,
           indicatorColor: Colors.white,
-          tabs: const [
-            Tab(text: 'Créer une équipe'),
-            Tab(text: 'Rejoindre une équipe'),
+          tabs: [
+            Tab(text: 'ts_create_team'.tr()),
+            Tab(text: 'welcome_join_title'.tr()),
           ],
         ),
       ),
@@ -366,8 +360,8 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
             const SizedBox(height: 16),
             _header(
               Icons.business,
-              'Créer votre entreprise',
-              'Vous serez administrateur. Vos techniciens pourront vous rejoindre avec un code.',
+              'ts_create_company'.tr(),
+              'ts_create_company_sub'.tr(),
             ),
             const SizedBox(height: 16),
             // (3.3) Clarifier : pas besoin d'une équipe pour un pro solo.
@@ -384,21 +378,13 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
                     Icon(Icons.info_outline,
                         size: 16, color: AppColors.primary),
                     const SizedBox(width: 6),
-                    const Text('Vous travaillez seul ?',
-                        style: TextStyle(
+                    Text('ts_work_alone_q'.tr(),
+                        style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 13)),
                   ]),
                   const SizedBox(height: 4),
                   Text(
-                    'Un seul abonnement suffit pour travailler seul : mettez le '
-                    'nom de votre société sur vos PDF directement dans les '
-                    'Réglages, pas besoin d\'équipe.\n\n'
-                    'Une ÉQUIPE sert si PLUSIEURS personnes (techniciens) d\'une '
-                    'même entreprise utilisent l\'app ensemble : ils vous '
-                    'rejoignent avec un code, et vous consultez/validez leurs '
-                    'rapports.\n\n'
-                    '👉 Si vous êtes le responsable d\'une entreprise, remplissez '
-                    'simplement le champ ci-dessous pour créer votre équipe.',
+                    'ts_work_alone_desc'.tr(),
                     style: TextStyle(
                         fontSize: 11.5, color: Colors.grey.shade700),
                   ),
@@ -406,7 +392,7 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
                   TextButton.icon(
                     onPressed: () => context.go('/settings'),
                     icon: const Icon(Icons.settings_outlined, size: 16),
-                    label: const Text('Renseigner ma société dans les Réglages'),
+                    label: Text('ts_fill_company_settings'.tr()),
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.zero,
                       minimumSize: Size.zero,
@@ -419,10 +405,10 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
             const SizedBox(height: 20),
             _whiteField(
               controller: _companyNameCreate,
-              label: 'Nom de l\'entreprise',
+              label: 'settings_company_name'.tr(),
               icon: Icons.business_outlined,
               validator: (v) => (v == null || v.trim().length < 2)
-                  ? 'Nom trop court'
+                  ? 'ts_name_too_short'.tr()
                   : null,
             ),
             if (_error != null && _tabs.index == 0) ...[
@@ -430,7 +416,7 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
               _errorBox(_error!),
             ],
             const SizedBox(height: 24),
-            _submitBtn('Créer l\'équipe', _loading ? null : _createCompany),
+            _submitBtn('ts_create_team_btn'.tr(), _loading ? null : _createCompany),
           ],
         ),
       ),
@@ -448,21 +434,20 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
             const SizedBox(height: 16),
             _header(
               Icons.group_add,
-              'Rejoindre une équipe',
-              'Demandez son code d\'invitation à votre administrateur — le code '
-                  'suffit, pas besoin du nom de l\'entreprise.',
+              'welcome_join_title'.tr(),
+              'ts_join_sub'.tr(),
             ),
             const SizedBox(height: 28),
             // (#3) Rejoindre par CODE SEUL (le code est unique). Plus de champ
             // « nom de l'entreprise » : renommer l'équipe ne casse plus rien.
             _whiteField(
               controller: _inviteCode,
-              label: 'Code d\'invitation',
+              label: 'ts_invite_code_label'.tr(),
               icon: Icons.key_outlined,
               textCapitalization: TextCapitalization.characters,
               maxLength: 8,
               validator: (v) => (v == null || v.trim().length < 6)
-                  ? 'Code d\'invitation requis'
+                  ? 'ts_invite_code_required'.tr()
                   : null,
             ),
             if (_error != null && _tabs.index == 1) ...[
@@ -470,7 +455,7 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
               _errorBox(_error!),
             ],
             const SizedBox(height: 24),
-            _submitBtn('Rejoindre', _loading ? null : _joinCompany),
+            _submitBtn('ts_join_btn'.tr(), _loading ? null : _joinCompany),
           ],
         ),
       ),

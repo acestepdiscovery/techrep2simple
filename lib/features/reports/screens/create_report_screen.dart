@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,10 @@ import 'package:printing/printing.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_colors.dart';
 import '../models/report_model.dart';
+import '../models/sector_options.dart';
+import '../models/tax_options.dart';
+import '../models/currency_options.dart';
+import '../../settings/widgets/tax_editor.dart';
 import '../providers/reports_provider.dart';
 import '../../clients/models/client_model.dart';
 import '../../clients/providers/clients_provider.dart';
@@ -87,6 +92,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   DateTime? _existingCreatedAt;
   int _reportNumber = 0;
   String? _reportNumberFormat;
+  // Override taxe (facture) de CE rapport ; null = défaut global des Réglages.
+  double? _taxRate;
+  String? _taxLabel;
+  String? _taxMention;
   String? _clientId;
 
   final List<XFile> _photos = [];
@@ -191,6 +200,9 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         ..addAll(report.materials);
       _reportNumber = report.reportNumber;
       _reportNumberFormat = report.reportNumberFormat;
+      _taxRate = report.taxRate;
+      _taxLabel = report.taxLabel;
+      _taxMention = report.taxMention;
       // Auto-expand sections that already have data when editing
       _sectionExpanded[1] = report.clientName.isNotEmpty;
       _sectionExpanded[3] = report.equipmentType.isNotEmpty;
@@ -364,6 +376,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       companyEmail: s['company_email'],
       companySiret: s['company_siret'],
       companyTva: s['company_tva'],
+      currencyCode: appCurrencyCode,
     );
     setState(() => _isSaving = false);
     if (!mounted) return;
@@ -371,7 +384,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => Scaffold(
-          appBar: AppBar(title: const Text('Aperçu PDF')),
+          appBar: AppBar(title: Text('cr_pdf_preview'.tr())),
           body: PdfPreview(
             build: (_) async => bytes,
             allowPrinting: false,
@@ -409,7 +422,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         content: Text('Heure ${isStart ? 'de début' : 'de fin'} effacée'),
         duration: const Duration(seconds: 4),
         action: SnackBarAction(
-          label: 'Annuler',
+          label: 'common_cancel'.tr(),
           onPressed: () => setState(() {
             if (isStart) {
               _startTime = previous;
@@ -431,7 +444,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         content: Text('${removed.label} supprimé'),
         duration: const Duration(seconds: 4),
         action: SnackBarAction(
-          label: 'Annuler',
+          label: 'common_cancel'.tr(),
           onPressed: () => setState(() => _materials.insert(index, removed)),
         ),
       ),
@@ -700,6 +713,9 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       laborHours: double.tryParse(_laborHours.text.replaceAll(',', '.')),
       laborRate: double.tryParse(_laborRate.text.replaceAll(',', '.')),
       materials: List.from(_materials),
+      taxRate: _taxRate,
+      taxLabel: _taxLabel,
+      taxMention: _taxMention,
       technicianName: s['technician_name']?.toString(),
       technicianId: inTeam ? ref.read(firebaseUserProvider).valueOrNull?.uid : null,
       companyId: inTeam ? teamState?.companyId : null,
@@ -721,12 +737,12 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         text: _reportNumber > 0 ? _reportNumber.toString() : '');
 
     const presets = [
-      ('{num}', 'Simple', '001'),
-      ('{year}-{num}', 'Annuel', '2026-001'),
-      ('{year}/{num}', 'Année/N°', '2026/001'),
-      ('{company}/{year}/{month}/{day}/{num}', 'Société/Date', 'AMARIS/2026/04/23/001'),
-      ('{client}-{num}', 'Client-N°', 'DUPONT-001'),
-      ('{client}/{year}/{month}/{day}/{num}', 'Client/Date', 'DUPONT/2026/05/18/001'),
+      ('{num}', 'fmt_preset_simple', '001'),
+      ('{year}-{num}', 'fmt_preset_annual', '2026-001'),
+      ('{year}/{num}', 'fmt_preset_year_num', '2026/001'),
+      ('{company}/{year}/{month}/{day}/{num}', 'fmt_preset_company_date', 'AMARIS/2026/04/23/001'),
+      ('{client}-{num}', 'fmt_preset_client_num', 'DUPONT-001'),
+      ('{client}/{year}/{month}/{day}/{num}', 'fmt_preset_client_date', 'DUPONT/2026/05/18/001'),
     ];
 
     String? fmtSelected = _reportNumberFormat;
@@ -750,7 +766,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
           );
 
           return AlertDialog(
-            title: const Text('Numéro & format'),
+            title: Text('fmt_num_and_format'.tr()),
             content: Scrollbar(
               thumbVisibility: true,
               child: SingleChildScrollView(
@@ -761,19 +777,19 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                     TextField(
                       controller: numCtrl,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Numéro', isDense: true),
+                      decoration: InputDecoration(labelText: 'fmt_token_num'.tr(), isDense: true),
                       autofocus: true,
                       onChanged: (_) => setS(() {}),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Format', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    Text('fmt_format_label'.tr(), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
                       children: [
                         ChoiceChip(
-                          label: const Text('Défaut global', style: TextStyle(fontSize: 12)),
+                          label: Text('fmt_global_default'.tr(), style: const TextStyle(fontSize: 12)),
                           selected: fmtSelected == null && !showCustom,
                           visualDensity: VisualDensity.compact,
                           onSelected: (_) => setS(() { fmtSelected = null; showCustom = false; }),
@@ -781,14 +797,14 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                         ...presets.map((p) {
                           final (value, label, _) = p;
                           return ChoiceChip(
-                            label: Text(label, style: const TextStyle(fontSize: 12)),
+                            label: Text(label.tr(), style: const TextStyle(fontSize: 12)),
                             selected: !showCustom && fmtSelected == value,
                             visualDensity: VisualDensity.compact,
                             onSelected: (_) => setS(() { fmtSelected = value; showCustom = false; }),
                           );
                         }),
                         ChoiceChip(
-                          label: const Text('Personnalisé', style: TextStyle(fontSize: 12)),
+                          label: Text('fmt_custom'.tr(), style: const TextStyle(fontSize: 12)),
                           selected: showCustom,
                           visualDensity: VisualDensity.compact,
                           onSelected: (_) => setS(() => showCustom = true),
@@ -797,7 +813,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                     ),
                     if (!showCustom && fmtSelected != null) ...[
                       const SizedBox(height: 6),
-                      Text('Ex : ${preview(fmtSelected!)}',
+                      Text('common_example'.tr(args: [preview(fmtSelected!)]),
                           style: const TextStyle(fontSize: 11, color: Colors.blue)),
                     ],
                     if (showCustom) ...[
@@ -812,9 +828,9 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                         spacing: 6, runSpacing: 4,
                         children: [
                           for (final (token, label, isSep) in [
-                            ('{num}', 'Numéro', false), ('{client}', 'Client', false),
-                            ('{company}', 'Société', false), ('{year}', 'Année', false),
-                            ('{month}', 'Mois', false), ('{day}', 'Jour', false),
+                            ('{num}', 'fmt_token_num'.tr(), false), ('{client}', 'fmt_token_client'.tr(), false),
+                            ('{company}', 'fmt_token_company'.tr(), false), ('{year}', 'fmt_token_year'.tr(), false),
+                            ('{month}', 'fmt_token_month'.tr(), false), ('{day}', 'fmt_token_day'.tr(), false),
                             ('/', '/', true), ('-', '-', true), ('_', '_', true),
                           ])
                             ActionChip(
@@ -836,7 +852,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text('Aperçu : ${preview(customCtrl.text.isEmpty ? '{num}' : customCtrl.text)}',
+                      Text('fmt_preview'.tr(args: [preview(customCtrl.text.isEmpty ? '{num}' : customCtrl.text)]),
                           style: const TextStyle(fontSize: 11, color: Colors.blue)),
                     ],
                   ],
@@ -844,7 +860,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: Text('common_cancel'.tr())),
               ElevatedButton(
                 onPressed: () {
                   final v = int.tryParse(numCtrl.text.trim());
@@ -871,12 +887,12 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Service indisponible'),
+        title: Text('service_unavailable_title'.tr()),
         content: Text(result.message),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('Fermer')),
+              child: Text('common_close'.tr())),
         ],
       ),
     );
@@ -895,8 +911,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     // forcément le client). Sinon rien à enregistrer → on prévient et on sort.
     if (!_hasAnyContent()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Renseignez au moins une information à enregistrer.')),
+        SnackBar(
+            content: Text('cr_save_need_info'.tr())),
       );
       return;
     }
@@ -908,8 +924,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     _clearAutosave();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Rapport enregistré'),
+        SnackBar(
+          content: Text('cr_report_saved'.tr()),
           backgroundColor: AppColors.success,
         ),
       );
@@ -935,10 +951,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         if (travauxErr) _sectionExpanded[5] = true;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Des champs obligatoires sont manquants (surlignés en rouge).'),
+        SnackBar(
+          content: Text('cr_required_fields_missing'.tr()),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
+          duration: const Duration(seconds: 3),
         ),
       );
       return;
@@ -982,8 +998,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     _clearAutosave();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Rapport soumis ✓'),
+        SnackBar(
+          content: Text('cr_report_submitted'.tr()),
           backgroundColor: AppColors.statusSubmitted,
         ),
       );
@@ -1277,15 +1293,15 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   }
 
   PreferredSizeWidget _buildNavBar() {
-    const items = [
-      (0, Icons.category_outlined, 'Type'),
-      (1, Icons.person_outline, 'Client'),
-      (2, Icons.build_outlined, 'Mission'),
-      (3, Icons.settings_outlined, 'Équip.'),
-      (5, Icons.description_outlined, 'Travaux'),
-      (6, Icons.photo_camera_outlined, 'Photos'),
-      (7, Icons.draw_outlined, 'Signatures'),
-      (8, Icons.receipt_outlined, 'Facturat.'),
+    final items = [
+      (0, Icons.category_outlined, 'cr_nav_type'.tr()),
+      (1, Icons.person_outline, 'cr_nav_client'.tr()),
+      (2, Icons.build_outlined, 'cr_nav_mission'.tr()),
+      (3, Icons.settings_outlined, 'cr_nav_equip'.tr()),
+      (5, Icons.description_outlined, 'cr_nav_work'.tr()),
+      (6, Icons.photo_camera_outlined, 'cr_nav_photos'.tr()),
+      (7, Icons.draw_outlined, 'cr_nav_signatures'.tr()),
+      (8, Icons.receipt_outlined, 'cr_nav_billing'.tr()),
     ];
     return PreferredSize(
       preferredSize: const Size.fromHeight(44),
@@ -1364,6 +1380,13 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     }
 
     final settings = ref.watch(settingsProvider).valueOrNull ?? {};
+    // (devise) Pose la devise courante (globale) pour les helpers formatMoney du
+    // formulaire (totaux, matériaux, libellé €/h) → suit le pays/réglage.
+    appCurrencyCode = resolveCurrencyCode(
+      settings,
+      region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
+      language: context.locale.languageCode,
+    );
     // (C) Les MODÈLES sont réservés au Pro (comme facture / signature distante).
     final isPro = ref.watch(effectiveSubscriptionProvider);
     final globalFmt = settings['report_number_format']?.toString() ?? '{num}';
@@ -1381,8 +1404,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
           )
         : null;
     final appBarLabel = _isEditMode
-        ? 'Modifier ${resolvedNum ?? '#${_reportNumber.toString().padLeft(3, '0')}'}'
-        : resolvedNum ?? 'Nouveau rapport';
+        ? 'cr_edit_prefix'.tr(args: ['${resolvedNum ?? '#${_reportNumber.toString().padLeft(3, '0')}'}'])
+        : resolvedNum ?? 'rl_new_report'.tr();
 
     return Scaffold(
       appBar: AppBar(
@@ -1400,27 +1423,27 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_outlined),
-            tooltip: 'Aperçu PDF',
+            tooltip: 'cr_pdf_preview'.tr(),
             onPressed: _isSaving ? null : _previewCurrentPdf,
           ),
           IconButton(
             icon: _proIcon(Icons.folder_open_outlined, isPro),
-            tooltip: 'Charger un modèle',
+            tooltip: 'cr_load_template'.tr(),
             onPressed:
-                isPro ? _loadPreset : () => _showProRequired('Charger un modèle'),
+                isPro ? _loadPreset : () => _showProRequired('cr_load_template'.tr()),
           ),
           IconButton(
             icon: _proIcon(Icons.bookmark_add_outlined, isPro),
-            tooltip: 'Sauvegarder comme modèle',
+            tooltip: 'cr_save_template'.tr(),
             onPressed: isPro
                 ? _saveAsPreset
-                : () => _showProRequired('Sauvegarder comme modèle'),
+                : () => _showProRequired('cr_save_template'.tr()),
           ),
           TextButton.icon(
             onPressed: _isSaving ? null : _saveAsDraft,
             icon: const Icon(Icons.save_outlined, color: Colors.white),
-            label: const Text('Brouillon',
-                style: TextStyle(color: Colors.white)),
+            label: Text('cr_draft'.tr(),
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
         bottom: _buildNavBar(),
@@ -1433,7 +1456,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
             icon: _isSaving
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.send),
-            label: const Text('Soumettre le rapport'),
+            label: Text('cr_submit_report'.tr()),
           ),
         ),
       ),
@@ -1464,7 +1487,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
             _CollapsibleSection(
               key: _navKeys[0],
-              title: 'Type de rapport',
+              title: 'cr_section_type'.tr(),
               icon: Icons.category_outlined,
               expanded: _isExpanded(0),
               onToggle: () => _toggleSection(0),
@@ -1476,7 +1499,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
             _CollapsibleSection(
               key: _navKeys[1],
-              title: 'Client',
+              title: 'cr_section_client'.tr(),
               icon: Icons.person_outline,
               expanded: _isExpanded(1),
               onToggle: () => _toggleSection(1),
@@ -1487,25 +1510,25 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                   OutlinedButton.icon(
                     onPressed: _pickClient,
                     icon: const Icon(Icons.contacts_outlined, size: 18),
-                    label: const Text('Sélectionner depuis l\'annuaire'),
+                    label: Text('cr_pick_from_directory'.tr()),
                   ),
                   const SizedBox(height: 10),
                   _Field(
                     controller: _clientName,
-                    label: 'Nom du client *',
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+                    label: 'cr_client_name_required'.tr(),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'cr_required'.tr() : null,
                   ),
-                  _Field(controller: _clientAddress, label: 'Adresse'),
-                  _Field(controller: _clientPhone, label: 'Téléphone', keyboardType: TextInputType.phone),
-                  _Field(controller: _clientContact, label: 'Contact sur place'),
-                  _Field(controller: _contractNumber, label: 'N° de contrat'),
+                  _Field(controller: _clientAddress, label: 'field_address'.tr()),
+                  _Field(controller: _clientPhone, label: 'cr_phone'.tr(), keyboardType: TextInputType.phone),
+                  _Field(controller: _clientContact, label: 'cr_contact_onsite'.tr()),
+                  _Field(controller: _contractNumber, label: 'cr_contract_number'.tr()),
                   _extrasBlock(),
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton.icon(
                       onPressed: _saveAsClient,
                       icon: const Icon(Icons.person_add_outlined, size: 16),
-                      label: const Text('Enregistrer dans l\'annuaire', style: TextStyle(fontSize: 12)),
+                      label: Text('cr_save_to_directory'.tr(), style: const TextStyle(fontSize: 12)),
                     ),
                   ),
                 ],
@@ -1514,50 +1537,50 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
             _CollapsibleSection(
               key: _navKeys[2],
-              title: 'Intervention',
+              title: 'cr_section_intervention'.tr(),
               icon: Icons.build_outlined,
               expanded: _isExpanded(2),
               onToggle: () => _toggleSection(2),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Field(controller: _interventionType, label: "Type d'intervention"),
+                  _Field(controller: _interventionType, label: 'cr_intervention_type'.tr()),
                   _DateTile(date: _date, onChanged: (d) => setState(() => _date = d)),
                   Row(
                     children: [
                       Expanded(
                         child: _endDate != null
                             ? _DateTile(
-                                label: 'Date de fin',
+                                label: 'cr_end_date'.tr(),
                                 date: _endDate!,
                                 onChanged: (d) => setState(() => _endDate = d),
                               )
                             : TextButton.icon(
                                 onPressed: () => setState(() => _endDate = _date),
                                 icon: const Icon(Icons.date_range, size: 16),
-                                label: const Text('Intervention multi-jours', style: TextStyle(fontSize: 12)),
+                                label: Text('cr_multiday'.tr(), style: const TextStyle(fontSize: 12)),
                               ),
                       ),
                       if (_endDate != null)
                         IconButton(
                           icon: const Icon(Icons.close, size: 18),
-                          tooltip: 'Retirer la date de fin',
+                          tooltip: 'cr_remove_end_date'.tr(),
                           onPressed: () => setState(() => _endDate = null),
                         ),
                     ],
                   ),
                   Row(
                     children: [
-                      Expanded(child: _TimeTile(label: 'Début', time: _startTime, onTap: () => _pickTime(true), onClear: _startTime != null ? () => _clearTime(true) : null)),
+                      Expanded(child: _TimeTile(label: 'cr_time_start'.tr(), time: _startTime, onTap: () => _pickTime(true), onClear: _startTime != null ? () => _clearTime(true) : null)),
                       const SizedBox(width: 10),
-                      Expanded(child: _TimeTile(label: 'Fin', time: _endTime, onTap: () => _pickTime(false), onClear: _endTime != null ? () => _clearTime(false) : null)),
+                      Expanded(child: _TimeTile(label: 'cr_time_end'.tr(), time: _endTime, onTap: () => _pickTime(false), onClear: _endTime != null ? () => _clearTime(false) : null)),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
                     children: [
-                      for (final e in [('Maintenant', 0), ('−15 min', 15), ('−30 min', 30), ('−1 h', 60)])
+                      for (final e in [('cr_now'.tr(), 0), ('−15 min', 15), ('−30 min', 30), ('−1 h', 60)])
                         ActionChip(
                           label: Text(e.$1),
                           onPressed: () => _setStartTimeOffset(e.$2),
@@ -1574,22 +1597,22 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
             _CollapsibleSection(
               key: _navKeys[3],
-              title: 'Équipement',
+              title: 'cr_section_equipment'.tr(),
               icon: Icons.settings_outlined,
               expanded: _isExpanded(3),
               onToggle: () => _toggleSection(3),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Field(controller: _equipmentType, label: "Type d'équipement"),
+                  _Field(controller: _equipmentType, label: 'cr_equipment_type'.tr()),
                   Row(
                     children: [
-                      Expanded(child: _Field(controller: _equipmentBrand, label: 'Marque')),
+                      Expanded(child: _Field(controller: _equipmentBrand, label: 'cr_brand'.tr())),
                       const SizedBox(width: 10),
-                      Expanded(child: _Field(controller: _equipmentModel, label: 'Modèle')),
+                      Expanded(child: _Field(controller: _equipmentModel, label: 'cr_model'.tr())),
                     ],
                   ),
-                  _Field(controller: _equipmentSerial, label: 'N° de série'),
+                  _Field(controller: _equipmentSerial, label: 'cr_serial'.tr()),
                 ],
               ),
             ),
@@ -1610,7 +1633,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
             _CollapsibleSection(
               key: _navKeys[5],
-              title: 'Détails des travaux',
+              title: 'cr_section_work'.tr(),
               icon: Icons.description_outlined,
               expanded: _isExpanded(5),
               onToggle: () => _toggleSection(5),
@@ -1618,16 +1641,16 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Field(controller: _description, label: 'Description des travaux *', maxLines: 5,
-                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null),
-                  _Field(controller: _observations, label: 'Observations / Recommandations', maxLines: 3),
+                  _Field(controller: _description, label: 'cr_work_description_required'.tr(), maxLines: 5,
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'cr_required'.tr() : null),
+                  _Field(controller: _observations, label: 'cr_observations'.tr(), maxLines: 3),
                 ],
               ),
             ),
 
             _CollapsibleSection(
               key: _navKeys[6],
-              title: 'Photos',
+              title: 'cr_nav_photos'.tr(),
               icon: Icons.photo_camera_outlined,
               expanded: _isExpanded(6),
               onToggle: () => _toggleSection(6),
@@ -1643,49 +1666,49 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
             _CollapsibleSection(
               key: _navKeys[7],
-              title: 'Signatures',
+              title: 'cr_nav_signatures'.tr(),
               icon: Icons.draw_outlined,
               expanded: _isExpanded(7),
               onToggle: () => _toggleSection(7),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Début d\'intervention',
+                  Text('cr_section_signatures_start'.tr(),
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   Row(
                     children: [
                       Expanded(child: _SignatureButton(
                         b64Data: _sigClientStartData,
-                        label: 'Client (début)',
+                        label: 'cr_sig_client_start'.tr(),
                         onTap: () => _openSignature('clientStart'),
                         onClear: _sigClientStartData != null ? () => setState(() => _sigClientStartData = null) : null,
                       )),
                       const SizedBox(width: 12),
                       Expanded(child: _SignatureButton(
                         b64Data: _sigTechStartData,
-                        label: 'Technicien (début)',
+                        label: 'cr_sig_tech_start'.tr(),
                         onTap: () => _openSignature('techStart'),
                         onClear: _sigTechStartData != null ? () => setState(() => _sigTechStartData = null) : null,
                       )),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text('Fin d\'intervention',
+                  Text('cr_section_signatures_end'.tr(),
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   Row(
                     children: [
                       Expanded(child: _SignatureButton(
                         b64Data: _sigClientData,
-                        label: 'Client (fin)',
+                        label: 'cr_sig_client_end'.tr(),
                         onTap: () => _openSignature('clientEnd'),
                         onClear: _sigClientData != null ? () => setState(() => _sigClientData = null) : null,
                       )),
                       const SizedBox(width: 12),
                       Expanded(child: _SignatureButton(
                         b64Data: _sigTechData,
-                        label: 'Technicien (fin)',
+                        label: 'cr_sig_tech_end'.tr(),
                         onTap: () => _openSignature('techEnd'),
                         onClear: _sigTechData != null ? () => setState(() => _sigTechData = null) : null,
                       )),
@@ -1700,7 +1723,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                     child: OutlinedButton.icon(
                       onPressed: _showRemoteSignatureInfo,
                       icon: const Icon(Icons.send_to_mobile_outlined, size: 18),
-                      label: const Text('Faire signer le client à distance'),
+                      label: Text('cr_remote_sign_btn'.tr()),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.primary,
                         side: BorderSide(
@@ -1710,8 +1733,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Le client n\'est pas là ? Vous pourrez l\'envoyer signer par '
-                    'lien après l\'envoi du rapport. (Pro)',
+                    'cr_remote_sign_hint'.tr(),
                     style:
                         TextStyle(fontSize: 11, color: Colors.grey.shade600),
                   ),
@@ -1721,7 +1743,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
             _CollapsibleSection(
               key: _navKeys[8],
-              title: 'Facturation (optionnel)',
+              title: 'cr_section_billing'.tr(),
               icon: Icons.receipt_outlined,
               expanded: _isExpanded(8),
               onToggle: () => _toggleSection(8),
@@ -1730,9 +1752,9 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: _Field(controller: _laborHours, label: 'Heures de main-d\'œuvre', keyboardType: const TextInputType.numberWithOptions(decimal: true))),
+                      Expanded(child: _Field(controller: _laborHours, label: 'cr_labor_hours'.tr(), keyboardType: const TextInputType.numberWithOptions(decimal: true))),
                       const SizedBox(width: 10),
-                      Expanded(child: _Field(controller: _laborRate, label: 'Taux horaire (€/h)', keyboardType: const TextInputType.numberWithOptions(decimal: true))),
+                      Expanded(child: _Field(controller: _laborRate, label: 'cr_hourly_rate'.tr(args: [currencySymbolOf(appCurrencyCode)]), keyboardType: const TextInputType.numberWithOptions(decimal: true))),
                     ],
                   ),
                   if (_materials.isNotEmpty) ...[
@@ -1742,8 +1764,48 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                   OutlinedButton.icon(
                     onPressed: _addMaterial,
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Ajouter un matériau / pièce'),
+                    label: Text('cr_add_material'.tr()),
                   ),
+                  // (Taxe) Override de taxe POUR CE RAPPORT. Pré-rempli avec le
+                  // défaut global des Réglages ; éditable (pays/taux/mention).
+                  Builder(builder: (context) {
+                    final region = WidgetsBinding
+                        .instance.platformDispatcher.locale.countryCode;
+                    final language = context.locale.languageCode;
+                    final cfg = resolveReportTax(settings,
+                        reportRate: _taxRate,
+                        reportLabel: _taxLabel,
+                        reportMention: _taxMention,
+                        region: region,
+                        language: language);
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.percent,
+                          color: AppColors.primary),
+                      title: Text('tax_for_report'.tr()),
+                      subtitle: Text(
+                          '${cfg.label} ${formatTaxRate(cfg.rate)} %',
+                          style: const TextStyle(fontSize: 12)),
+                      trailing: const Icon(Icons.chevron_right,
+                          size: 18, color: Colors.grey),
+                      onTap: () async {
+                        // Pour un rapport, « Réinitialiser » ramène au défaut
+                        // GLOBAL (Réglages), pas au défaut brut de la locale.
+                        final globalDefault = resolveGlobalTax(settings,
+                            region: region, language: language);
+                        final result = await showTaxEditor(context,
+                            initial: cfg, localeDefault: globalDefault);
+                        if (result != null) {
+                          setState(() {
+                            _taxRate = result.rate;
+                            _taxLabel = result.label;
+                            _taxMention = result.mention;
+                          });
+                          _onDirty();
+                        }
+                      },
+                    );
+                  }),
                   if (_laborHours.text.isNotEmpty || _materials.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     _TotalPreview(
@@ -1785,10 +1847,10 @@ class _ClientPickerSheet extends StatelessWidget {
         itemCount: clients.length + 1,
         itemBuilder: (_, i) {
           if (i == 0) {
-            return const Padding(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Text('Sélectionner un client',
-                  style: TextStyle(
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Text('cr_pick_a_client'.tr(),
+                  style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 16)),
             );
           }
@@ -1839,7 +1901,7 @@ class _MaterialDialogState extends State<_MaterialDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Ajouter un matériau'),
+        title: Text('md_title'.tr()),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1847,13 +1909,13 @@ class _MaterialDialogState extends State<_MaterialDialog> {
               TextField(
                 controller: _label,
                 decoration:
-                    const InputDecoration(labelText: 'Désignation *'),
+                    InputDecoration(labelText: 'md_designation'.tr()),
                 autofocus: true,
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _ref,
-                decoration: const InputDecoration(labelText: 'Référence'),
+                decoration: InputDecoration(labelText: 'md_reference'.tr()),
               ),
               const SizedBox(height: 8),
               Row(
@@ -1874,7 +1936,7 @@ class _MaterialDialogState extends State<_MaterialDialog> {
                     child: TextField(
                       controller: _qty,
                       textAlign: TextAlign.center,
-                      decoration: const InputDecoration(labelText: 'Qté'),
+                      decoration: InputDecoration(labelText: 'md_qty'.tr()),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -1894,7 +1956,7 @@ class _MaterialDialogState extends State<_MaterialDialog> {
                     child: TextField(
                       controller: _price,
                       decoration:
-                          const InputDecoration(labelText: 'Prix unit. (€)'),
+                          InputDecoration(labelText: 'md_unit_price'.tr(args: [currencySymbolOf(appCurrencyCode)])),
                       keyboardType: const TextInputType.numberWithOptions(
                           decimal: true),
                     ),
@@ -1907,7 +1969,7 @@ class _MaterialDialogState extends State<_MaterialDialog> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler')),
+              child: Text('common_cancel'.tr())),
           ElevatedButton(
             onPressed: () {
               if (_label.text.trim().isEmpty) return;
@@ -1923,7 +1985,7 @@ class _MaterialDialogState extends State<_MaterialDialog> {
               ));
               Navigator.pop(context);
             },
-            child: const Text('Ajouter'),
+            child: Text('common_add'.tr()),
           ),
         ],
       );
@@ -1944,15 +2006,15 @@ class _MaterialTile extends StatelessWidget {
         title: Text(item.label,
             style: const TextStyle(fontSize: 13)),
         subtitle: item.reference.isNotEmpty
-            ? Text('Réf: ${item.reference}',
+            ? Text('mt_ref_prefix'.tr(args: [item.reference]),
                 style: const TextStyle(fontSize: 11))
             : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '${item.quantity} × ${item.unitPrice.toStringAsFixed(2)} € = '
-              '${item.total.toStringAsFixed(2)} €',
+              '${item.quantity} × ${formatMoney(item.unitPrice)} = '
+              '${formatMoney(item.total)}',
               style: const TextStyle(fontSize: 12),
             ),
             IconButton(
@@ -1995,12 +2057,12 @@ class _TotalPreview extends StatelessWidget {
       child: Column(
         children: [
           if (hours > 0)
-            _TotalRow('Main-d\'œuvre',
-                '${hours.toStringAsFixed(1)}h × ${rate.toStringAsFixed(2)} €/h',
+            _TotalRow('cr_labor'.tr(),
+                '${hours.toStringAsFixed(1)}h × ${formatMoney(rate)}/h',
                 labor),
-          if (matTotal > 0) _TotalRow('Matériaux', '', matTotal),
+          if (matTotal > 0) _TotalRow('cr_materials'.tr(), '', matTotal),
           const Divider(height: 12),
-          _TotalRow('TOTAL HT', '', total, bold: true),
+          _TotalRow('cr_total_ht'.tr(), '', total, bold: true),
         ],
       ),
     );
@@ -2032,7 +2094,7 @@ class _TotalRow extends StatelessWidget {
               ),
             ),
             Text(
-              '${amount.toStringAsFixed(2)} €',
+              formatMoney(amount),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: bold ? FontWeight.bold : FontWeight.normal,
@@ -2063,17 +2125,24 @@ class _SectorSpecificFields extends StatelessWidget {
     return Column(
       children: defs.map((def) {
         if (def['type'] == 'dropdown') {
+          final stored = fields[def['key']] as String?;
+          final opts = def['options'] as List<String>;
+          // (filet de sécurité) Si la valeur stockée n'est pas dans la liste
+          // (vieux rapport non migré, clé inconnue), on l'ajoute → le dropdown
+          // ne plante jamais (l'assert « value ∈ items » est respecté).
+          final allOpts = (stored != null && stored.isNotEmpty && !opts.contains(stored))
+              ? [...opts, stored]
+              : opts;
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: DropdownButtonFormField<String>(
-              initialValue: (fields[def['key']] as String?)?.isEmpty == false
-                  ? fields[def['key']] as String?
-                  : null,
+              initialValue: (stored?.isEmpty == false) ? stored : null,
               decoration:
                   InputDecoration(labelText: def['label'] as String),
-              items: (def['options'] as List<String>)
+              // value = CLÉ stable, affichage = libellé traduit.
+              items: allOpts
                   .map((o) =>
-                      DropdownMenuItem(value: o, child: Text(o)))
+                      DropdownMenuItem(value: o, child: Text(sectorValueLabel(o))))
                   .toList(),
               onChanged: (v) {
                 final updated = Map<String, dynamic>.from(fields);
@@ -2103,122 +2172,126 @@ class _SectorSpecificFields extends StatelessWidget {
     );
   }
 
+  // (i18n) Seuls les `label` (affichage) sont traduits. `key` (clé customFields) et
+  // `options` (VALEUR stockée quand l'utilisateur sélectionne) restent en FR → traduire
+  // les options orphelinerait les vieux rapports + planterait le dropdown (assert valeur∉items).
+  // Refactor options = décision séparée (stocker une clé + libellé traduit + migration).
   static List<Map<String, dynamic>> _fieldDefs(SectorTemplate s) {
     switch (s) {
       case SectorTemplate.plomberie:
         return [
           {
             'key': 'type_tuyauterie',
-            'label': 'Type de tuyauterie',
+            'label': 'sf_type_tuyauterie'.tr(),
             'type': 'dropdown',
-            'options': ['PVC', 'Cuivre', 'Acier', 'PE', 'PEX', 'Autre'],
+            'options': ['pvc', 'copper', 'steel', 'pe', 'pex', 'other'],
           },
-          {'key': 'diametre_mm', 'label': 'Diamètre (mm)', 'numeric': true},
-          {'key': 'longueur_m', 'label': 'Longueur (m)', 'numeric': true},
+          {'key': 'diametre_mm', 'label': 'sf_diametre_mm'.tr(), 'numeric': true},
+          {'key': 'longueur_m', 'label': 'sf_longueur_m'.tr(), 'numeric': true},
           {
             'key': 'pression_testee_bar',
-            'label': 'Pression testée (bar)',
+            'label': 'sf_pression_testee'.tr(),
             'numeric': true
           },
-          {'key': 'remarques_specifiques', 'label': 'Remarques spécifiques'},
+          {'key': 'remarques_specifiques', 'label': 'sf_remarques_specifiques'.tr()},
         ];
       case SectorTemplate.incendie:
         return [
-          {'key': 'reference_extincteur', 'label': 'Référence extincteur'},
+          {'key': 'reference_extincteur', 'label': 'sf_reference_extincteur'.tr()},
           {
             'key': 'type_agent',
-            'label': 'Type d\'agent extincteur',
+            'label': 'sf_type_agent'.tr(),
             'type': 'dropdown',
             'options': [
-              'CO₂',
-              'Poudre ABC',
-              'Eau pulvérisée',
-              'Mousse',
-              'Halon',
-              'Autre'
+              'co2',
+              'powder_abc',
+              'water_spray',
+              'foam',
+              'halon',
+              'other'
             ],
           },
           {
             'key': 'pression_manometre',
-            'label': 'Pression manomètre (bar)',
+            'label': 'sf_pression_manometre'.tr(),
             'numeric': true
           },
           {
             'key': 'date_prochaine_verif',
-            'label': 'Date prochaine vérification'
+            'label': 'sf_date_prochaine_verif'.tr()
           },
         ];
       case SectorTemplate.it:
         return [
-          {'key': 'nom_machine', 'label': 'Nom machine / serveur'},
-          {'key': 'adresse_ip', 'label': 'Adresse IP'},
-          {'key': 'systeme_exploitation', 'label': 'Système d\'exploitation'},
-          {'key': 'ticket_reference', 'label': 'Référence ticket'},
-          {'key': 'actions_effectuees', 'label': 'Actions effectuées'},
+          {'key': 'nom_machine', 'label': 'sf_nom_machine'.tr()},
+          {'key': 'adresse_ip', 'label': 'sf_adresse_ip'.tr()},
+          {'key': 'systeme_exploitation', 'label': 'sf_systeme_exploitation'.tr()},
+          {'key': 'ticket_reference', 'label': 'sf_ticket_reference'.tr()},
+          {'key': 'actions_effectuees', 'label': 'sf_actions_effectuees'.tr()},
         ];
       case SectorTemplate.maintenance:
         return [
-          {'key': 'numero_machine', 'label': 'N° machine / équipement'},
+          {'key': 'numero_machine', 'label': 'sf_numero_machine'.tr()},
           {
             'key': 'type_entretien',
-            'label': 'Type d\'entretien',
+            'label': 'sf_type_entretien'.tr(),
             'type': 'dropdown',
-            'options': ['Préventif', 'Curatif', 'Prédictif', 'Amélioratif'],
+            'options': ['preventive', 'corrective', 'predictive', 'improvement'],
           },
           {
             'key': 'heures_machine',
-            'label': 'Heures machine',
+            'label': 'sf_heures_machine'.tr(),
             'numeric': true
           },
-          {'key': 'pieces_remplacees', 'label': 'Pièces remplacées'},
+          {'key': 'pieces_remplacees', 'label': 'sf_pieces_remplacees'.tr()},
         ];
       case SectorTemplate.nettoyage:
         return [
-          {'key': 'surface_m2', 'label': 'Surface (m²)', 'numeric': true},
-          {'key': 'produits_utilises', 'label': 'Produits utilisés'},
+          {'key': 'surface_m2', 'label': 'sf_surface_m2'.tr(), 'numeric': true},
+          {'key': 'produits_utilises', 'label': 'sf_produits_utilises'.tr()},
           {
             'key': 'frequence',
-            'label': 'Fréquence',
+            'label': 'sf_frequence'.tr(),
             'type': 'dropdown',
             'options': [
-              'Unique',
-              'Quotidien',
-              'Hebdomadaire',
-              'Mensuel',
-              'Autre'
+              'once',
+              'daily',
+              'weekly',
+              'monthly',
+              'other'
             ],
           },
         ];
       case SectorTemplate.btp:
         return [
-          {'key': 'reference_chantier', 'label': 'Référence chantier'},
-          {'key': 'nature_travaux', 'label': 'Nature des travaux'},
+          {'key': 'reference_chantier', 'label': 'sf_reference_chantier'.tr()},
+          {'key': 'nature_travaux', 'label': 'sf_nature_travaux'.tr()},
           {
             'key': 'surface_ou_volume',
-            'label': 'Surface / volume',
+            'label': 'sf_surface_ou_volume'.tr(),
             'numeric': true
           },
-          {'key': 'materiaux_utilises', 'label': 'Matériaux utilisés'},
+          {'key': 'materiaux_utilises', 'label': 'sf_materiaux_utilises'.tr()},
         ];
       case SectorTemplate.transport:
         return [
           {
             'key': 'type_vehicule',
-            'label': 'Type de véhicule',
+            'label': 'sf_type_vehicule'.tr(),
             'type': 'dropdown',
-            'options': ['Camion', 'Camionnette', 'Remorque', 'Tracteur', 'Bus', 'Utilitaire', 'Autre'],
+            'options': ['truck', 'van', 'trailer', 'tractor', 'bus', 'utility', 'other'],
           },
-          {'key': 'immatriculation', 'label': 'N° d\'immatriculation'},
-          {'key': 'kilometrage', 'label': 'Kilométrage', 'numeric': true},
-          {'key': 'trajet', 'label': 'Trajet / destination'},
+          {'key': 'immatriculation', 'label': 'sf_immatriculation'.tr()},
+          {'key': 'kilometrage', 'label': 'sf_kilometrage'.tr(), 'numeric': true},
+          {'key': 'trajet', 'label': 'sf_trajet'.tr()},
           {
             'key': 'type_intervention',
-            'label': 'Type d\'intervention',
+            'label': 'sf_type_intervention'.tr(),
             'type': 'dropdown',
-            'options': ['Entretien', 'Réparation', 'Contrôle technique', 'Accident', 'Panne', 'Autre'],
+            'options': ['servicing', 'repair', 'technical_inspection', 'accident', 'breakdown', 'other'],
           },
-          {'key': 'chargement', 'label': 'Chargement / marchandise'},
-          {'key': 'chauffeur', 'label': 'Nom du chauffeur'},
+          {'key': 'chargement', 'label': 'sf_chargement'.tr()},
+          {'key': 'chauffeur', 'label': 'sf_chauffeur'.tr()},
         ];
       default:
         return [];
@@ -2231,15 +2304,15 @@ class _SectorSpecificFields extends StatelessWidget {
 class _DateTile extends StatelessWidget {
   final DateTime date;
   final void Function(DateTime) onChanged;
-  final String label;
+  final String? label;
 
-  const _DateTile({required this.date, required this.onChanged, this.label = 'Date'});
+  const _DateTile({required this.date, required this.onChanged, this.label});
 
   @override
   Widget build(BuildContext context) => ListTile(
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.calendar_today, color: AppColors.primary),
-        title: Text(label),
+        title: Text(label ?? 'field_date'.tr()),
         subtitle: Text(
           '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
           style: const TextStyle(fontWeight: FontWeight.w500),
@@ -2292,9 +2365,7 @@ class _TimeTile extends StatelessWidget {
                         style: TextStyle(
                             fontSize: 11, color: Colors.grey.shade600)),
                     Text(
-                      time != null
-                          ? '${time!.hour.toString().padLeft(2, '0')}:${time!.minute.toString().padLeft(2, '0')}'
-                          : '—',
+                      time != null ? DateFormat.jm().format(time!) : '—',
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ],
@@ -2374,7 +2445,7 @@ class _SignatureButton extends StatelessWidget {
               size: 18,
             ),
             label: Text(
-              b64Data != null ? 'Modifier' : label,
+              b64Data != null ? 'cr_modify'.tr() : label,
               style: const TextStyle(fontSize: 13),
             ),
           ),
@@ -2557,7 +2628,7 @@ class _SoloIdentityBanner extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    empty ? 'Renseignez votre entreprise' : 'Mon entreprise · $companyName',
+                    empty ? 'cr_solo_set_company'.tr() : 'cr_solo_my_company_prefix'.tr(args: [companyName]),
                     style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
@@ -2567,8 +2638,8 @@ class _SoloIdentityBanner extends ConsumerWidget {
                   ),
                   Text(
                     empty
-                        ? 'Nom, logo, SIRET, adresse… pour qu\'ils apparaissent sur vos PDF.'
-                        : 'Compléter / modifier (logo, SIRET, adresse, TVA…).',
+                        ? 'cr_solo_empty_sub'.tr()
+                        : 'cr_solo_filled_sub'.tr(),
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                   ),
                 ],
@@ -2592,7 +2663,7 @@ class _ReportIdentityToggle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(activeProfileModeProvider);
     final team = ref.watch(teamStateProvider).valueOrNull;
-    final teamName = (team?.companyName ?? 'Mon équipe').trim();
+    final teamName = (team?.companyName ?? 'cr_team_default'.tr()).trim();
     final activeName = ref.watch(activeCompanyNameProvider);
     final canPerso = ref.watch(canUsePersoProfileProvider);
     final canEquipe = ref.watch(canUseEquipeProfileProvider);
@@ -2600,10 +2671,8 @@ class _ReportIdentityToggle extends ConsumerWidget {
     void explain(ProfileMode m) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(m == ProfileMode.equipe
-            ? 'Rejoignez ou créez une équipe pour créer un rapport au nom d\'une '
-                'équipe.'
-            : 'Un abonnement solo est nécessaire pour des rapports perso '
-                'lorsque vous êtes en équipe.'),
+            ? 'cr_id_explain_equipe'.tr()
+            : 'cr_id_explain_perso'.tr()),
       ));
     }
 
@@ -2624,12 +2693,9 @@ class _ReportIdentityToggle extends ConsumerWidget {
                       if (m == ProfileMode.perso &&
                           !ref.read(hasSoloSubProvider)) {
                         ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
-                          content: Text(
-                            'Profil perso : sans abonnement solo, vos exports '
-                            'perso comptent dans vos 5 exports PDF gratuits/mois.',
-                          ),
-                          duration: Duration(seconds: 5),
+                            .showSnackBar(SnackBar(
+                          content: Text('cr_id_perso_quota_warn'.tr()),
+                          duration: const Duration(seconds: 5),
                         ));
                       }
                     }),
@@ -2686,9 +2752,9 @@ class _ReportIdentityToggle extends ConsumerWidget {
           Row(children: [
             Icon(Icons.badge_outlined, size: 16, color: AppColors.primary),
             const SizedBox(width: 6),
-            const Expanded(
-              child: Text('Ce rapport est créé pour :',
-                  style: TextStyle(
+            Expanded(
+              child: Text('cr_id_created_for'.tr(),
+                  style: const TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary)),
@@ -2704,7 +2770,7 @@ class _ReportIdentityToggle extends ConsumerWidget {
             padding: const EdgeInsets.all(4),
             child: Row(children: [
               pill(ProfileMode.perso, Icons.person_outline,
-                  'Mes rapports\nperso', canPerso),
+                  'cr_id_my_personal_reports'.tr(), canPerso),
               const SizedBox(width: 4),
               pill(ProfileMode.equipe, Icons.business_outlined, teamName,
                   canEquipe),
@@ -2713,9 +2779,8 @@ class _ReportIdentityToggle extends ConsumerWidget {
           const SizedBox(height: 6),
           Text(
             activeName.isEmpty
-                ? '⚠️ Aucune identité renseignée pour ce profil — le PDF n\'aura '
-                    'pas de nom d\'entreprise. Complétez dans Réglages.'
-                : 'Identité chargée : « $activeName ».',
+                ? 'cr_id_no_identity_warn'.tr()
+                : 'cr_id_loaded_prefix'.tr(args: [activeName]),
             style: TextStyle(
                 fontSize: 11,
                 color: activeName.isEmpty ? Colors.orange : Colors.grey.shade600),
@@ -2745,8 +2810,8 @@ class _ReportIdentityToggle extends ConsumerWidget {
               icon: const Icon(Icons.open_in_new, size: 13),
               label: Text(
                 mode == ProfileMode.perso
-                    ? 'Modifier mon identité solo'
-                    : 'Voir / modifier l\'identité de l\'équipe',
+                    ? 'cr_id_edit_solo'.tr()
+                    : 'cr_id_edit_team'.tr(),
                 style: const TextStyle(fontSize: 11),
               ),
               style: TextButton.styleFrom(

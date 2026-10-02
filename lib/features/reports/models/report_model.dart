@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 
 enum ReportStatus { draft, submitted, pendingValidation, validated, rejected }
 
@@ -15,14 +16,14 @@ enum SectorTemplate {
 
 extension SectorTemplateLabel on SectorTemplate {
   String get label => switch (this) {
-        SectorTemplate.generic => 'Générique',
-        SectorTemplate.plomberie => 'Tuyauterie / Plomberie',
-        SectorTemplate.incendie => 'Sécurité incendie',
-        SectorTemplate.maintenance => 'Maintenance industrielle',
-        SectorTemplate.it => 'Informatique / IT',
-        SectorTemplate.nettoyage => 'Nettoyage industriel',
-        SectorTemplate.btp => 'BTP / Travaux publics',
-        SectorTemplate.transport => 'Transport',
+        SectorTemplate.generic => 'sector_generic'.tr(),
+        SectorTemplate.plomberie => 'sector_plomberie'.tr(),
+        SectorTemplate.incendie => 'sector_incendie'.tr(),
+        SectorTemplate.maintenance => 'sector_maintenance'.tr(),
+        SectorTemplate.it => 'sector_it'.tr(),
+        SectorTemplate.nettoyage => 'sector_nettoyage'.tr(),
+        SectorTemplate.btp => 'sector_btp'.tr(),
+        SectorTemplate.transport => 'sector_transport'.tr(),
       };
 }
 
@@ -150,6 +151,11 @@ class ReportModel {
   final double? laborHours;
   final double? laborRate;
   final List<MaterialItem> materials;
+  // Tax (facture) — override par rapport ; null = utilise le défaut global des
+  // Réglages. taxRate en POURCENT (ex. 20.0). Voir models/tax_options.dart.
+  final double? taxRate;
+  final String? taxLabel;
+  final String? taxMention;
   // Rejection (set by admin when rejecting a team report)
   final String? rejectionComment;
   // Remote signature — true once client signed remotely (locks the report)
@@ -201,6 +207,9 @@ class ReportModel {
     this.laborHours,
     this.laborRate,
     this.materials = const [],
+    this.taxRate,
+    this.taxLabel,
+    this.taxMention,
     this.rejectionComment,
     this.signedRemotely = false,
     this.aiEnhanced = false,
@@ -255,6 +264,10 @@ class ReportModel {
     double? laborHours,
     double? laborRate,
     List<MaterialItem>? materials,
+    double? taxRate,
+    String? taxLabel,
+    String? taxMention,
+    bool clearTax = false,
     String? rejectionComment,
     bool clearRejectionComment = false,
     bool? signedRemotely,
@@ -300,6 +313,9 @@ class ReportModel {
         laborHours: laborHours ?? this.laborHours,
         laborRate: laborRate ?? this.laborRate,
         materials: materials ?? this.materials,
+        taxRate: clearTax ? null : (taxRate ?? this.taxRate),
+        taxLabel: clearTax ? null : (taxLabel ?? this.taxLabel),
+        taxMention: clearTax ? null : (taxMention ?? this.taxMention),
         rejectionComment: clearRejectionComment ? null : (rejectionComment ?? this.rejectionComment),
         signedRemotely: signedRemotely ?? this.signedRemotely,
         aiEnhanced: aiEnhanced ?? this.aiEnhanced,
@@ -347,6 +363,9 @@ class ReportModel {
         'labor_hours': laborHours,
         'labor_rate': laborRate,
         'materials': jsonEncode(materials.map((m) => m.toMap()).toList()),
+        'tax_rate': taxRate,
+        'tax_label': taxLabel,
+        'tax_mention': taxMention,
         'rejection_comment': rejectionComment,
         'signed_remotely': signedRemotely ? 1 : 0,
         'ai_enhanced': aiEnhanced ? 1 : 0,
@@ -401,6 +420,9 @@ class ReportModel {
         companyId: m['company_id'],
         laborHours: m['labor_hours']?.toDouble(),
         laborRate: m['labor_rate']?.toDouble(),
+        taxRate: m['tax_rate']?.toDouble(),
+        taxLabel: m['tax_label'] as String?,
+        taxMention: m['tax_mention'] as String?,
         materials: m['materials'] != null
             ? (jsonDecode(m['materials']) as List)
                 .map((e) => MaterialItem.fromMap(Map<String, dynamic>.from(e)))

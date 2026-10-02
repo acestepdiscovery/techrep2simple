@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
@@ -17,16 +18,14 @@ class ProfileSwitcherCard extends ConsumerWidget {
     final canPerso = ref.watch(canUsePersoProfileProvider);
     final canEquipe = ref.watch(canUseEquipeProfileProvider);
     final teamName =
-        (ref.watch(teamStateProvider).valueOrNull?.companyName ?? 'Mon équipe')
+        (ref.watch(teamStateProvider).valueOrNull?.companyName ?? 'td_my_team'.tr())
             .trim();
 
     void explain(ProfileMode m) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(m == ProfileMode.equipe
-            ? 'Rejoignez ou créez une équipe pour générer des rapports au nom '
-                'd\'une équipe.'
-            : 'Un abonnement solo est nécessaire pour créer des rapports perso '
-                'lorsque vous êtes en équipe.'),
+            ? 'ps_explain_team'.tr()
+            : 'ps_explain_perso'.tr()),
       ));
     }
 
@@ -97,9 +96,9 @@ class ProfileSwitcherCard extends ConsumerWidget {
           Row(children: [
             Icon(Icons.assignment_outlined, size: 17, color: AppColors.primary),
             const SizedBox(width: 6),
-            const Expanded(
-              child: Text('Quel type de rapport voulez-vous créer ?',
-                  style: TextStyle(
+            Expanded(
+              child: Text('ps_which_type'.tr(),
+                  style: const TextStyle(
                       fontSize: 13.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary)),
@@ -107,9 +106,7 @@ class ProfileSwitcherCard extends ConsumerWidget {
           ]),
           const SizedBox(height: 4),
           Text(
-            'Vous avez deux casquettes. Choisissez sous quelle identité créer '
-            'vos prochains rapports — l\'app chargera automatiquement le bon '
-            'nom d\'entreprise et les bonnes coordonnées sur le PDF.',
+            'ps_two_hats'.tr(),
             style: TextStyle(fontSize: 11.5, color: Colors.grey.shade700),
           ),
           const SizedBox(height: 10),
@@ -121,11 +118,11 @@ class ProfileSwitcherCard extends ConsumerWidget {
             ),
             padding: const EdgeInsets.all(4),
             child: Row(children: [
-              seg(ProfileMode.perso, Icons.person_outline, 'Mes rapports\nperso',
+              seg(ProfileMode.perso, Icons.person_outline, 'ps_my_perso_reports'.tr(),
                   canPerso),
               const SizedBox(width: 4),
               seg(ProfileMode.equipe, Icons.business_outlined,
-                  teamName.isEmpty ? 'Mon équipe' : teamName, canEquipe),
+                  teamName.isEmpty ? 'td_my_team'.tr() : teamName, canEquipe),
             ]),
           ),
           const SizedBox(height: 10),
@@ -149,12 +146,8 @@ class ProfileSwitcherCard extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     mode == ProfileMode.perso
-                        ? 'Actif : PERSO. Vos nouveaux rapports portent VOTRE '
-                            'société (nom + SIRET perso) et apparaissent dans '
-                            'Rapports › Perso.'
-                        : 'Actif : ÉQUIPE. Vos nouveaux rapports portent '
-                            'l\'identité de l\'équipe (nom verrouillé) et '
-                            'apparaissent dans Rapports › Équipe.',
+                        ? 'ps_active_perso'.tr()
+                        : 'ps_active_team'.tr(),
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../features/reports/models/sector_options.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -21,7 +22,7 @@ class ValidationPdfService {
       final raw = snap[k] as String?;
       if (raw == null) return '';
       try {
-        return DateFormat('dd/MM/yyyy').format(DateTime.parse(raw));
+        return DateFormat.yMd().format(DateTime.parse(raw));
       } catch (_) {
         return raw;
       }
@@ -110,13 +111,13 @@ class ValidationPdfService {
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Text('Rapport de validation',
+                pw.Text('vp_title'.tr(),
                     style: pw.TextStyle(
                         font: boldFont,
                         fontSize: 16,
                         color: PdfColors.blueGrey900)),
                 pw.Text(
-                  'Snapshot soumis le ${dateStr('submitted_at'.isEmpty ? 'date' : 'date')}',
+                  'vp_snapshot_submitted'.tr(args: [dateStr('date')]),
                   style: pw.TextStyle(
                       font: techFont,
                       fontSize: 8,
@@ -129,8 +130,7 @@ class ValidationPdfService {
               color: PdfColors.orange200,
               padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: pw.Text(
-                'Document généré depuis le snapshot figé au moment de la soumission — '
-                'les modifications ultérieures du rapport ne sont pas reflétées ici.',
+                'vp_snapshot_warning'.tr(),
                 style: pw.TextStyle(
                     font: techFont, fontSize: 7, color: PdfColors.orange900),
               ),
@@ -140,25 +140,25 @@ class ValidationPdfService {
         ),
         build: (ctx) => [
           // ── Client ──────────────────────────────────────────────────────────
-          _section('Client', [
-            if (s('client_name').isNotEmpty) _row('Nom', s('client_name')),
-            if (s('client_address').isNotEmpty) _row('Adresse', s('client_address')),
-            if (s('client_phone').isNotEmpty) _row('Téléphone', s('client_phone')),
-            if (s('client_contact').isNotEmpty) _row('Contact', s('client_contact')),
-            if (s('contract_number').isNotEmpty) _row('N° contrat', s('contract_number')),
+          _section('pdf_sec_client'.tr(), [
+            if (s('client_name').isNotEmpty) _row('pdf_lbl_name'.tr(), s('client_name')),
+            if (s('client_address').isNotEmpty) _row('pdf_lbl_address'.tr(), s('client_address')),
+            if (s('client_phone').isNotEmpty) _row('pdf_lbl_phone'.tr(), s('client_phone')),
+            if (s('client_contact').isNotEmpty) _row('pdf_lbl_contact_short'.tr(), s('client_contact')),
+            if (s('contract_number').isNotEmpty) _row('pdf_lbl_contract'.tr(), s('contract_number')),
           ]),
           // ── Intervention ────────────────────────────────────────────────────
-          _section('Intervention', [
-            if (dateStr('date').isNotEmpty) _row('Date', dateStr('date')),
-            if (s('intervention_type').isNotEmpty) _row('Type', s('intervention_type')),
-            if (s('technician_name').isNotEmpty) _row('Technicien', s('technician_name')),
+          _section('pdf_sec_intervention'.tr(), [
+            if (dateStr('date').isNotEmpty) _row('pdf_lbl_date'.tr(), dateStr('date')),
+            if (s('intervention_type').isNotEmpty) _row('pdf_lbl_type'.tr(), s('intervention_type')),
+            if (s('technician_name').isNotEmpty) _row('pdf_lbl_technician'.tr(), s('technician_name')),
             if (s('description').isNotEmpty)
               pw.Padding(
                 padding: const pw.EdgeInsets.only(bottom: 4),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('Description', style: label),
+                    pw.Text('pdf_lbl_description'.tr(), style: label),
                     pw.SizedBox(height: 2),
                     pw.Text(s('description'), style: value),
                   ],
@@ -170,7 +170,7 @@ class ValidationPdfService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('Observations', style: label),
+                    pw.Text('pdf_lbl_observations'.tr(), style: label),
                     pw.SizedBox(height: 2),
                     pw.Text(s('observations'), style: value),
                   ],
@@ -180,30 +180,30 @@ class ValidationPdfService {
           // ── Équipement ──────────────────────────────────────────────────────
           if ([s('equipment_type'), s('equipment_brand'), s('equipment_model'), s('equipment_serial')]
                   .any((v) => v.isNotEmpty))
-            _section('Équipement', [
-              if (s('equipment_type').isNotEmpty) _row('Type', s('equipment_type')),
-              if (s('equipment_brand').isNotEmpty) _row('Marque', s('equipment_brand')),
-              if (s('equipment_model').isNotEmpty) _row('Modèle', s('equipment_model')),
-              if (s('equipment_serial').isNotEmpty) _row('N° série', s('equipment_serial')),
+            _section('pdf_sec_equipment'.tr(), [
+              if (s('equipment_type').isNotEmpty) _row('pdf_lbl_type'.tr(), s('equipment_type')),
+              if (s('equipment_brand').isNotEmpty) _row('pdf_lbl_brand'.tr(), s('equipment_brand')),
+              if (s('equipment_model').isNotEmpty) _row('pdf_lbl_model'.tr(), s('equipment_model')),
+              if (s('equipment_serial').isNotEmpty) _row('pdf_lbl_serial'.tr(), s('equipment_serial')),
             ]),
           // ── Champs secteur ──────────────────────────────────────────────────
           if (sectorFields.isNotEmpty)
-            _section('Informations spécifiques', [
+            _section('vp_sec_specific'.tr(), [
               ...sectorFields.entries.where((e) => e.value.toString().isNotEmpty).map(
                     (e) => _row(
                       e.key.replaceAll('_', ' '),
-                      e.value.toString(),
+                      sectorValueLabel(e.value.toString()),
                     ),
                   ),
             ]),
           // ── Photos (placeholders) ────────────────────────────────────────
           if (photoCount > 0)
-            _section('Photos ($photoCount)', [
+            _section('vp_photos_count'.tr(args: ['$photoCount']), [
               pw.Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: List.generate(photoCount, (i) {
-                  final name = i < photoNames.length ? photoNames[i] : 'Photo ${i + 1}';
+                  final name = i < photoNames.length ? photoNames[i] : 'vp_photo_n'.tr(args: ['${i + 1}']);
                   return pw.Container(
                     width: 120,
                     height: 90,
@@ -216,7 +216,7 @@ class ValidationPdfService {
                     child: pw.Column(
                       mainAxisAlignment: pw.MainAxisAlignment.center,
                       children: [
-                        pw.Text('Photo ${i + 1}',
+                        pw.Text('vp_photo_n'.tr(args: ['${i + 1}']),
                             style: pw.TextStyle(
                                 font: boldFont,
                                 fontSize: 9,
@@ -239,9 +239,9 @@ class ValidationPdfService {
             ]),
           // ── Facturation ─────────────────────────────────────────────────────
           if (laborHours > 0 || materials.isNotEmpty)
-            _section('Facturation', [
+            _section('pdf_sec_billing'.tr(), [
               if (laborHours > 0)
-                _row('Main d\'œuvre',
+                _row('pdf_lbl_labor'.tr(),
                     '$laborHours h × ${laborRate.toStringAsFixed(2)} € = ${laborTotal.toStringAsFixed(2)} €'),
               ...materials.map((m) {
                 final qty = (m['quantity'] as num?)?.toDouble() ?? 0;
@@ -252,7 +252,7 @@ class ValidationPdfService {
                 );
               }),
               pw.Divider(color: PdfColors.blueGrey200, thickness: 0.5),
-              _row('Total',
+              _row('pdf_lbl_total'.tr(),
                   '${(laborTotal + matsTotal).toStringAsFixed(2)} €'),
             ]),
           // ── Signatures ──────────────────────────────────────────────────────
@@ -263,7 +263,7 @@ class ValidationPdfService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('Signature client', style: label),
+                    pw.Text('pdf_sig_client_base'.tr(), style: label),
                     pw.SizedBox(height: 4),
                     sigClient != null
                         ? pw.Image(sigClient, width: 120, height: 60, fit: pw.BoxFit.contain)
@@ -275,7 +275,7 @@ class ValidationPdfService {
                               borderRadius: pw.BorderRadius.circular(4),
                             ),
                             alignment: pw.Alignment.center,
-                            child: pw.Text('Non disponible',
+                            child: pw.Text('vp_not_available'.tr(),
                                 style: pw.TextStyle(
                                     font: techFont,
                                     fontSize: 7,
@@ -289,7 +289,7 @@ class ValidationPdfService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('Signature technicien', style: label),
+                    pw.Text('pdf_sig_tech_base'.tr(), style: label),
                     pw.SizedBox(height: 4),
                     sigTech != null
                         ? pw.Image(sigTech, width: 120, height: 60, fit: pw.BoxFit.contain)
@@ -301,7 +301,7 @@ class ValidationPdfService {
                               borderRadius: pw.BorderRadius.circular(4),
                             ),
                             alignment: pw.Alignment.center,
-                            child: pw.Text('Non disponible',
+                            child: pw.Text('vp_not_available'.tr(),
                                 style: pw.TextStyle(
                                     font: techFont,
                                     fontSize: 7,
@@ -316,10 +316,10 @@ class ValidationPdfService {
         footer: (ctx) => pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('Document de validation — ne pas transmettre au client',
+            pw.Text('vp_footer_warning'.tr(),
                 style: pw.TextStyle(
                     font: techFont, fontSize: 7, color: PdfColors.blueGrey300)),
-            pw.Text('Page ${ctx.pageNumber}/${ctx.pagesCount}',
+            pw.Text('pdf_page'.tr(args: ['${ctx.pageNumber}', '${ctx.pagesCount}']),
                 style: pw.TextStyle(
                     font: techFont, fontSize: 7, color: PdfColors.blueGrey300)),
           ],

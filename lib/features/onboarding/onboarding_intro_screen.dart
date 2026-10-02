@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,7 +35,7 @@ class OnboardingIntroScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Comment ça marche ?',
+                        'onboarding_how_title'.tr(),
                         style:
                             Theme.of(context).textTheme.headlineSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
@@ -43,7 +44,7 @@ class OnboardingIntroScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Tout ce dont vous avez besoin, en 3 étapes.',
+                        'onboarding_how_sub'.tr(),
                         style: Theme.of(context)
                             .textTheme
                             .bodyMedium
@@ -53,28 +54,22 @@ class OnboardingIntroScreen extends StatelessWidget {
                       _FeatureRow(
                         step: '1',
                         icon: Icons.edit_note,
-                        title: 'Créez votre rapport',
-                        body:
-                            'Remplissez le formulaire guidé : infos client, équipement, travaux. '
-                            'Ajoutez des photos et la signature du client — sur place ou à distance.',
+                        title: 'onboarding_step1_title'.tr(),
+                        body: 'onboarding_step1_body'.tr(),
                       ),
                       const SizedBox(height: 24),
                       _FeatureRow(
                         step: '2',
                         icon: Icons.picture_as_pdf_outlined,
-                        title: 'Exportez en PDF',
-                        body:
-                            'Un PDF professionnel est généré automatiquement. '
-                            'Partagez-le par WhatsApp, email ou enregistrez-le sur Drive / OneDrive / Dropbox.',
+                        title: 'onboarding_step2_title'.tr(),
+                        body: 'onboarding_step2_body'.tr(),
                       ),
                       const SizedBox(height: 24),
                       _FeatureRow(
                         step: '3',
                         icon: Icons.auto_awesome,
-                        title: 'Laissez l\'IA vous aider',
-                        body:
-                            'Dictez votre rapport à voix haute ou photographiez un formulaire papier. '
-                            'L\'IA remplit les champs pour vous. (Fonctionnalité Pro)',
+                        title: 'onboarding_step3_title'.tr(),
+                        body: 'onboarding_step3_body'.tr(),
                       ),
                       const SizedBox(height: 28),
                       const _WelcomeNote(),
@@ -92,9 +87,9 @@ class OnboardingIntroScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text(
-                  'Commencer',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                child: Text(
+                  'onboarding_start'.tr(),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -182,7 +177,7 @@ class _WelcomeNote extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Une application qui s\'adapte à vous',
+                  'welcome_note_title'.tr(),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15.5,
@@ -193,19 +188,14 @@ class _WelcomeNote extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Nous concevons Compte Rendu Technique IA main dans la main avec des '
-            'professionnels du terrain. Il vous manque un champ ? Vous avez '
-            'besoin d\'un format de PDF particulier pour votre métier ? '
-            'Écrivez-nous : nous adaptons l\'application à votre activité.',
-            style: TextStyle(fontSize: 13.5, color: Colors.black87, height: 1.5),
+          Text(
+            'welcome_note_body1'.tr(),
+            style: const TextStyle(fontSize: 13.5, color: Colors.black87, height: 1.5),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Nous sommes une équipe réactive et à l\'écoute : chacun de vos '
-            'retours oriente directement nos prochaines mises à jour. '
-            'Votre avis compte — vraiment.',
-            style: TextStyle(fontSize: 13.5, color: Colors.black87, height: 1.5),
+          Text(
+            'welcome_note_body2'.tr(),
+            style: const TextStyle(fontSize: 13.5, color: Colors.black87, height: 1.5),
           ),
         ],
       ),

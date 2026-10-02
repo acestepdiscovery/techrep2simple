@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
@@ -12,10 +13,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 import '../../../shared/widgets/zoomable_pdf_view.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../shared/utils/share_origin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_colors.dart';
 import '../models/report_model.dart';
+import '../models/sector_options.dart';
+import '../models/tax_options.dart';
+import '../models/currency_options.dart';
 import '../providers/reports_provider.dart';
 import '../providers/archive_provider.dart';
 import '../../settings/providers/settings_provider.dart';
@@ -47,16 +52,16 @@ class ReportDetailScreen extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) =>
-          Scaffold(body: Center(child: Text('Erreur: $e'))),
+          Scaffold(body: Center(child: Text('common_error'.tr(args: ['$e'])))),
       data: (reports) {
         final report =
             reports.where((r) => r.id == reportId).firstOrNull;
         if (report == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Rapport introuvable')),
-            body: const Center(
+            appBar: AppBar(title: Text('rd_not_found_title'.tr())),
+            body: Center(
                 child:
-                    Text("Ce rapport n'existe pas ou a été supprimé.")),
+                    Text('rd_not_found_body'.tr())),
           );
         }
         return _ReportDetailView(report: report);
@@ -184,8 +189,8 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Signature reçue — rapport verrouillé.'),
+          SnackBar(
+            content: Text('rd_sig_received'.tr()),
             backgroundColor: Colors.green,
           ),
         );
@@ -225,10 +230,8 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     // Reports signed remotely are locked — signature cannot be invalidated
     if (report.signedRemotely) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Ce rapport est verrouillé car le client l\'a signé à distance.',
-          ),
+        SnackBar(
+          content: Text('rd_locked_remote_sig'.tr()),
         ),
       );
       return;
@@ -253,19 +256,16 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
         showDialog(
           context: context,
           builder: (dlg) => AlertDialog(
-            title: const Row(children: [
-              Icon(Icons.lock_outline, color: Colors.orange),
-              SizedBox(width: 8),
-              Expanded(child: Text('Modification impossible')),
+            title: Row(children: [
+              const Icon(Icons.lock_outline, color: Colors.orange),
+              const SizedBox(width: 8),
+              Expanded(child: Text('rd_edit_blocked_title'.tr())),
             ]),
-            content: const Text(
-              'Ce rapport a déjà été modifié une fois après sa soumission.\n\n'
-              'Passez à la version Pro pour modifier sans limite.',
-            ),
+            content: Text('rd_edit_blocked_body'.tr()),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dlg),
-                child: const Text('OK'),
+                child: Text('common_ok'.tr()),
               ),
             ],
           ),
@@ -278,24 +278,20 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Row(children: [
-          Icon(Icons.edit_outlined, color: Colors.orange),
-          SizedBox(width: 8),
-          Text('Modifier ce rapport ?'),
+        title: Row(children: [
+          const Icon(Icons.edit_outlined, color: Colors.orange),
+          const SizedBox(width: 8),
+          Text('rd_edit_confirm_title'.tr()),
         ]),
-        content: const Text(
-          'Ce rapport a été soumis. Vous pouvez le modifier une seule fois '
-          'avec le plan gratuit.\n\n'
-          'Cette modification sera enregistrée.',
-        ),
+        content: Text('rd_edit_confirm_body'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dlg, false),
-            child: const Text('Annuler'),
+            child: Text('common_cancel'.tr()),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dlg, true),
-            child: const Text('Modifier quand même'),
+            child: Text('rd_edit_anyway'.tr()),
           ),
         ],
       ),
@@ -383,6 +379,13 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       companyTva: settings['company_tva'],
       pdfTemplate: widget.report.pdfTemplate ?? settings['pdf_template'] ?? 'professionnel',
       reportNumberFormat: widget.report.reportNumberFormat ?? settings['report_number_format'] ?? '{num}',
+      currencyCode: resolveCurrencyCode(
+        settings,
+        region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
+        // `Intl.defaultLocale` (= langue de l'app) plutôt que context.locale :
+        // évite l'usage de BuildContext après un await (_loadLogoBytes).
+        language: Intl.defaultLocale,
+      ),
     );
   }
 
@@ -395,13 +398,13 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
         context,
         MaterialPageRoute(
           // (1.3) Aperçu avec zoom garanti (boutons +/− + pan).
-          builder: (_) => ZoomablePdfView(bytes: bytes, title: 'Aperçu PDF'),
+          builder: (_) => ZoomablePdfView(bytes: bytes, title: 'cr_pdf_preview'.tr()),
         ),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur PDF : $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('rd_pdf_error'.tr(args: ['$e'])), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -436,17 +439,12 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
         await showDialog(
           context: context,
           builder: (dlg) => AlertDialog(
-            title: const Text('Siège non actif'),
-            content: const Text(
-              'Ce rapport est lié à votre équipe, mais votre siège Pro n\'est pas '
-              'actif.\n\nDemandez à l\'administrateur d\'activer votre accès (ou '
-              'd\'ajouter un siège). Les exports gratuits ne s\'appliquent pas aux '
-              'rapports d\'équipe.',
-            ),
+            title: Text('rd_seat_inactive_title'.tr()),
+            content: Text('rd_seat_inactive_body'.tr()),
             actions: [
               FilledButton(
                 onPressed: () => Navigator.pop(dlg),
-                child: const Text('Compris'),
+                child: Text('common_understood'.tr()),
               ),
             ],
           ),
@@ -485,7 +483,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
         await PaywallBottomSheet.show(
           context,
           reason:
-              'Vous avez utilisé vos ${SubscriptionService.freeMonthlyExports} exports PDF gratuits ce mois-ci.',
+              'rd_quota_reached'.tr(args: ['${SubscriptionService.freeMonthlyExports}']),
         );
       }
       return false;
@@ -507,7 +505,8 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
           .replaceAll(RegExp(r'[^\w]'), '');
       final filename =
           'rapport_${clientSlug}_${widget.report.id.substring(0, 8)}.pdf';
-      await Printing.sharePdf(bytes: bytes, filename: filename);
+      await Printing.sharePdf(
+          bytes: bytes, filename: filename, bounds: shareOrigin(context));
 
       final s = _pdfSettings();
       final user = ref.read(firebaseUserProvider).valueOrNull;
@@ -526,7 +525,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Erreur PDF : $e'),
+              content: Text('rd_pdf_error'.tr(args: ['$e'])),
               backgroundColor: Colors.red),
         );
       }
@@ -539,7 +538,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     if (!ref.read(effectiveSubscriptionProvider)) {
       await PaywallBottomSheet.show(
         context,
-        reason: 'La génération de factures est une fonctionnalité Pro.',
+        reason: 'rd_invoice_pro'.tr(),
       );
       return;
     }
@@ -547,6 +546,12 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     try {
       final s = _pdfSettings();
       final report = widget.report;
+      // Défaut global de taxe (les Réglages) ; le rapport peut l'override.
+      final globalTax = resolveGlobalTax(
+        s,
+        region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
+        language: context.locale.languageCode,
+      );
       final bytes = await PdfService().generateInvoice(
         report,
         companyName: _pdfCompanyName(s),
@@ -554,6 +559,14 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
         companyPhone: s['company_phone'],
         companyEmail: s['company_email'],
         companySiret: s['company_siret'],
+        taxRate: globalTax.rate,
+        taxLabel: globalTax.label,
+        taxMention: globalTax.mention,
+        currencyCode: resolveCurrencyCode(
+          s,
+          region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
+          language: context.locale.languageCode,
+        ),
       );
       final dir = await getTemporaryDirectory();
       final invoiceNum =
@@ -563,12 +576,13 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/pdf')],
         subject: invoiceNum,
+        sharePositionOrigin: shareOrigin(context),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Erreur facture : $e'),
+              content: Text('rd_invoice_error'.tr(args: ['$e'])),
               backgroundColor: Colors.red),
         );
       }
@@ -582,7 +596,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     if (!ref.read(effectiveSubscriptionProvider)) {
       PaywallBottomSheet.show(
         context,
-        reason: 'Les modèles de rapport sont une fonctionnalité Pro.',
+        reason: 'rd_templates_pro'.tr(),
       );
       return;
     }
@@ -591,30 +605,30 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
             ? report.interventionType
             : report.clientName.isNotEmpty
                 ? report.clientName
-                : 'Modèle');
+                : 'rd_template_default'.tr());
     showDialog(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Row(children: [
-          Icon(Icons.copy_outlined, color: AppColors.primary),
-          SizedBox(width: 8),
-          Flexible(child: Text('Enregistrer comme modèle')),
+        title: Row(children: [
+          const Icon(Icons.copy_outlined, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Flexible(child: Text('rd_save_template_title'.tr())),
         ]),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Les infos client, signatures, photos et dates ne seront pas copiées.',
-              style: TextStyle(fontSize: 13, color: Colors.black54),
+            Text(
+              'rd_save_template_note'.tr(),
+              style: const TextStyle(fontSize: 13, color: Colors.black54),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: nameCtrl,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Nom du modèle',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: 'rd_template_name'.tr(),
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -622,7 +636,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dlg),
-            child: const Text('Annuler'),
+            child: Text('common_cancel'.tr()),
           ),
           FilledButton(
             onPressed: () async {
@@ -639,13 +653,13 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Modèle "$name" enregistré ✓'),
+                    content: Text('rd_template_saved'.tr(args: [name])),
                     backgroundColor: AppColors.success,
                   ),
                 );
               }
             },
-            child: const Text('Enregistrer'),
+            child: Text('common_save'.tr()),
           ),
         ],
       ),
@@ -656,7 +670,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
   Future<void> _savePdfLocally() async {
     if (kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sauvegarde locale non disponible sur web — utilisez Partager')),
+        SnackBar(content: Text('rd_save_local_web'.tr())),
       );
       return;
     }
@@ -674,10 +688,10 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('PDF sauvegardé : $filename'),
+            content: Text('rd_pdf_saved'.tr(args: [filename])),
             backgroundColor: AppColors.success,
             action: SnackBarAction(
-              label: 'Partager',
+              label: 'rd_share'.tr(),
               textColor: Colors.white,
               onPressed: _sharePdf,
             ),
@@ -687,7 +701,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('common_error'.tr(args: ['$e'])), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -700,59 +714,59 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     final s = _pdfSettings();
     final company = s['company_name'] ?? '';
     final tech = s['technician_name'] ?? '';
-    final date = DateFormat('dd MMMM yyyy', 'fr_FR').format(r.date);
+    final date = DateFormat.yMMMMd().format(r.date);
     final buf = StringBuffer();
 
-    buf.writeln('RAPPORT D\'INTERVENTION${r.reportNumber > 0 ? ' #${r.reportNumber.toString().padLeft(3, '0')}' : ''}');
+    buf.writeln('${'pdf_report_title'.tr()}${r.reportNumber > 0 ? ' #${r.reportNumber.toString().padLeft(3, '0')}' : ''}');
     if (company.isNotEmpty) buf.writeln(company);
-    if (tech.isNotEmpty) buf.writeln('Technicien : $tech');
-    buf.writeln('Date : $date');
+    if (tech.isNotEmpty) buf.writeln('${'pdf_lbl_technician'.tr()} : $tech');
+    buf.writeln('pdf_date_prefix'.tr(args: [date]));
     if (r.startTime != null || r.endTime != null) {
-      buf.writeln('Horaires : ${_horaireStr(r)}');
+      buf.writeln('${'tx_schedule'.tr()} : ${_horaireStr(r)}');
     }
     buf.writeln();
 
-    buf.writeln('── CLIENT ──');
-    buf.writeln('Nom : ${r.clientName.isEmpty ? "—" : r.clientName}');
-    if (r.clientAddress.isNotEmpty) buf.writeln('Adresse : ${r.clientAddress}');
-    if (r.clientPhone.isNotEmpty) buf.writeln('Tél : ${r.clientPhone}');
-    if (r.clientContact.isNotEmpty) buf.writeln('Contact : ${r.clientContact}');
-    if (r.contractNumber.isNotEmpty) buf.writeln('N° contrat : ${r.contractNumber}');
+    buf.writeln('── ${'pdf_sec_client'.tr()} ──');
+    buf.writeln('${'pdf_lbl_name'.tr()} : ${r.clientName.isEmpty ? "—" : r.clientName}');
+    if (r.clientAddress.isNotEmpty) buf.writeln('${'pdf_lbl_address'.tr()} : ${r.clientAddress}');
+    if (r.clientPhone.isNotEmpty) buf.writeln('${'pdf_lbl_phone'.tr()} : ${r.clientPhone}');
+    if (r.clientContact.isNotEmpty) buf.writeln('${'pdf_lbl_contact_short'.tr()} : ${r.clientContact}');
+    if (r.contractNumber.isNotEmpty) buf.writeln('${'pdf_lbl_contract'.tr()} : ${r.contractNumber}');
     buf.writeln();
 
-    buf.writeln('── INTERVENTION ──');
-    if (r.sector != SectorTemplate.generic) buf.writeln('Secteur : ${r.sector.label}');
-    if (r.interventionType.isNotEmpty) buf.writeln('Type : ${r.interventionType}');
+    buf.writeln('── ${'pdf_sec_intervention'.tr()} ──');
+    if (r.sector != SectorTemplate.generic) buf.writeln('${'tx_sector'.tr()} : ${r.sector.label}');
+    if (r.interventionType.isNotEmpty) buf.writeln('${'pdf_lbl_type'.tr()} : ${r.interventionType}');
     if (r.sectorFields.isNotEmpty) {
       for (final e in r.sectorFields.entries) {
         if (e.value != null && e.value.toString().isNotEmpty) {
-          buf.writeln('${_formatKey(e.key)} : ${e.value}');
+          buf.writeln('${_formatKey(e.key)} : ${sectorValueLabel(e.value.toString())}');
         }
       }
     }
     buf.writeln();
 
     if (r.description.isNotEmpty) {
-      buf.writeln('── TRAVAUX RÉALISÉS ──');
+      buf.writeln('── ${'pdf_sec_work'.tr()} ──');
       buf.writeln(r.description);
       buf.writeln();
     }
     if (r.observations.isNotEmpty) {
-      buf.writeln('── OBSERVATIONS ──');
+      buf.writeln('── ${'pdf_observations'.tr()} ──');
       buf.writeln(r.observations);
       buf.writeln();
     }
 
     if (r.laborHours != null || r.materials.isNotEmpty) {
-      buf.writeln('── FACTURATION ──');
+      buf.writeln('── ${'pdf_sec_billing'.tr()} ──');
       if (r.laborHours != null) {
         final labor = r.laborHours! * (r.laborRate ?? 0);
-        buf.writeln('Main-d\'œuvre : ${r.laborHours!.toStringAsFixed(1)} h × ${(r.laborRate ?? 0).toStringAsFixed(2)} €/h = ${labor.toStringAsFixed(2)} €');
+        buf.writeln('${'pdf_lbl_labor'.tr()} : ${r.laborHours!.toStringAsFixed(1)} h × ${(r.laborRate ?? 0).toStringAsFixed(2)} €/h = ${labor.toStringAsFixed(2)} €');
       }
       for (final m in r.materials) {
         buf.writeln('• ${m.label} × ${m.quantity} = ${m.total.toStringAsFixed(2)} €');
       }
-      buf.writeln('TOTAL HT : ${_totalStr(r)}');
+      buf.writeln('${'pdf_total_ht'.tr()}${_totalStr(r)}');
     }
 
     return buf.toString().trim();
@@ -815,7 +829,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     final s = _pdfSettings();
     final company = s['company_name'] ?? '';
     final tech = s['technician_name'] ?? '';
-    final date = DateFormat('dd MMMM yyyy', 'fr_FR').format(r.date);
+    final date = DateFormat.yMMMMd().format(r.date);
 
     String row(String label, String value) =>
         value.isEmpty ? '' : '<tr><td class="lbl">$label</td><td>$value</td></tr>';
@@ -826,27 +840,27 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     final billingRows = StringBuffer();
     if (r.laborHours != null) {
       final labor = r.laborHours! * (r.laborRate ?? 0);
-      billingRows.write(row('Main-d\'œuvre',
+      billingRows.write(row('pdf_lbl_labor'.tr(),
           '${r.laborHours!.toStringAsFixed(1)} h × ${(r.laborRate ?? 0).toStringAsFixed(2)} €/h = ${labor.toStringAsFixed(2)} €'));
     }
     for (final m in r.materials) {
       billingRows.write(row(m.label, '${m.quantity} × ${m.unitPrice.toStringAsFixed(2)} € = ${m.total.toStringAsFixed(2)} €'));
     }
     if (billingRows.isNotEmpty) {
-      billingRows.write(row('TOTAL HT', _totalStr(r)));
+      billingRows.write(row('pdf_col_total'.tr(), _totalStr(r)));
     }
 
     final sectorRows = r.sectorFields.entries
         .where((e) => e.value != null && e.value.toString().isNotEmpty)
-        .map((e) => row(_formatKey(e.key), e.value.toString()))
+        .map((e) => row(_formatKey(e.key), sectorValueLabel(e.value.toString())))
         .join();
 
     final html = '''<!DOCTYPE html>
-<html lang="fr">
+<html lang="${context.locale.languageCode}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rapport #${r.reportNumber.toString().padLeft(3, '0')}</title>
+<title>${'tx_html_title'.tr(args: [r.reportNumber.toString().padLeft(3, '0')])}</title>
 <style>
   body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #222; }
   header { background: #1565C0; color: white; padding: 20px 24px; border-radius: 8px; margin-bottom: 24px; }
@@ -862,28 +876,28 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
 </head>
 <body>
 <header>
-  <h1>Rapport d'intervention${r.reportNumber > 0 ? ' #${r.reportNumber.toString().padLeft(3, '0')}' : ''}</h1>
-  <p>${company.isNotEmpty ? '$company${tech.isNotEmpty ? ' · ' : ''}' : ''}${tech.isNotEmpty ? 'Tech. : $tech' : ''} · $date</p>
+  <h1>${'tx_report_heading'.tr()}${r.reportNumber > 0 ? ' #${r.reportNumber.toString().padLeft(3, '0')}' : ''}</h1>
+  <p>${company.isNotEmpty ? '$company${tech.isNotEmpty ? ' · ' : ''}' : ''}${tech.isNotEmpty ? 'pdf_tech_prefix'.tr(args: [tech]) : ''} · $date</p>
 </header>
 
-${section('Client', [
-      row('Nom', r.clientName),
-      row('Adresse', r.clientAddress),
-      row('Téléphone', r.clientPhone),
-      row('Contact', r.clientContact),
-      row('N° contrat', r.contractNumber),
+${section('pdf_sec_client'.tr(), [
+      row('pdf_lbl_name'.tr(), r.clientName),
+      row('pdf_lbl_address'.tr(), r.clientAddress),
+      row('pdf_lbl_phone'.tr(), r.clientPhone),
+      row('pdf_lbl_contact_short'.tr(), r.clientContact),
+      row('pdf_lbl_contract'.tr(), r.contractNumber),
     ].join())}
 
-${section('Intervention', [
-      row('Secteur', r.sector != SectorTemplate.generic ? r.sector.label : ''),
-      row('Type', r.interventionType),
-      row('Horaires', r.startTime != null || r.endTime != null ? _horaireStr(r) : ''),
+${section('pdf_sec_intervention'.tr(), [
+      row('tx_sector'.tr(), r.sector != SectorTemplate.generic ? r.sector.label : ''),
+      row('pdf_lbl_type'.tr(), r.interventionType),
+      row('tx_schedule'.tr(), r.startTime != null || r.endTime != null ? _horaireStr(r) : ''),
       sectorRows,
     ].join())}
 
-${r.description.isNotEmpty ? '<h2>Travaux réalisés</h2><div class="desc">${r.description}</div>' : ''}
-${r.observations.isNotEmpty ? '<h2>Observations</h2><div class="desc">${r.observations}</div>' : ''}
-${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
+${r.description.isNotEmpty ? '<h2>${'pdf_sec_work'.tr()}</h2><div class="desc">${r.description}</div>' : ''}
+${r.observations.isNotEmpty ? '<h2>${'pdf_observations'.tr()}</h2><div class="desc">${r.observations}</div>' : ''}
+${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString()) : ''}
 
 </body>
 </html>''';
@@ -894,11 +908,12 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
       final file = File('${dir.path}/rapport_${slug}_${r.id.substring(0, 8)}.html');
       await file.writeAsString(html);
       await Share.shareXFiles([XFile(file.path, mimeType: 'text/html')],
-          subject: 'Rapport #${r.reportNumber.toString().padLeft(3, '0')}');
+          subject: 'tx_html_title'.tr(args: [r.reportNumber.toString().padLeft(3, '0')]),
+          sharePositionOrigin: shareOrigin(context));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur HTML : $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('tx_html_error'.tr(args: ['$e'])), backgroundColor: Colors.red),
         );
       }
     }
@@ -915,39 +930,41 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Autres formats',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              Text('rd_other_formats'.tr(),
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.text_snippet_outlined, color: AppColors.primary),
-                title: const Text('Partager en texte'),
-                subtitle: const Text('WhatsApp, email, SMS…', style: TextStyle(fontSize: 12)),
+                title: Text('rd_share_text'.tr()),
+                subtitle: Text('rd_share_text_sub'.tr(), style: const TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.pop(ctx);
-                  Share.share(_buildTextReport());
+                  Share.share(_buildTextReport(),
+                      sharePositionOrigin: shareOrigin(context));
                 },
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.data_object, color: AppColors.primary),
-                title: const Text('Exporter en JSON'),
-                subtitle: const Text('Sauvegarde · intégration · import', style: TextStyle(fontSize: 12)),
+                title: Text('rd_export_json'.tr()),
+                subtitle: Text('rd_export_json_sub'.tr(), style: const TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.pop(ctx);
                   Share.share(
                     _buildJsonReport(),
                     subject: 'Rapport #${widget.report.reportNumber.toString().padLeft(3, '0')}.json',
+                    sharePositionOrigin: shareOrigin(context),
                   );
                 },
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.html_outlined, color: AppColors.primary),
-                title: const Text('Exporter en HTML'),
-                subtitle: const Text('Ouvrable dans n\'importe quel navigateur', style: TextStyle(fontSize: 12)),
+                title: Text('rd_export_html'.tr()),
+                subtitle: Text('rd_export_html_sub'.tr(), style: const TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -957,14 +974,14 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.copy_outlined, color: AppColors.primary),
-                title: const Text('Copier dans le presse-papiers'),
-                subtitle: const Text('Texte formaté prêt à coller', style: TextStyle(fontSize: 12)),
+                title: Text('rd_copy_clipboard'.tr()),
+                subtitle: Text('rd_copy_clipboard_sub'.tr(), style: const TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
                   Navigator.pop(ctx);
                   Clipboard.setData(ClipboardData(text: _buildTextReport()));
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Rapport copié dans le presse-papiers')),
+                    SnackBar(content: Text('rd_copied_clipboard'.tr())),
                   );
                 },
               ),
@@ -982,11 +999,11 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const AlertDialog(
+      builder: (_) => AlertDialog(
         content: Row(children: [
-          CircularProgressIndicator(),
-          SizedBox(width: 16),
-          Expanded(child: Text('Envoi sur Google Drive…')),
+          const CircularProgressIndicator(),
+          const SizedBox(width: 16),
+          Expanded(child: Text('rd_uploading_drive'.tr())),
         ]),
       ),
     );
@@ -1015,20 +1032,20 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
       showDialog(
         context: context,
         builder: (dlg) => AlertDialog(
-          title: const Row(children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 8),
-            Text('Envoyé sur Drive'),
+          title: Row(children: [
+            const Icon(Icons.check_circle, color: Colors.green),
+            const SizedBox(width: 8),
+            Text('rd_sent_to_drive'.tr()),
           ]),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                  'PDF déposé dans le dossier "${GoogleDriveService.folderNameFor(settings['company_name'])}" de votre Drive.'),
+                  'rd_drive_deposited'.tr(args: ['${GoogleDriveService.folderNameFor(settings['company_name'])}'])),
               const SizedBox(height: 12),
-              const Text('Lien de partage :',
-                  style: TextStyle(
+              Text('rd_share_link'.tr(),
+                  style: const TextStyle(
                       fontWeight: FontWeight.w600, fontSize: 12)),
               const SizedBox(height: 4),
               SelectableText(link,
@@ -1039,18 +1056,18 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dlg),
-                child: const Text('Fermer')),
+                child: Text('common_close'.tr())),
             ElevatedButton.icon(
               onPressed: () {
                 final messenger = ScaffoldMessenger.of(dlg);
                 Navigator.pop(dlg);
                 Clipboard.setData(ClipboardData(text: link));
                 messenger.showSnackBar(
-                  const SnackBar(content: Text('Lien copié ✓')),
+                  SnackBar(content: Text('rd_link_copied'.tr())),
                 );
               },
               icon: const Icon(Icons.copy, size: 16),
-              label: const Text('Copier le lien'),
+              label: Text('rd_copy_link'.tr()),
             ),
           ],
         ),
@@ -1061,12 +1078,12 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
       showDialog(
         context: context,
         builder: (dlg) => AlertDialog(
-          title: const Text('Erreur Drive'),
+          title: Text('rd_drive_error'.tr()),
           content: Text(e.toString()),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dlg),
-                child: const Text('Fermer')),
+                child: Text('common_close'.tr())),
           ],
         ),
       );
@@ -1121,8 +1138,8 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Lien de partage :',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+              Text('rd_share_link'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
               const SizedBox(height: 4),
               SelectableText(link,
                   style: const TextStyle(fontSize: 11, color: Colors.blue)),
@@ -1131,18 +1148,18 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dlg),
-                child: const Text('Fermer')),
+                child: Text('common_close'.tr())),
             ElevatedButton.icon(
               onPressed: () {
                 final messenger = ScaffoldMessenger.of(dlg);
                 Navigator.pop(dlg);
                 Clipboard.setData(ClipboardData(text: link));
                 messenger.showSnackBar(
-                  const SnackBar(content: Text('Lien copié ✓')),
+                  SnackBar(content: Text('rd_link_copied'.tr())),
                 );
               },
               icon: const Icon(Icons.copy, size: 16),
-              label: const Text('Copier le lien'),
+              label: Text('rd_copy_link'.tr()),
             ),
           ],
         ),
@@ -1153,12 +1170,12 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
       showDialog(
         context: context,
         builder: (dlg) => AlertDialog(
-          title: Text('Erreur $serviceName'),
+          title: Text('rd_cloud_error'.tr(args: [serviceName])),
           content: Text(e.toString()),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dlg),
-                child: const Text('Fermer')),
+                child: Text('common_close'.tr())),
           ],
         ),
       );
@@ -1169,8 +1186,8 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
     if (!await _guardUpload()) return;
     await _uploadToCloud(
       'OneDrive',
-      'Envoi sur OneDrive…',
-      'Envoyé sur OneDrive',
+      'rd_uploading_onedrive'.tr(),
+      'rd_sent_to_onedrive'.tr(),
       (settings) async {
         final bytes = await _generatePdfBytes();
         final slug = widget.report.clientName
@@ -1193,8 +1210,8 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
     if (!await _guardUpload()) return;
     await _uploadToCloud(
       'Dropbox',
-      'Envoi sur Dropbox…',
-      'Envoyé sur Dropbox',
+      'rd_uploading_dropbox'.tr(),
+      'rd_sent_to_dropbox'.tr(),
       (settings) async {
         final bytes = await _generatePdfBytes();
         final slug = widget.report.clientName
@@ -1223,12 +1240,12 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
     showDialog(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Service indisponible'),
+        title: Text('service_unavailable_title'.tr()),
         content: Text(result.message),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dlg),
-              child: const Text('Fermer')),
+              child: Text('common_close'.tr())),
         ],
       ),
     );
@@ -1241,12 +1258,12 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
     await showDialog(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Numéro de rapport'),
+        title: Text('rd_number_title'.tr()),
         content: TextField(
           controller: ctrl,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
-            labelText: 'Numéro',
+            labelText: 'rd_number_label'.tr(),
             hintText: report.reportNumber.toString(),
             isDense: true,
           ),
@@ -1255,7 +1272,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dlg),
-              child: const Text('Annuler')),
+              child: Text('common_cancel'.tr())),
           ElevatedButton(
             onPressed: () async {
               final v = int.tryParse(ctrl.text.trim());
@@ -1264,7 +1281,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
               await ref.read(reportsProvider.notifier).saveReport(updated);
               if (dlg.mounted) Navigator.pop(dlg);
             },
-            child: const Text('Enregistrer'),
+            child: Text('common_save'.tr()),
           ),
         ],
       ),
@@ -1280,7 +1297,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          title: const Text('Template PDF pour ce rapport'),
+          title: Text('rd_template_pdf_title'.tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1292,18 +1309,18 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                   children: [
                     RadioListTile<String?>(
                       value: null,
-                      title: Text('Défaut (${globalTemplate == 'professionnel' ? 'Professionnel' : 'Simple'})'),
-                      subtitle: const Text('Suit le réglage global', style: TextStyle(fontSize: 11)),
+                      title: Text('rd_template_default_opt'.tr(args: [globalTemplate == 'professionnel' ? 'rd_template_pro_name'.tr() : 'rd_template_simple'.tr()])),
+                      subtitle: Text('rd_follows_global'.tr(), style: const TextStyle(fontSize: 11)),
                     ),
                     RadioListTile<String?>(
                       value: 'simple',
-                      title: const Text('Simple'),
-                      subtitle: const Text('En-tête compact, lecture rapide', style: TextStyle(fontSize: 11)),
+                      title: Text('rd_template_simple'.tr()),
+                      subtitle: Text('rd_template_simple_sub'.tr(), style: const TextStyle(fontSize: 11)),
                     ),
                     RadioListTile<String?>(
                       value: 'professionnel',
-                      title: const Text('Professionnel'),
-                      subtitle: const Text('2 colonnes, logo, tableau CBTIC', style: TextStyle(fontSize: 11)),
+                      title: Text('rd_template_pro_name'.tr()),
+                      subtitle: Text('rd_template_pro_sub'.tr(), style: const TextStyle(fontSize: 11)),
                     ),
                   ],
                 ),
@@ -1313,7 +1330,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Annuler')),
+                child: Text('common_cancel'.tr())),
             ElevatedButton(
               onPressed: () async {
                 final updated = selected == null
@@ -1322,7 +1339,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                 await ref.read(reportsProvider.notifier).saveReport(updated);
                 if (ctx.mounted) Navigator.pop(ctx);
               },
-              child: const Text('Appliquer'),
+              child: Text('common_apply'.tr()),
             ),
           ],
         ),
@@ -1335,11 +1352,11 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
     final globalFormat = settings['report_number_format'] ?? '{num}';
 
     const presets = [
-      ('{num}', 'Simple', '001'),
-      ('{year}-{num}', 'Annuel', '2026-001'),
-      ('{year}/{num}', 'Année/Numéro', '2026/001'),
-      ('{company}/{year}/{month}/{day}/{num}', 'Société/Date', 'AMARIS/2026/04/23/001'),
-      ('{client}-{num}', 'Client-Numéro', 'DUPONT-001'),
+      ('{num}', 'fmt_preset_simple', '001'),
+      ('{year}-{num}', 'fmt_preset_annual', '2026-001'),
+      ('{year}/{num}', 'fmt_preset_year_num', '2026/001'),
+      ('{company}/{year}/{month}/{day}/{num}', 'fmt_preset_company_date', 'AMARIS/2026/04/23/001'),
+      ('{client}-{num}', 'fmt_preset_client_num', 'DUPONT-001'),
     ];
 
     String? selected = report.reportNumberFormat;
@@ -1351,7 +1368,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          title: const Text('Format du numéro pour ce rapport'),
+          title: Text('fmt_override_title'.tr()),
           content: Scrollbar(
             thumbVisibility: true,
             child: SingleChildScrollView(
@@ -1364,7 +1381,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                   runSpacing: 6,
                   children: [
                     ChoiceChip(
-                      label: const Text('Défaut global', style: TextStyle(fontSize: 12)),
+                      label: Text('fmt_global_default'.tr(), style: const TextStyle(fontSize: 12)),
                       selected: selected == null && !showCustom,
                       visualDensity: VisualDensity.compact,
                       tooltip: PdfService.resolveReportNumber(report.reportNumber > 0 ? report.reportNumber : 1, globalFormat, clientName: report.clientName.isNotEmpty ? report.clientName : 'Client', date: report.date, technicianName: settings['technician_name'], companyName: _pdfCompanyName(settings)),
@@ -1373,15 +1390,15 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     ...presets.map((p) {
                       final (value, label, example) = p;
                       return ChoiceChip(
-                        label: Text(label, style: const TextStyle(fontSize: 12)),
+                        label: Text(label.tr(), style: const TextStyle(fontSize: 12)),
                         selected: !showCustom && selected == value,
                         visualDensity: VisualDensity.compact,
-                        tooltip: 'Ex : $example',
+                        tooltip: 'common_example'.tr(args: [example]),
                         onSelected: (_) => setS(() { selected = value; showCustom = false; }),
                       );
                     }),
                     ChoiceChip(
-                      label: const Text('Personnalisé', style: TextStyle(fontSize: 12)),
+                      label: Text('fmt_custom'.tr(), style: const TextStyle(fontSize: 12)),
                       selected: showCustom,
                       visualDensity: VisualDensity.compact,
                       onSelected: (_) => setS(() => showCustom = true),
@@ -1390,7 +1407,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                 ),
                 if (!showCustom && selected != null) ...[
                   const SizedBox(height: 6),
-                  Text('Ex : ${PdfService.resolveReportNumber(report.reportNumber > 0 ? report.reportNumber : 1, selected!, clientName: report.clientName.isNotEmpty ? report.clientName : 'Client', date: report.date, technicianName: settings['technician_name'], companyName: _pdfCompanyName(settings))}',
+                  Text('common_example'.tr(args: [PdfService.resolveReportNumber(report.reportNumber > 0 ? report.reportNumber : 1, selected!, clientName: report.clientName.isNotEmpty ? report.clientName : 'Client', date: report.date, technicianName: settings['technician_name'], companyName: _pdfCompanyName(settings))]),
                       style: const TextStyle(fontSize: 11, color: Colors.blue)),
                 ],
                 if (showCustom) ...[
@@ -1406,12 +1423,12 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     runSpacing: 4,
                     children: [
                       for (final (token, label, isSep) in [
-                        ('{num}', 'Numéro', false),
-                        ('{client}', 'Client', false),
-                        ('{company}', 'Société', false),
-                        ('{year}', 'Année', false),
-                        ('{month}', 'Mois', false),
-                        ('{day}', 'Jour', false),
+                        ('{num}', 'fmt_token_num'.tr(), false),
+                        ('{client}', 'fmt_token_client'.tr(), false),
+                        ('{company}', 'fmt_token_company'.tr(), false),
+                        ('{year}', 'fmt_token_year'.tr(), false),
+                        ('{month}', 'fmt_token_month'.tr(), false),
+                        ('{day}', 'fmt_token_day'.tr(), false),
                         ('/', '/', true),
                         ('-', '-', true),
                         ('_', '_', true),
@@ -1436,7 +1453,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Aperçu : ${PdfService.resolveReportNumber(report.reportNumber > 0 ? report.reportNumber : 1, customCtrl.text.isEmpty ? '{num}' : customCtrl.text, clientName: report.clientName.isNotEmpty ? report.clientName : 'Client', date: report.date, technicianName: settings['technician_name'], companyName: _pdfCompanyName(settings))}',
+                    'fmt_preview'.tr(args: [PdfService.resolveReportNumber(report.reportNumber > 0 ? report.reportNumber : 1, customCtrl.text.isEmpty ? '{num}' : customCtrl.text, clientName: report.clientName.isNotEmpty ? report.clientName : 'Client', date: report.date, technicianName: settings['technician_name'], companyName: _pdfCompanyName(settings))]),
                     style: const TextStyle(fontSize: 11, color: Colors.blue),
                   ),
                 ],
@@ -1445,7 +1462,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('common_cancel'.tr())),
             ElevatedButton(
               onPressed: () async {
                 final ReportModel updated;
@@ -1460,7 +1477,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                 await ref.read(reportsProvider.notifier).saveReport(updated);
                 if (ctx.mounted) Navigator.pop(ctx);
               },
-              child: const Text('Appliquer'),
+              child: Text('fmt_apply'.tr()),
             ),
           ],
         ),
@@ -1474,12 +1491,12 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
         text: report.reportNumber > 0 ? report.reportNumber.toString() : '');
 
     const presets = [
-      ('{num}', 'Simple', '001'),
-      ('{year}-{num}', 'Annuel', '2026-001'),
-      ('{year}/{num}', 'Année/N°', '2026/001'),
-      ('{company}/{year}/{month}/{day}/{num}', 'Société/Date', 'AMARIS/2026/04/23/001'),
-      ('{client}-{num}', 'Client-N°', 'DUPONT-001'),
-      ('{client}/{year}/{month}/{day}/{num}', 'Client/Date', 'DUPONT/2026/05/18/001'),
+      ('{num}', 'fmt_preset_simple', '001'),
+      ('{year}-{num}', 'fmt_preset_annual', '2026-001'),
+      ('{year}/{num}', 'fmt_preset_year_num', '2026/001'),
+      ('{company}/{year}/{month}/{day}/{num}', 'fmt_preset_company_date', 'AMARIS/2026/04/23/001'),
+      ('{client}-{num}', 'fmt_preset_client_num', 'DUPONT-001'),
+      ('{client}/{year}/{month}/{day}/{num}', 'fmt_preset_client_date', 'DUPONT/2026/05/18/001'),
     ];
 
     String? fmtSelected = report.reportNumberFormat;
@@ -1498,7 +1515,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           );
 
           return AlertDialog(
-            title: const Text('Numéro & format'),
+            title: Text('fmt_num_and_format'.tr()),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1508,7 +1525,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     controller: numCtrl,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'Numéro',
+                      labelText: 'fmt_token_num'.tr(),
                       hintText: report.reportNumber.toString(),
                       isDense: true,
                     ),
@@ -1516,14 +1533,14 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     onChanged: (_) => setS(() {}),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Format', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  Text('fmt_format_label'.tr(), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
                     children: [
                       ChoiceChip(
-                        label: const Text('Défaut global', style: TextStyle(fontSize: 12)),
+                        label: Text('fmt_global_default'.tr(), style: const TextStyle(fontSize: 12)),
                         selected: fmtSelected == null,
                         visualDensity: VisualDensity.compact,
                         onSelected: (_) => setS(() => fmtSelected = null),
@@ -1531,7 +1548,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                       ...presets.map((p) {
                         final (value, label, _) = p;
                         return ChoiceChip(
-                          label: Text(label, style: const TextStyle(fontSize: 12)),
+                          label: Text(label.tr(), style: const TextStyle(fontSize: 12)),
                           selected: fmtSelected == value,
                           visualDensity: VisualDensity.compact,
                           onSelected: (_) => setS(() => fmtSelected = value),
@@ -1541,14 +1558,14 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                   ),
                   if (fmtSelected != null) ...[
                     const SizedBox(height: 6),
-                    Text('Ex : ${preview(fmtSelected!)}',
+                    Text('common_example'.tr(args: [preview(fmtSelected!)]),
                         style: const TextStyle(fontSize: 11, color: Colors.blue)),
                   ],
                 ],
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: Text('common_cancel'.tr())),
               ElevatedButton(
                 onPressed: () async {
                   final v = int.tryParse(numCtrl.text.trim());
@@ -1559,7 +1576,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                   await ref.read(reportsProvider.notifier).saveReport(updated);
                   if (ctx.mounted) Navigator.pop(ctx);
                 },
-                child: const Text('Appliquer'),
+                child: Text('fmt_apply'.tr()),
               ),
             ],
           );
@@ -1572,19 +1589,15 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Nouvelle signature ?'),
-        content: const Text(
-          'Ce rapport a déjà une signature distante du client.\n\n'
-          'Demander une nouvelle signature remplacera l\'ancienne. '
-          'Le contenu actuel du rapport sera signé à nouveau.',
-        ),
+        title: Text('rd_new_sig_title'.tr()),
+        content: Text('rd_new_sig_body'.tr()),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dlg, false),
-              child: const Text('Annuler')),
+              child: Text('common_cancel'.tr())),
           FilledButton(
             onPressed: () => Navigator.pop(dlg, true),
-            child: const Text('Continuer'),
+            child: Text('common_continue'.tr()),
           ),
         ],
       ),
@@ -1629,18 +1642,20 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
         onGoogleDriveTap: _uploadToGoogleDrive,
         onOneDriveTap: _uploadToOneDrive,
         onDropboxTap: _uploadToDropbox,
-        onShareText: () => Share.share(_buildTextReport()),
+        onShareText: () => Share.share(_buildTextReport(),
+            sharePositionOrigin: shareOrigin(context)),
         onShareJson: () => Share.share(
           _buildJsonReport(),
           subject:
               'Rapport #${widget.report.reportNumber.toString().padLeft(3, '0')}.json',
+          sharePositionOrigin: shareOrigin(context),
         ),
         onShareHtml: _shareAsHtml,
         onCopyText: () {
           Clipboard.setData(ClipboardData(text: _buildTextReport()));
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Rapport copié dans le presse-papiers')),
+            SnackBar(
+                content: Text('rd_copied_clipboard'.tr())),
           );
         },
       ),
@@ -1653,10 +1668,10 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
     final report = ref.watch(reportsProvider).valueOrNull
             ?.where((r) => r.id == widget.report.id).firstOrNull
         ?? widget.report;
-    final fmt = DateFormat('dd/MM/yyyy', 'fr_FR');
+    final fmt = DateFormat.yMd();
     final dateStr = report.endDate != null
-        ? 'Du ${fmt.format(report.date)} au ${fmt.format(report.endDate!)}'
-        : DateFormat('dd MMMM yyyy', 'fr_FR').format(report.date);
+        ? 'rd_date_range'.tr(args: [fmt.format(report.date), fmt.format(report.endDate!)])
+        : DateFormat.yMMMMd().format(report.date);
 
     return Scaffold(
       appBar: AppBar(
@@ -1668,7 +1683,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
               Flexible(
                 child: Text(
                   report.clientName.isEmpty
-                      ? 'Rapport'
+                      ? 'rd_appbar_default'.tr()
                       : report.reportNumber > 0
                           ? '#${report.reportNumber.toString().padLeft(3, '0')} · ${report.clientName}'
                           : report.clientName,
@@ -1735,18 +1750,16 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (dlg) => AlertDialog(
-                    title: const Text('Supprimer ce rapport ?'),
-                    content: const Text(
-                        'Le rapport est déplacé dans l\'Archive. Vous pourrez '
-                        'le restaurer ou le supprimer définitivement là-bas.'),
+                    title: Text('rd_delete_title'.tr()),
+                    content: Text('rd_delete_body'.tr()),
                     actions: [
                       TextButton(
                           onPressed: () => Navigator.pop(dlg, false),
-                          child: const Text('Annuler')),
+                          child: Text('common_cancel'.tr())),
                       TextButton(
                           onPressed: () => Navigator.pop(dlg, true),
-                          child: const Text('Supprimer',
-                              style: TextStyle(color: Colors.red))),
+                          child: Text('common_delete'.tr(),
+                              style: const TextStyle(color: Colors.red))),
                     ],
                   ),
                 );
@@ -1761,10 +1774,10 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Rapport "${snapshot.clientName.isNotEmpty ? snapshot.clientName : "#${snapshot.reportNumber}"}" déplacé dans l\'Archive'),
+                          'rd_archived_snack'.tr(args: [snapshot.clientName.isNotEmpty ? snapshot.clientName : "#${snapshot.reportNumber}"])),
                       duration: const Duration(seconds: 6),
                       action: SnackBarAction(
-                        label: 'Annuler',
+                        label: 'common_cancel'.tr(),
                         onPressed: () => ref
                             .read(archivedReportsProvider.notifier)
                             .restore(snapshot.id),
@@ -1775,42 +1788,42 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
               }
             },
             itemBuilder: (_) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'duplicate',
                 child: Row(children: [
-                  Icon(Icons.copy_outlined, size: 18),
-                  SizedBox(width: 8),
-                  Text('Dupliquer'),
+                  const Icon(Icons.copy_outlined, size: 18),
+                  const SizedBox(width: 8),
+                  Text('rd_menu_duplicate'.tr()),
                 ]),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'template',
                 child: Row(children: [
-                  Icon(Icons.style_outlined, size: 18),
-                  SizedBox(width: 8),
-                  Text('Template PDF'),
+                  const Icon(Icons.style_outlined, size: 18),
+                  const SizedBox(width: 8),
+                  Text('rd_menu_template'.tr()),
                 ]),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'number',
                 child: Row(children: [
-                  Icon(Icons.tag, size: 18),
-                  SizedBox(width: 8),
-                  Text('Modifier le numéro'),
+                  const Icon(Icons.tag, size: 18),
+                  const SizedBox(width: 8),
+                  Text('rd_menu_edit_number'.tr()),
                 ]),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'format',
                 child: Row(children: [
-                  Icon(Icons.format_list_numbered, size: 18),
-                  SizedBox(width: 8),
-                  Text('Format du numéro'),
+                  const Icon(Icons.format_list_numbered, size: 18),
+                  const SizedBox(width: 8),
+                  Text('rd_menu_format'.tr()),
                 ]),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'delete',
-                child: Text('Supprimer',
-                    style: TextStyle(color: Colors.red)),
+                child: Text('common_delete'.tr(),
+                    style: const TextStyle(color: Colors.red)),
               ),
             ],
           ),
@@ -1848,18 +1861,18 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
 
           // Client
           _InfoCard(
-            title: 'Client',
+            title: 'cr_section_client'.tr(),
             icon: Icons.person_outline,
             children: [
-              _InfoRow('Nom', report.clientName),
+              _InfoRow('rd_name'.tr(), report.clientName),
               if (report.clientAddress.isNotEmpty)
-                _InfoRow('Adresse', report.clientAddress),
+                _InfoRow('field_address'.tr(), report.clientAddress),
               if (report.clientPhone.isNotEmpty)
-                _InfoRow('Téléphone', report.clientPhone),
+                _InfoRow('cr_phone'.tr(), report.clientPhone),
               if (report.clientContact.isNotEmpty)
-                _InfoRow('Contact', report.clientContact),
+                _InfoRow('field_contact'.tr(), report.clientContact),
               if (report.contractNumber.isNotEmpty)
-                _InfoRow('N° contrat', report.contractNumber),
+                _InfoRow('rd_contract_no'.tr(), report.contractNumber),
             ],
           ),
           const SizedBox(height: 12),
@@ -1868,13 +1881,13 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           if (report.interventionType.isNotEmpty ||
               report.sector != SectorTemplate.generic)
             _InfoCard(
-              title: 'Intervention',
+              title: 'cr_section_intervention'.tr(),
               icon: Icons.build_outlined,
               children: [
                 if (report.sector != SectorTemplate.generic)
-                  _InfoRow('Secteur', report.sector.label),
+                  _InfoRow('rd_sector'.tr(), report.sector.label),
                 if (report.interventionType.isNotEmpty)
-                  _InfoRow('Type', report.interventionType),
+                  _InfoRow('field_type'.tr(), report.interventionType),
               ],
             ),
           const SizedBox(height: 12),
@@ -1882,14 +1895,14 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           // Sector-specific fields
           if (report.sectorFields.isNotEmpty)
             _InfoCard(
-              title: 'Données ${report.sector.label}',
+              title: 'rd_sector_data'.tr(args: [report.sector.label]),
               icon: Icons.tune_outlined,
               children: report.sectorFields.entries
                   .where((e) =>
                       e.value != null &&
                       e.value.toString().isNotEmpty)
                   .map((e) => _InfoRow(
-                      _formatKey(e.key), e.value.toString()))
+                      _formatKey(e.key), sectorValueLabel(e.value.toString())))
                   .toList(),
             ),
           const SizedBox(height: 12),
@@ -1897,16 +1910,16 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           // Equipment
           if (report.equipmentType.isNotEmpty)
             _InfoCard(
-              title: 'Équipement',
+              title: 'cr_section_equipment'.tr(),
               icon: Icons.settings_outlined,
               children: [
-                _InfoRow('Type', report.equipmentType),
+                _InfoRow('field_type'.tr(), report.equipmentType),
                 if (report.equipmentBrand.isNotEmpty)
-                  _InfoRow('Marque', report.equipmentBrand),
+                  _InfoRow('cr_brand'.tr(), report.equipmentBrand),
                 if (report.equipmentModel.isNotEmpty)
-                  _InfoRow('Modèle', report.equipmentModel),
+                  _InfoRow('cr_model'.tr(), report.equipmentModel),
                 if (report.equipmentSerial.isNotEmpty)
-                  _InfoRow('N° série', report.equipmentSerial),
+                  _InfoRow('rd_serial_no'.tr(), report.equipmentSerial),
               ],
             ),
           const SizedBox(height: 12),
@@ -1914,7 +1927,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           // Description
           if (report.description.isNotEmpty)
             _InfoCard(
-              title: 'Travaux réalisés',
+              title: 'rd_work_done'.tr(),
               icon: Icons.description_outlined,
               children: [
                 Text(report.description,
@@ -1925,7 +1938,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
 
           if (report.observations.isNotEmpty)
             _InfoCard(
-              title: 'Observations',
+              title: 'field_observations'.tr(),
               icon: Icons.info_outline,
               children: [
                 Text(report.observations,
@@ -1938,11 +1951,11 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           if (report.laborHours != null ||
               report.materials.isNotEmpty)
             _InfoCard(
-              title: 'Facturation',
+              title: 'rd_billing'.tr(),
               icon: Icons.receipt_outlined,
               children: [
                 if (report.laborHours != null) ...[
-                  _InfoRow('Main-d\'œuvre',
+                  _InfoRow('cr_labor'.tr(),
                       '${report.laborHours!.toStringAsFixed(1)} h × '
                       '${(report.laborRate ?? 0).toStringAsFixed(2)} €/h = '
                       '${(report.laborHours! * (report.laborRate ?? 0)).toStringAsFixed(2)} €'),
@@ -1953,7 +1966,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     '${m.total.toStringAsFixed(2)} €')),
                 const Divider(height: 12),
                 _InfoRow(
-                  'TOTAL HT',
+                  'cr_total_ht'.tr(),
                   _totalStr(report),
                 ),
               ],
@@ -1963,7 +1976,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           // Photos
           if (report.photosPaths.isNotEmpty)
             _InfoCard(
-              title: 'Photos (${report.photosPaths.length})',
+              title: 'rd_photos_count'.tr(args: ['${report.photosPaths.length}']),
               icon: Icons.photo_camera_outlined,
               children: [
                 Wrap(
@@ -1998,39 +2011,39 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
               report.signatureClientData != null ||
               report.signatureTechData != null)
             _InfoCard(
-              title: 'Signatures',
+              title: 'cr_nav_signatures'.tr(),
               icon: Icons.draw_outlined,
               children: [
                 if (report.signatureClientStartData != null ||
                     report.signatureTechStartData != null) ...[
-                  Text('Début d\'intervention',
+                  Text('cr_section_signatures_start'.tr(),
                       style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   Row(
                     children: [
                       if (report.signatureClientStartData != null)
-                        Expanded(child: _SignaturePreview(label: 'Client', b64Data: report.signatureClientStartData!)),
+                        Expanded(child: _SignaturePreview(label: 'cr_section_client'.tr(), b64Data: report.signatureClientStartData!)),
                       if (report.signatureClientStartData != null && report.signatureTechStartData != null)
                         const SizedBox(width: 12),
                       if (report.signatureTechStartData != null)
-                        Expanded(child: _SignaturePreview(label: 'Technicien', b64Data: report.signatureTechStartData!)),
+                        Expanded(child: _SignaturePreview(label: 'field_technician'.tr(), b64Data: report.signatureTechStartData!)),
                     ],
                   ),
                   const SizedBox(height: 10),
                 ],
                 if (report.signatureClientData != null ||
                     report.signatureTechData != null) ...[
-                  Text('Fin d\'intervention',
+                  Text('cr_section_signatures_end'.tr(),
                       style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   Row(
                     children: [
                       if (report.signatureClientData != null)
-                        Expanded(child: _SignaturePreview(label: 'Client', b64Data: report.signatureClientData!)),
+                        Expanded(child: _SignaturePreview(label: 'cr_section_client'.tr(), b64Data: report.signatureClientData!)),
                       if (report.signatureClientData != null && report.signatureTechData != null)
                         const SizedBox(width: 12),
                       if (report.signatureTechData != null)
-                        Expanded(child: _SignaturePreview(label: 'Technicien', b64Data: report.signatureTechData!)),
+                        Expanded(child: _SignaturePreview(label: 'field_technician'.tr(), b64Data: report.signatureTechData!)),
                     ],
                   ),
                 ],
@@ -2047,7 +2060,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     ? null
                     : Colors.grey),
             label: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text('Enregistrer comme modèle',
+              Text('rd_save_template_title'.tr(),
                   style: TextStyle(
                       color: ref.watch(effectiveSubscriptionProvider)
                           ? null
@@ -2079,7 +2092,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           OutlinedButton.icon(
             onPressed: _isGeneratingPdf ? null : _sharePdf,
             icon: const Icon(Icons.share_outlined, size: 18),
-            label: Text(_isGeneratingPdf ? 'Génération…' : 'Partager le PDF'),
+            label: Text(_isGeneratingPdf ? 'rd_generating'.tr() : 'rd_share_pdf'.tr()),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(44),
             ),
@@ -2109,7 +2122,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.visibility_outlined, size: 18),
-            label: const Text('Voir le PDF'),
+            label: Text('rd_view_pdf'.tr()),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(44),
             ),
@@ -2118,7 +2131,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
           OutlinedButton.icon(
             onPressed: _showCloudOptions,
             icon: const Icon(Icons.cloud_upload_outlined),
-            label: const Text('Envoyer sur le cloud'),
+            label: Text('rd_send_cloud'.tr()),
           ),
           const SizedBox(height: 8),
           // Visible to all; free users hit paywall on tap.
@@ -2134,13 +2147,13 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.receipt_long_outlined, size: 18),
             label: _isGeneratingInvoice
-                ? const Text('Génération…')
-                : const Row(
+                ? Text('rd_generating'.tr())
+                : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Générer une facture'),
-                      SizedBox(width: 6),
-                      _ProBadge(),
+                      Text('rd_generate_invoice'.tr()),
+                      const SizedBox(width: 6),
+                      const _ProBadge(),
                     ],
                   ),
             style: OutlinedButton.styleFrom(
@@ -2160,10 +2173,10 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
               child: Row(children: [
                 const Icon(Icons.lock_outline, color: Colors.green, size: 18),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Signé à distance par le client — rapport verrouillé.',
-                    style: TextStyle(
+                    'rd_signed_remotely_banner'.tr(),
+                    style: const TextStyle(
                         fontSize: 13,
                         color: Colors.green,
                         fontWeight: FontWeight.w500),
@@ -2171,7 +2184,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                 ),
                 TextButton(
                   onPressed: () => _requestNewRemoteSignature(context, report),
-                  child: const Text('Nouvelle', style: TextStyle(fontSize: 12)),
+                  child: Text('rd_new_short'.tr(), style: const TextStyle(fontSize: 12)),
                 ),
               ]),
             ),
@@ -2195,10 +2208,10 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                           color: Colors.orange),
                     ),
                     const SizedBox(width: 10),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'En attente de signature client',
-                        style: TextStyle(
+                        'rd_awaiting_sig'.tr(),
+                        style: const TextStyle(
                             fontSize: 13,
                             color: Colors.orange,
                             fontWeight: FontWeight.w600),
@@ -2216,7 +2229,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                         await _clearPendingSig();
                       },
                       icon: const Icon(Icons.close, size: 18),
-                      tooltip: 'Annuler la demande',
+                      tooltip: 'rd_cancel_request'.tr(),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       color: Colors.red.shade400,
@@ -2228,8 +2241,8 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                       child: OutlinedButton.icon(
                         onPressed: _reopenRemoteSignature,
                         icon: const Icon(Icons.open_in_new, size: 15),
-                        label: const Text('Rouvrir',
-                            style: TextStyle(fontSize: 12)),
+                        label: Text('rd_reopen'.tr(),
+                            style: const TextStyle(fontSize: 12)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.orange,
                           side: const BorderSide(color: Colors.orange),
@@ -2247,13 +2260,13 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                                 '$_pendingSigUrl\nCode : $_pendingSigCode',
                           ));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Lien et code copiés !')),
+                            SnackBar(
+                                content: Text('rd_link_code_copied'.tr())),
                           );
                         },
                         icon: const Icon(Icons.copy_outlined, size: 15),
-                        label: const Text('Copier lien',
-                            style: TextStyle(fontSize: 12)),
+                        label: Text('rd_copy_link_short'.tr(),
+                            style: const TextStyle(fontSize: 12)),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           visualDensity: VisualDensity.compact,
@@ -2288,10 +2301,10 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     Icon(Icons.photo_camera_outlined,
                         color: Colors.blue.shade700, size: 18),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'L\'admin souhaite voir les photos de ce rapport.',
-                        style: TextStyle(
+                        'rd_admin_wants_photos'.tr(),
+                        style: const TextStyle(
                             fontSize: 13,
                             color: Colors.blue,
                             fontWeight: FontWeight.w600),
@@ -2309,9 +2322,9 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         visualDensity: VisualDensity.compact,
                       ),
-                      child: const Text(
-                          'Compris, j\'enverrai les photos',
-                          style: TextStyle(fontSize: 13)),
+                      child: Text(
+                          'rd_will_send_photos'.tr(),
+                          style: const TextStyle(fontSize: 13)),
                     ),
                   ),
                 ],
@@ -2336,7 +2349,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     Icon(Icons.cancel_outlined,
                         color: AppColors.statusRejected, size: 18),
                     const SizedBox(width: 8),
-                    Text('Rapport rejeté',
+                    Text('rd_rejected_title'.tr(),
                         style: TextStyle(
                             color: AppColors.statusRejected,
                             fontWeight: FontWeight.bold,
@@ -2345,7 +2358,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                   if (report.rejectionComment != null &&
                       report.rejectionComment!.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text('Commentaire de l\'administrateur :',
+                    Text('rd_admin_comment'.tr(),
                         style: TextStyle(
                             fontSize: 12, color: Colors.grey.shade600)),
                     const SizedBox(height: 4),
@@ -2362,7 +2375,7 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                   onPressed: () =>
                       context.push('/create-report?id=${report.id}'),
                   icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Modifier'),
+                  label: Text('cr_modify'.tr()),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -2383,15 +2396,15 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     .submitReport(report);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Rapport marqué comme envoyé ✓'),
+                    SnackBar(
+                      content: Text('rd_marked_sent'.tr()),
                       backgroundColor: AppColors.statusSubmitted,
                     ),
                   );
                 }
               },
               icon: const Icon(Icons.send),
-              label: const Text('Marquer comme envoyé'),
+              label: Text('rd_mark_sent'.tr()),
             ),
           if (report.status == ReportStatus.submitted) ...[
             const SizedBox(height: 8),
@@ -2404,15 +2417,15 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
                     .validateReport(report);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Rapport validé ✓'),
+                    SnackBar(
+                      content: Text('rd_validated'.tr()),
                       backgroundColor: AppColors.success,
                     ),
                   );
                 }
               },
               icon: const Icon(Icons.verified_outlined),
-              label: const Text('Valider ce rapport'),
+              label: Text('rd_validate_report'.tr()),
             ),
           ],
           const SizedBox(height: 16),
@@ -2422,14 +2435,13 @@ ${billingRows.isNotEmpty ? section('Facturation', billingRows.toString()) : ''}
   }
 
   String _horaireStr(ReportModel r) {
-    String f(DateTime dt) =>
-        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    String f(DateTime dt) => DateFormat.jm().format(dt); // 24 h ou AM/PM selon locale
     if (r.startTime != null && r.endTime != null) {
       return '${f(r.startTime!)} – ${f(r.endTime!)}';
     } else if (r.startTime != null) {
-      return 'Début : ${f(r.startTime!)}';
+      return 'rd_start_at'.tr(args: [f(r.startTime!)]);
     } else if (r.endTime != null) {
-      return 'Fin : ${f(r.endTime!)}';
+      return 'rd_end_at'.tr(args: [f(r.endTime!)]);
     }
     return '';
   }
@@ -2461,12 +2473,12 @@ class _RemoteSigButton extends ConsumerWidget {
           ? onRequest
           : () => PaywallBottomSheet.show(
                 context,
-                reason: 'La signature distante est une fonctionnalité Pro.',
+                reason: 'rd_remote_sig_pro'.tr(),
               ),
       icon: Icon(isPro ? Icons.draw_outlined : Icons.lock_outline, size: 18,
           color: isPro ? null : Colors.grey),
       label: Row(mainAxisSize: MainAxisSize.min, children: [
-        Text('Signature distante du client',
+        Text('rd_remote_sig_btn'.tr(),
             style: TextStyle(color: isPro ? null : Colors.grey)),
         if (!isPro) ...[
           const SizedBox(width: 6),
@@ -2578,11 +2590,10 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Sauvegarder sur le cloud',
-                  style:
-                      TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              Text('rd_cloud_save_title'.tr(),
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text('Choisissez un service de stockage.',
+              Text('rd_cloud_choose'.tr(),
                   style:
                       TextStyle(color: Colors.grey.shade600, fontSize: 13)),
               const SizedBox(height: 16),
@@ -2595,8 +2606,8 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
                 title: const Text('Google Drive'),
                 subtitle: Text(
                   _googleEmail != null
-                      ? 'Connecté : $_googleEmail'
-                      : 'Connexion au premier envoi',
+                      ? 'rd_connected_as'.tr(args: [_googleEmail ?? ''])
+                      : 'rd_connect_on_first'.tr(),
                   style: TextStyle(
                     fontSize: 11,
                     color: _googleEmail != null
@@ -2619,9 +2630,9 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
                 subtitle: Text(
                   _oneDriveConnected
                       ? (_oneDriveName != null
-                          ? 'Connecté : $_oneDriveName'
-                          : 'Connecté ✓')
-                      : 'Connexion au premier envoi',
+                          ? 'rd_connected_as'.tr(args: [_oneDriveName ?? ''])
+                          : 'rd_connected'.tr())
+                      : 'rd_connect_on_first'.tr(),
                   style: TextStyle(
                     fontSize: 11,
                     color: _oneDriveConnected
@@ -2644,9 +2655,9 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
                 subtitle: Text(
                   _dropboxConnected
                       ? (_dropboxName != null
-                          ? 'Connecté : $_dropboxName'
-                          : 'Connecté ✓')
-                      : 'Connexion au premier envoi',
+                          ? 'rd_connected_as'.tr(args: [_dropboxName ?? ''])
+                          : 'rd_connected'.tr())
+                      : 'rd_connect_on_first'.tr(),
                   style: TextStyle(
                     fontSize: 11,
                     color: _dropboxConnected
@@ -2661,26 +2672,26 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
               const Divider(height: 32),
 
               // ── Autres formats ────────────────────────────────────────
-              const Text('Autres formats',
-                  style: TextStyle(
+              Text('rd_other_formats'.tr(),
+                  style: const TextStyle(
                       fontSize: 15, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading:
                     const Icon(Icons.text_snippet_outlined, color: AppColors.primary),
-                title: const Text('Partager en texte'),
-                subtitle: const Text('WhatsApp, email, SMS…',
-                    style: TextStyle(fontSize: 12)),
+                title: Text('rd_share_text'.tr()),
+                subtitle: Text('rd_share_text_sub'.tr(),
+                    style: const TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _tap(context, widget.onShareText),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.data_object, color: AppColors.primary),
-                title: const Text('Exporter en JSON'),
-                subtitle: const Text('Sauvegarde · intégration · import',
-                    style: TextStyle(fontSize: 12)),
+                title: Text('rd_export_json'.tr()),
+                subtitle: Text('rd_export_json_sub'.tr(),
+                    style: const TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _tap(context, widget.onShareJson),
               ),
@@ -2688,10 +2699,9 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
                 contentPadding: EdgeInsets.zero,
                 leading:
                     const Icon(Icons.html_outlined, color: AppColors.primary),
-                title: const Text('Exporter en HTML'),
-                subtitle: const Text(
-                    'Ouvrable dans n\'importe quel navigateur',
-                    style: TextStyle(fontSize: 12)),
+                title: Text('rd_export_html'.tr()),
+                subtitle: Text('rd_export_html_sub'.tr(),
+                    style: const TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _tap(context, widget.onShareHtml),
               ),
@@ -2699,9 +2709,9 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
                 contentPadding: EdgeInsets.zero,
                 leading:
                     const Icon(Icons.copy_outlined, color: AppColors.primary),
-                title: const Text('Copier dans le presse-papiers'),
-                subtitle: const Text('Texte formaté prêt à coller',
-                    style: TextStyle(fontSize: 12)),
+                title: Text('rd_copy_clipboard'.tr()),
+                subtitle: Text('rd_copy_clipboard_sub'.tr(),
+                    style: const TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _tap(context, widget.onCopyText),
               ),

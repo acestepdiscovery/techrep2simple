@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../features/reports/models/report_model.dart';
@@ -10,11 +11,11 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (status) {
-      ReportStatus.draft => ('En cours', AppColors.statusDraft),
-      ReportStatus.submitted => ('Envoyé', AppColors.statusSubmitted),
-      ReportStatus.pendingValidation => ('À valider', AppColors.statusPendingValidation),
-      ReportStatus.validated => ('Validé', AppColors.statusValidated),
-      ReportStatus.rejected => ('Rejeté', AppColors.statusRejected),
+      ReportStatus.draft => ('sb_draft'.tr(), AppColors.statusDraft),
+      ReportStatus.submitted => ('sb_submitted'.tr(), AppColors.statusSubmitted),
+      ReportStatus.pendingValidation => ('sb_pending'.tr(), AppColors.statusPendingValidation),
+      ReportStatus.validated => ('sb_validated'.tr(), AppColors.statusValidated),
+      ReportStatus.rejected => ('sb_rejected'.tr(), AppColors.statusRejected),
     };
 
     return Container(

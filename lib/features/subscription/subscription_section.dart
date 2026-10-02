@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,16 +49,15 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
       if (!mounted) return;
       if (sub != null && sub['status'] == 'active') {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Abonnement récupéré !'),
+          SnackBar(
+            content: Text('ss_restored'.tr()),
             backgroundColor: Colors.green,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Aucun abonnement actif trouvé. Reconnectez-vous avec l\'email utilisé lors du paiement.'),
+          SnackBar(
+            content: Text('ss_no_active_found'.tr()),
           ),
         );
       }
@@ -388,27 +388,21 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
       builder: (dlg) => AlertDialog(
         icon: const Icon(Icons.manage_accounts_outlined,
             color: AppColors.primary),
-        title: const Text('Gérer l\'abonnement équipe'),
-        content: const Text(
-          'La gestion se fait dans les réglages d\'abonnement de votre store '
-          '(App Store / Google Play). Vous pourrez :\n\n'
-          '•  changer le moyen de paiement,\n'
-          '•  voir l\'historique de facturation,\n'
-          '•  résilier l\'abonnement.\n\n'
-          'L\'accès Pro de vos techniciens reste actif tant que l\'abonnement '
-          'n\'est pas résilié.',
-          style: TextStyle(fontSize: 13, height: 1.4),
+        title: Text('ss_manage_team_sub'.tr()),
+        content: Text(
+          'ss_team_portal_info'.tr(),
+          style: const TextStyle(fontSize: 13, height: 1.4),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(dlg), child: const Text('Fermer')),
+              onPressed: () => Navigator.pop(dlg), child: Text('td_close'.tr())),
           FilledButton.icon(
             onPressed: () {
               Navigator.pop(dlg);
               _openPortal(target: 'company');
             },
             icon: const Icon(Icons.open_in_new, size: 16),
-            label: const Text('Ouvrir les réglages d\'abonnement'),
+            label: Text('ss_open_sub_settings'.tr()),
           ),
         ],
       ),
@@ -422,12 +416,10 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
       children: [
         ListTile(
           leading: Icon(Icons.error_outline, color: Colors.orange.shade800),
-          title: const Text('Paiement échoué'),
-          subtitle: const Text(
-            'Votre dernier paiement n\'a pas abouti — accès Pro suspendu. '
-            'Mettez à jour votre moyen de paiement : l\'accès est rétabli '
-            'automatiquement dès que le paiement réussit.',
-            style: TextStyle(fontSize: 12),
+          title: Text('ss_payment_failed'.tr()),
+          subtitle: Text(
+            'ss_payment_failed_desc'.tr(),
+            style: const TextStyle(fontSize: 12),
           ),
         ),
         Padding(
@@ -442,7 +434,7 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.credit_card_outlined),
-              label: const Text('Mettre à jour le paiement'),
+              label: Text('ss_update_payment'.tr()),
               style:
                   FilledButton.styleFrom(backgroundColor: Colors.orange.shade800),
             ),
@@ -460,12 +452,10 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
       children: [
         ListTile(
           leading: Icon(Icons.error_outline, color: Colors.orange.shade800),
-          title: const Text('Accès équipe suspendu'),
-          subtitle: const Text(
-            'Le paiement de l\'abonnement de votre équipe a échoué — votre accès '
-            'Pro via l\'équipe est suspendu. Le responsable de l\'équipe (celui '
-            'qui l\'a créée et gère son abonnement) doit mettre à jour la carte.',
-            style: TextStyle(fontSize: 12),
+          title: Text('ss_team_suspended'.tr()),
+          subtitle: Text(
+            'ss_team_suspended_desc'.tr(),
+            style: const TextStyle(fontSize: 12),
           ),
         ),
         Padding(
@@ -475,7 +465,7 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
             child: OutlinedButton.icon(
               onPressed: () => PaywallBottomSheet.show(context),
               icon: const Icon(Icons.workspace_premium_outlined, size: 18),
-              label: const Text('Ou prendre un abonnement solo (accès immédiat)'),
+              label: Text('ss_or_solo'.tr()),
             ),
           ),
         ),
@@ -495,20 +485,20 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
         ListTile(
           leading: const Icon(Icons.workspace_premium_outlined,
               color: Colors.grey),
-          title: Text(isTeam ? 'Abonnement équipe' : 'Mon abonnement'),
+          title: Text(isTeam ? 'ss_team_sub'.tr() : 'ss_my_sub'.tr()),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Gratuit · ${SubscriptionService.freeMonthlyExports} exports PDF/mois',
+                'ss_free_exports'.tr(args: ['${SubscriptionService.freeMonthlyExports}']),
                 style: const TextStyle(fontSize: 12),
               ),
               const SizedBox(height: 2),
               Text(
                 canSubscribeTeam
-                    ? '⭐ Exports ILLIMITÉS à partir de 2,50 €/mois'
-                    : 'Seul le responsable de l\'équipe peut souscrire l\'abonnement.',
+                    ? 'ss_unlimited_from'.tr()
+                    : 'ss_only_admin_subscribe'.tr(),
                 style: const TextStyle(
                   fontSize: 11,
                   color: AppColors.primary,
@@ -529,7 +519,7 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
                         horizontal: 12, vertical: 6),
                     textStyle: const TextStyle(fontSize: 13),
                   ),
-                  child: Text(isTeam ? 'Abonner l\'équipe' : 'S\'abonner'),
+                  child: Text(isTeam ? 'ss_subscribe_team'.tr() : 'pw_subscribe'.tr()),
                 )
               : Icon(Icons.lock_outline, size: 18, color: Colors.grey.shade400),
         ),
@@ -541,10 +531,10 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
                     height: 24,
                     child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.restore, color: AppColors.primary),
-            title: const Text('Récupérer mon abonnement'),
-            subtitle: const Text(
-              'Reconnectez-vous avec le compte utilisé lors du paiement.',
-              style: TextStyle(fontSize: 11),
+            title: Text('ss_restore_my_sub'.tr()),
+            subtitle: Text(
+              'ss_restore_desc'.tr(),
+              style: const TextStyle(fontSize: 11),
             ),
             trailing: const Icon(Icons.chevron_right,
                 size: 18, color: Colors.grey),
@@ -572,10 +562,10 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
 
     final loading = subAsync.isLoading || companySubAsync.isLoading;
     if (loading) {
-      return const ListTile(
-        leading: Icon(Icons.workspace_premium, color: AppColors.primary),
-        title: Text('Mon abonnement'),
-        trailing: SizedBox(
+      return ListTile(
+        leading: const Icon(Icons.workspace_premium, color: AppColors.primary),
+        title: Text('ss_my_sub'.tr()),
+        trailing: const SizedBox(
           width: 16, height: 16,
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
@@ -615,7 +605,7 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
     // Abonnement actif — company prend priorité sur perso
     final activeSub = isCompanyActive ? companySub : userSub;
     final isCompany = isCompanyActive;
-    final label = isCompany ? 'Équipe · ${activeSub.planLabel}' : activeSub.planLabel;
+    final label = isCompany ? 'ss_team_prefix'.tr(args: [activeSub.planLabel]) : activeSub.planLabel;
     final end = activeSub.periodEnd;
     final isLifetime = activeSub.isLifetime;
     final canManage = !isCompany
@@ -631,14 +621,14 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
       // « renouvellement le… » — l'accès reste actif jusqu'à cette date.
       final canceled = activeSub?['cancel_at_period_end'] == true;
       statusText += canceled
-          ? ' · expire le $d/$m/${end.year} (renouvellement annulé)'
-          : ' · renouvellement le $d/$m/${end.year}';
+          ? 'ss_expires_on'.tr(args: ['$d/$m/${end.year}'])
+          : 'ss_renews_on'.tr(args: ['$d/$m/${end.year}']);
     }
     // (double Pro) On affiche l'équipe (prioritaire) MAIS l'utilisateur a AUSSI un
     // abo SOLO perso actif → on l'indique. Les deux couvrent des choses différentes :
     // équipe = rapports d'équipe ; solo = rapports perso (sous son identité).
     if (isCompany && userSub.isActive) {
-      statusText += '\n➕ Abonnement solo perso aussi actif (couvre vos rapports perso)';
+      statusText += 'ss_also_solo'.tr();
     }
 
     return Column(
@@ -648,7 +638,7 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
             isCompany ? Icons.group : Icons.workspace_premium,
             color: AppColors.primary,
           ),
-          title: Text(isCompany ? 'Abonnement équipe' : 'Mon abonnement'),
+          title: Text(isCompany ? 'ss_team_sub'.tr() : 'ss_my_sub'.tr()),
           subtitle: Text(statusText,
               style: const TextStyle(fontSize: 12, color: Colors.black87)),
           trailing: Row(
@@ -662,7 +652,7 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
                   border: Border.all(color: Colors.green.shade200),
                 ),
                 child: Text(
-                  'Actif',
+                  'pw_active_badge'.tr(),
                   style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -684,7 +674,7 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
                       )
                     : IconButton(
                         icon: const Icon(Icons.settings_outlined, size: 20),
-                        tooltip: 'Gérer l\'abonnement équipe',
+                        tooltip: 'ss_manage_team_sub'.tr(),
                         onPressed: _showTeamPortalInfo,
                       ),
               ],
@@ -698,13 +688,11 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
             dense: true,
             leading: Icon(Icons.shield_outlined,
                 size: 18, color: Colors.grey.shade500),
-            title: const Text('Géré par le responsable de votre équipe',
-                style: TextStyle(fontSize: 12.5)),
-            subtitle: const Text(
-              'Votre accès Pro est fourni par l\'équipe. La facturation et les '
-              'sièges sont gérés par le responsable de l\'équipe (celui qui l\'a '
-              'créée).',
-              style: TextStyle(fontSize: 11),
+            title: Text('ss_managed_by_admin'.tr(),
+                style: const TextStyle(fontSize: 12.5)),
+            subtitle: Text(
+              'ss_managed_by_admin_desc'.tr(),
+              style: const TextStyle(fontSize: 11),
             ),
           ),
         // (#9) Pour l'ÉQUIPE, cette tuile est remplacée par l'icône ⚙️ sur la
@@ -717,9 +705,9 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
                     child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.manage_accounts_outlined,
                     color: AppColors.primary),
-            title: const Text('Gérer l\'abonnement'),
-            subtitle: const Text('Changer carte, factures, annuler',
-                style: TextStyle(fontSize: 12)),
+            title: Text('ss_manage_sub'.tr()),
+            subtitle: Text('ss_manage_sub_desc'.tr(),
+                style: const TextStyle(fontSize: 12)),
             trailing:
                 const Icon(Icons.open_in_new, size: 16, color: Colors.grey),
             onTap: _loadingPortal
@@ -737,14 +725,11 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
                 color: activeSub.isRecurring
                     ? AppColors.primary
                     : Colors.grey.shade400),
-            title: const Text('Changer de palier'),
+            title: Text('pw_change_tier'.tr()),
             subtitle: Text(
               activeSub.isRecurring
-                  ? () {
-                      final n = ref.watch(companySeatLimitProvider) ?? 0;
-                      return 'Palier actuel · jusqu\'à $n membres — passer au-dessus / en-dessous';
-                    }()
-                  : 'Activez un abonnement équipe pour choisir un palier',
+                  ? 'ss_current_tier'.tr(args: ['${ref.watch(companySeatLimitProvider) ?? 0}'])
+                  : 'ss_activate_for_tier'.tr(),
               style: const TextStyle(fontSize: 12),
             ),
             trailing:
@@ -759,9 +744,9 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
             dense: true,
             leading: const Icon(Icons.workspace_premium_outlined,
                 color: Colors.grey),
-            title: const Text('Abonnement personnel'),
+            title: Text('ss_personal_sub'.tr()),
             subtitle: Text(
-              '${userSub.planLabel} · également actif',
+              'ss_also_active'.tr(args: [userSub.planLabel]),
               style: const TextStyle(fontSize: 12),
             ),
             trailing: userSub.isRecurring
@@ -770,7 +755,7 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
                     onPressed: _loadingPortal
                         ? null
                         : () => _openPortal(target: 'personal'),
-                    child: const Text('Gérer'),
+                    child: Text('pw_manage'.tr()),
                   )
                 : null,
           ),
@@ -801,11 +786,10 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
           ListTile(
             leading:
                 Icon(Icons.person_outline, color: Colors.indigo.shade400),
-            title: const Text('Ajouter un abonnement solo'),
-            subtitle: const Text(
-              'Optionnel — pour créer des rapports PERSO sous votre propre nom '
-              'd\'entreprise (hors équipe) et basculer entre vos 2 profils.',
-              style: TextStyle(fontSize: 12),
+            title: Text('ss_add_solo'.tr()),
+            subtitle: Text(
+              'ss_add_solo_desc'.tr(),
+              style: const TextStyle(fontSize: 12),
             ),
             trailing: Icon(Icons.arrow_forward_ios,
                 size: 14, color: Colors.indigo.shade400),

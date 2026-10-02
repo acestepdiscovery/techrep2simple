@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:signature/signature.dart';
 import '../../../core/constants/app_colors.dart';
@@ -35,7 +36,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
   Future<void> _confirm() async {
     if (_controller.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez apposer votre signature')),
+        SnackBar(content: Text('sig_please_sign'.tr())),
       );
       return;
     }
@@ -52,7 +53,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
           TextButton.icon(
             onPressed: () { _controller.clear(); },
             icon: const Icon(Icons.refresh, color: Colors.white, size: 18),
-            label: const Text('Effacer', style: TextStyle(color: Colors.white)),
+            label: Text('sig_clear'.tr(), style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -62,7 +63,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
-              'Signez dans le cadre ci-dessous avec votre doigt ou un stylet.',
+              'sig_instructions'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
             ),
@@ -109,7 +110,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Signature actuelle',
+                            'sig_current'.tr(),
                             style: TextStyle(
                               fontSize: 9,
                               color: Colors.grey.shade500,
@@ -145,7 +146,7 @@ class _SignatureScreenState extends State<SignatureScreen> {
             child: ElevatedButton.icon(
               onPressed: _controller.isNotEmpty ? _confirm : null,
               icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Confirmer la signature'),
+              label: Text('sig_confirm'.tr()),
             ),
           ),
           const SizedBox(height: 24),

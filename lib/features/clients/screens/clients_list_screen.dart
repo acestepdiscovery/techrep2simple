@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -42,16 +43,16 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Supprimer ce client ?'),
-        content: Text('${client.name} sera supprimé définitivement.'),
+        title: Text('cl_delete_q'.tr()),
+        content: Text('cl_delete_desc'.tr(args: [client.name])),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dialogCtx, false),
-              child: const Text('Annuler')),
+              child: Text('common_cancel'.tr())),
           TextButton(
               onPressed: () => Navigator.pop(dialogCtx, true),
-              child: const Text('Supprimer',
-                  style: TextStyle(color: Colors.red))),
+              child: Text('ar_delete'.tr(),
+                  style: const TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -89,7 +90,7 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Clients'),
+        title: Text('nav_clients'.tr()),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
           child: Padding(
@@ -97,7 +98,7 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
             child: TextField(
               controller: _search,
               decoration: InputDecoration(
-                hintText: 'Rechercher un client…',
+                hintText: 'cl_search_hint'.tr(),
                 prefixIcon: const Icon(Icons.search, size: 20),
                 suffixIcon: _query.isNotEmpty
                     ? IconButton(
@@ -123,7 +124,7 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
       ),
       body: clientsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Erreur : $e')),
+        error: (e, _) => Center(child: Text('common_error'.tr(args: ['$e']))),
         data: (clients) {
           final filtered = _query.isEmpty
               ? clients
@@ -157,8 +158,8 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
                   const SizedBox(height: 12),
                   Text(
                     _query.isEmpty
-                        ? 'Aucun client\nAppuyez sur + pour en ajouter un'
-                        : 'Aucun résultat pour "$_query"',
+                        ? 'cl_empty'.tr()
+                        : 'cl_no_results'.tr(args: [_query]),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey.shade500),
                   ),
@@ -212,7 +213,7 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
                             size: 15, color: Colors.teal.shade700),
                         const SizedBox(width: 6),
                         Text(
-                          'Clients partagés par l\'équipe',
+                          'cl_shared_by_team'.tr(),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -258,7 +259,7 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
         heroTag: 'fab_clients',
         onPressed: () => _openForm(),
         icon: const Icon(Icons.person_add),
-        label: const Text('Nouveau client'),
+        label: Text('cl_new_client'.tr()),
         backgroundColor: AppColors.primary,
       ),
     );
@@ -345,7 +346,7 @@ class _ClientCard extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.history,
                     size: 20, color: AppColors.primary),
-                tooltip: 'Historique des interventions',
+                tooltip: 'cl_history_tooltip'.tr(),
                 onPressed: () => context.push(
                   '/client-history/${client.id}',
                   extra: client.name,
@@ -359,8 +360,8 @@ class _ClientCard extends StatelessWidget {
                   if (v == 'unshare') onUnshare?.call();
                 },
                 itemBuilder: (_) => [
-                  const PopupMenuItem(
-                      value: 'edit', child: Text('Modifier')),
+                  PopupMenuItem(
+                      value: 'edit', child: Text('cl_edit'.tr())),
                   if (onShare != null)
                     PopupMenuItem(
                       value: 'share',
@@ -368,7 +369,7 @@ class _ClientCard extends StatelessWidget {
                         Icon(Icons.group_add_outlined,
                             size: 18, color: Colors.teal.shade700),
                         const SizedBox(width: 8),
-                        const Text('Partager avec l\'équipe'),
+                        Text('cl_share_team'.tr()),
                       ]),
                     ),
                   if (onUnshare != null)
@@ -378,15 +379,15 @@ class _ClientCard extends StatelessWidget {
                         Icon(Icons.group_remove_outlined,
                             size: 18, color: Colors.teal.shade700),
                         const SizedBox(width: 8),
-                        Text('Retirer du partage',
+                        Text('cl_unshare'.tr(),
                             style:
                                 TextStyle(color: Colors.teal.shade700)),
                       ]),
                     ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
-                    child: Text('Supprimer',
-                        style: TextStyle(color: Colors.red)),
+                    child: Text('ar_delete'.tr(),
+                        style: const TextStyle(color: Colors.red)),
                   ),
                 ],
               ),
@@ -442,7 +443,7 @@ class _SharedClientCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis),
               if (sharedClient.sharedByName.isNotEmpty)
                 Text(
-                  'Partagé par ${sharedClient.sharedByName}',
+                  'cl_shared_by'.tr(args: [sharedClient.sharedByName]),
                   style: TextStyle(
                       color: Colors.teal.shade600,
                       fontSize: 10,
@@ -462,7 +463,7 @@ class _SharedClientCard extends StatelessWidget {
                         Icon(Icons.group_remove_outlined,
                             size: 18, color: Colors.teal.shade700),
                         const SizedBox(width: 8),
-                        Text('Retirer du partage',
+                        Text('cl_unshare'.tr(),
                             style:
                                 TextStyle(color: Colors.teal.shade700)),
                       ]),
@@ -562,8 +563,8 @@ class _ClientFormSheetState extends State<_ClientFormSheet> {
               children: [
                 Text(
                   widget.existing == null
-                      ? 'Nouveau client'
-                      : 'Modifier le client',
+                      ? 'cl_new_client'.tr()
+                      : 'cl_edit_client'.tr(),
                   style: const TextStyle(
                       fontSize: 18, fontWeight: FontWeight.bold),
                 ),
@@ -578,26 +579,26 @@ class _ClientFormSheetState extends State<_ClientFormSheet> {
             const SizedBox(height: 8),
             _sheetField(
               controller: _name,
-              label: 'Nom du client *',
+              label: 'cl_field_name'.tr(),
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Requis' : null,
+                  (v == null || v.trim().isEmpty) ? 'cl_required'.tr() : null,
             ),
-            _sheetField(controller: _address, label: 'Adresse'),
+            _sheetField(controller: _address, label: 'field_address'.tr()),
             _sheetField(
               controller: _phone,
-              label: 'Téléphone',
+              label: 'cr_phone'.tr(),
               keyboardType: TextInputType.phone,
             ),
             _sheetField(
               controller: _email,
-              label: 'Email',
+              label: 'auth_field_email'.tr(),
               keyboardType: TextInputType.emailAddress,
             ),
-            _sheetField(controller: _contact, label: 'Contact sur place'),
-            _sheetField(controller: _contract, label: 'N° de contrat'),
+            _sheetField(controller: _contact, label: 'ai_lbl_contact'.tr()),
+            _sheetField(controller: _contract, label: 'cl_field_contract'.tr()),
             _sheetField(
               controller: _notes,
-              label: 'Notes internes',
+              label: 'cl_field_notes'.tr(),
               maxLines: 3,
             ),
             const SizedBox(height: 16),
@@ -611,8 +612,8 @@ class _ClientFormSheetState extends State<_ClientFormSheet> {
                           strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.check),
               label: Text(widget.existing == null
-                  ? 'Créer le client'
-                  : 'Enregistrer'),
+                  ? 'cl_create_client'.tr()
+                  : 'common_save'.tr()),
             ),
           ],
         ),

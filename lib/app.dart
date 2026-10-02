@@ -1,3 +1,5 @@
+import 'package:easy_localization/easy_localization.dart'; // réexporte aussi `Intl`
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -345,6 +347,18 @@ class _TechReportAppState extends ConsumerState<TechReportApp>
 
   @override
   Widget build(BuildContext context) {
+    // (i18n dates) Les `DateFormat.yMd()/yMMMMd()` sans locale explicite (PDF,
+    // listes, détails…) suivent `Intl.defaultLocale`. On le synchronise sur la
+    // langue active de l'app → dates au format du pays, mois traduits.
+    Intl.defaultLocale = context.locale.languageCode;
+    // (i18n e-mails) Les e-mails transactionnels Firebase Auth (réinitialisation
+    // de mot de passe, vérification d'e-mail) sont envoyés DANS cette langue.
+    try {
+      FirebaseAuth.instance.setLanguageCode(context.locale.languageCode);
+    } catch (_) {
+      // Firebase non initialisé (mode hors-ligne/desktop) → on ignore.
+    }
+
     ref.listen(firebaseUserProvider, (prev, next) {
       final uid = next.valueOrNull?.uid;
       if (uid != null) {
@@ -358,6 +372,12 @@ class _TechReportAppState extends ConsumerState<TechReportApp>
       theme: AppTheme.light,
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
+      // Localisation (easy_localization) : fournit la langue active, la liste des
+      // langues prises en charge et les delegates (y compris ceux de Material/
+      // Cupertino/Widgets pour les libellés système — dates, « Annuler », etc.).
+      locale: context.locale,
+      supportedLocales: context.supportedLocales,
+      localizationsDelegates: context.localizationDelegates,
       builder: kIsWeb ? _webLayout : null,
     );
   }

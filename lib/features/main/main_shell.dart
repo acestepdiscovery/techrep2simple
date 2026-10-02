@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -91,21 +92,16 @@ class _MainShellState extends ConsumerState<MainShell> {
           icon: Icon(
               wasPending ? Icons.info_outline : Icons.group_off_outlined,
               color: Colors.orange.shade700),
-          title:
-              Text(wasPending ? 'Demande non acceptée' : 'Retiré de l\'équipe'),
-          content: Text(
-            wasPending
-                ? 'Votre demande pour rejoindre l\'équipe n\'a pas été acceptée '
-                    'par l\'administrateur.\n\nVous pouvez réessayer avec un autre '
-                    'code d\'invitation quand vous le souhaitez.'
-                : 'Vous avez été retiré de l\'équipe par l\'administrateur.\n\n'
-                    'Vous pouvez rejoindre une équipe à tout moment avec un code '
-                    'd\'invitation.',
-          ),
+          title: Text(wasPending
+              ? 'team_removed_pending_title'.tr()
+              : 'team_removed_title'.tr()),
+          content: Text(wasPending
+              ? 'team_removed_pending_body'.tr()
+              : 'team_removed_body'.tr()),
           actions: [
             FilledButton(
                 onPressed: () => Navigator.pop(dlg),
-                child: const Text('Compris')),
+                child: Text('common_understood'.tr())),
           ],
         ),
       );
@@ -131,10 +127,10 @@ class _MainShellState extends ConsumerState<MainShell> {
     showDialog(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Row(children: [
-          Icon(Icons.campaign_outlined, size: 20),
-          SizedBox(width: 8),
-          Text('Message du développeur'),
+        title: Row(children: [
+          const Icon(Icons.campaign_outlined, size: 20),
+          const SizedBox(width: 8),
+          Text('broadcast_title'.tr()),
         ]),
         content: Text(message),
         actions: [
@@ -144,7 +140,7 @@ class _MainShellState extends ConsumerState<MainShell> {
               await p.setBool('dismissed_broadcast_$id', true);
               if (dlg.mounted) Navigator.pop(dlg);
             },
-            child: const Text('OK'),
+            child: Text('common_ok'.tr()),
           ),
         ],
       ),
@@ -175,15 +171,10 @@ class _MainShellState extends ConsumerState<MainShell> {
       await Future.delayed(const Duration(seconds: 3));
       if (!mounted) return;
 
-      const defaults = {
-        5: ('🎉', 'Bon départ !', '5 rapports créés. Vous avez pris un excellent départ — continuez comme ça !'),
-        10: ('💪', '10 rapports !', 'L\'habitude est prise. L\'app fait désormais partie de votre workflow.'),
-        25: ('🚀', '25 rapports !', 'Vous êtes un utilisateur confirmé. Merci de nous faire confiance.'),
-        50: ('⭐', '50 rapports !', 'Impressionnant. Merci d\'utiliser l\'app au quotidien.'),
-        100: ('🏆', '100 rapports !', 'Vous êtes un pro. Merci pour votre fidélité — vous faites partie des meilleurs utilisateurs.'),
-      };
-
-      final (emoji, title, defaultBody) = defaults[toShow]!;
+      const emojis = {5: '🎉', 10: '💪', 25: '🚀', 50: '⭐', 100: '🏆'};
+      final emoji = emojis[toShow]!;
+      final title = 'milestone_${toShow}_title'.tr();
+      final defaultBody = 'milestone_${toShow}_body'.tr();
 
       // Try to read custom body from Firestore config/app_control
       String body = defaultBody;
@@ -204,7 +195,7 @@ class _MainShellState extends ConsumerState<MainShell> {
           actions: [
             FilledButton(
               onPressed: () => Navigator.pop(dlg),
-              child: const Text('Merci !'),
+              child: Text('milestone_thanks'.tr()),
             ),
           ],
         ),
@@ -225,12 +216,10 @@ class _MainShellState extends ConsumerState<MainShell> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text(
-          'Une idée ou un problème ? Le développeur est à votre écoute — Paramètres → Feedback.',
-        ),
+        content: Text('feedback_nudge_msg'.tr()),
         duration: const Duration(seconds: 7),
         action: SnackBarAction(
-          label: 'Paramètres',
+          label: 'common_settings'.tr(),
           onPressed: () => context.go('/settings'),
         ),
       ),
@@ -294,20 +283,20 @@ class _MainShellState extends ConsumerState<MainShell> {
                 // Clients accessible via AppBar in Rapports / button in Mon compte.
                 // Équipe accessible via toggle inside Rapports (kEnableTeamMergedTab).
                 ? [
-                    const NavigationDestination(
-                      icon: Icon(Icons.assignment_outlined),
-                      selectedIcon: Icon(Icons.assignment),
-                      label: 'Rapports',
+                    NavigationDestination(
+                      icon: const Icon(Icons.assignment_outlined),
+                      selectedIcon: const Icon(Icons.assignment),
+                      label: 'nav_reports'.tr(),
                     ),
-                    const NavigationDestination(
-                      icon: Icon(Icons.account_circle_outlined),
-                      selectedIcon: Icon(Icons.account_circle),
-                      label: 'Mon compte',
+                    NavigationDestination(
+                      icon: const Icon(Icons.account_circle_outlined),
+                      selectedIcon: const Icon(Icons.account_circle),
+                      label: 'nav_account'.tr(),
                     ),
-                    const NavigationDestination(
-                      icon: Icon(Icons.auto_awesome_outlined),
-                      selectedIcon: Icon(Icons.auto_awesome),
-                      label: 'IA',
+                    NavigationDestination(
+                      icon: const Icon(Icons.auto_awesome_outlined),
+                      selectedIcon: const Icon(Icons.auto_awesome),
+                      label: 'nav_ai'.tr(),
                     ),
                     NavigationDestination(
                       icon: Badge(
@@ -320,47 +309,47 @@ class _MainShellState extends ConsumerState<MainShell> {
                         label: Text('$pendingCount'),
                         child: const Icon(Icons.groups),
                       ),
-                      label: 'Équipe',
+                      label: 'nav_team'.tr(),
                     ),
-                    const NavigationDestination(
-                      icon: Icon(Icons.settings_outlined),
-                      selectedIcon: Icon(Icons.settings),
-                      label: 'Réglages',
+                    NavigationDestination(
+                      icon: const Icon(Icons.settings_outlined),
+                      selectedIcon: const Icon(Icons.settings),
+                      label: 'nav_settings'.tr(),
                     ),
                   ]
                 // ── Classic layout (5 or 6 tabs) ─────────────────────────
                 : [
-                    const NavigationDestination(
-                      icon: Icon(Icons.assignment_outlined),
-                      selectedIcon: Icon(Icons.assignment),
-                      label: 'Rapports',
+                    NavigationDestination(
+                      icon: const Icon(Icons.assignment_outlined),
+                      selectedIcon: const Icon(Icons.assignment),
+                      label: 'nav_reports'.tr(),
                     ),
-                    const NavigationDestination(
-                      icon: ClientsIcon(),                 // carte contact + badge « C » (distinct du profil)
-                      selectedIcon: ClientsIcon(selected: true),
-                      label: 'Clients',
+                    NavigationDestination(
+                      icon: const ClientsIcon(),           // carte contact + badge « C » (distinct du profil)
+                      selectedIcon: const ClientsIcon(selected: true),
+                      label: 'nav_clients'.tr(),
                     ),
-                    const NavigationDestination(
-                      icon: Icon(Icons.auto_awesome_outlined),
-                      selectedIcon: Icon(Icons.auto_awesome),
-                      label: 'IA',
+                    NavigationDestination(
+                      icon: const Icon(Icons.auto_awesome_outlined),
+                      selectedIcon: const Icon(Icons.auto_awesome),
+                      label: 'nav_ai'.tr(),
                     ),
                     NavigationDestination(
                       icon: hasTeam
                           ? const Icon(Icons.groups_outlined)
                           : const Icon(Icons.groups_2_outlined),
                       selectedIcon: const Icon(Icons.groups),
-                      label: 'Équipe',
+                      label: 'nav_team'.tr(),
                     ),
-                    const NavigationDestination(
-                      icon: Icon(Icons.settings_outlined),
-                      selectedIcon: Icon(Icons.settings),
-                      label: 'Réglages',
+                    NavigationDestination(
+                      icon: const Icon(Icons.settings_outlined),
+                      selectedIcon: const Icon(Icons.settings),
+                      label: 'nav_settings'.tr(),
                     ),
-                    if (kEnableProfileTab) const NavigationDestination(
-                      icon: Icon(Icons.account_circle_outlined),
-                      selectedIcon: Icon(Icons.account_circle),
-                      label: 'Profil',
+                    if (kEnableProfileTab) NavigationDestination(
+                      icon: const Icon(Icons.account_circle_outlined),
+                      selectedIcon: const Icon(Icons.account_circle),
+                      label: 'nav_profile'.tr(),
                     ),
                   ],
           ),
@@ -398,8 +387,8 @@ class _SetupStatusBar extends ConsumerWidget {
             Expanded(
               child: Text(
                 isLoggedIn
-                    ? 'Passez Pro — exports illimités, signature distante, factures →'
-                    : 'Connectez-vous pour toutes les fonctionnalités →',
+                    ? 'bar_go_pro'.tr()
+                    : 'bar_login_all_features'.tr(),
                 style: const TextStyle(color: Colors.white, fontSize: 11),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -423,10 +412,10 @@ class _ProBar extends StatelessWidget {
       width: double.infinity,
       color: AppColors.primary,
       padding: const EdgeInsets.symmetric(vertical: 3),
-      child: const Text(
-        'VERSION PRO',
+      child: Text(
+        'bar_version_pro'.tr(),
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.white,
           fontSize: 10,
           fontWeight: FontWeight.bold,

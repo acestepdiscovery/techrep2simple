@@ -24,11 +24,17 @@ class RemoteSignatureService {
   }
 
   /// Creates a signature request. Returns `(token, code, shareUrl)`.
+  ///
+  /// [lang] = the tech's app language (fr/en/de/es). It is appended to the share
+  /// URL as `?lang=` so the Cloudflare Worker signature page shows the client the
+  /// page in that language. Harmless if the worker doesn't know the code (falls
+  /// back to French on the page side).
   static Future<({String token, String code, String shareUrl})> createRequest({
     required String reportId,
     required String techUid,
     String? companyId,
     String? clientName,
+    String? lang,
   }) async {
     final token = _randomCode(32);
     final code = _randomCode(5);
@@ -41,7 +47,10 @@ class RemoteSignatureService {
       'status': 'pending',
       'created_at': FieldValue.serverTimestamp(),
     });
-    final shareUrl = '$workerBaseUrl/$token';
+    final code2 = (lang ?? '').split('_').first.toLowerCase();
+    final shareUrl = code2.isNotEmpty
+        ? '$workerBaseUrl/$token?lang=$code2'
+        : '$workerBaseUrl/$token';
     return (token: token, code: code, shareUrl: shareUrl);
   }
 

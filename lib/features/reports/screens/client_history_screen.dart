@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
@@ -35,8 +36,8 @@ class _ClientHistoryScreenState extends State<ClientHistoryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.clientName, overflow: TextOverflow.ellipsis),
-            const Text('Historique des interventions',
-                style: TextStyle(fontSize: 12, color: Colors.white70)),
+            Text('cl_history_tooltip'.tr(),
+                style: const TextStyle(fontSize: 12, color: Colors.white70)),
           ],
         ),
       ),
@@ -47,7 +48,7 @@ class _ClientHistoryScreenState extends State<ClientHistoryScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Center(child: Text('Erreur : ${snap.error}'));
+            return Center(child: Text('common_error'.tr(args: ['${snap.error}'])));
           }
           final reports = snap.data ?? [];
           if (reports.isEmpty) {
@@ -58,7 +59,7 @@ class _ClientHistoryScreenState extends State<ClientHistoryScreen> {
                   Icon(Icons.history, size: 72, color: Colors.grey.shade300),
                   const SizedBox(height: 12),
                   Text(
-                    'Aucune intervention pour ce client',
+                    'ch_no_interventions'.tr(),
                     style: TextStyle(color: Colors.grey.shade500),
                   ),
                 ],
@@ -92,19 +93,19 @@ class _HistoryCard extends StatelessWidget {
     switch (report.status) {
       case ReportStatus.submitted:
         statusColor = AppColors.statusSubmitted;
-        statusLabel = 'Soumis';
+        statusLabel = 'status_submitted'.tr();
       case ReportStatus.pendingValidation:
         statusColor = AppColors.statusPendingValidation;
-        statusLabel = 'En attente';
+        statusLabel = 'status_pending'.tr();
       case ReportStatus.validated:
         statusColor = AppColors.statusValidated;
-        statusLabel = 'Validé';
+        statusLabel = 'status_validated'.tr();
       case ReportStatus.draft:
         statusColor = Colors.orange;
-        statusLabel = 'Brouillon';
+        statusLabel = 'status_draft'.tr();
       case ReportStatus.rejected:
         statusColor = AppColors.statusRejected;
-        statusLabel = 'Rejeté';
+        statusLabel = 'status_rejected'.tr();
     }
 
     return Card(

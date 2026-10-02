@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 /// Boîte de dialogue à un seul champ texte, **sûre côté cycle de vie**.
@@ -20,8 +21,8 @@ Future<String?> showSingleFieldDialog({
   String? initialValue,
   String? label,
   String? hint,
-  String confirmLabel = 'Enregistrer',
-  String cancelLabel = 'Annuler',
+  String? confirmLabel,
+  String? cancelLabel,
   String? helperText,
   int maxLines = 1,
   bool autofocus = true,
@@ -51,8 +52,8 @@ class _SingleFieldDialog extends StatefulWidget {
   final String? initialValue;
   final String? label;
   final String? hint;
-  final String confirmLabel;
-  final String cancelLabel;
+  final String? confirmLabel;
+  final String? cancelLabel;
   final String? helperText;
   final int maxLines;
   final bool autofocus;
@@ -125,11 +126,11 @@ class _SingleFieldDialogState extends State<_SingleFieldDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, null),
-          child: Text(widget.cancelLabel),
+          child: Text(widget.cancelLabel ?? 'common_cancel'.tr()),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, _ctrl.text.trim()),
-          child: Text(widget.confirmLabel),
+          child: Text(widget.confirmLabel ?? 'common_save'.tr()),
         ),
       ],
     );

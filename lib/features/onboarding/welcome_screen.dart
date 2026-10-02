@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,9 +71,9 @@ class WelcomeScreen extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: () => context.push('/auth?mode=login'),
                 icon: const Icon(Icons.login, size: 18, color: Colors.white),
-                label: const Text(
-                  'J\'ai déjà un compte — Se connecter',
-                  style: TextStyle(color: Colors.white, fontSize: 14),
+                label: Text(
+                  'welcome_have_account'.tr(),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.white60, width: 1.5),
@@ -83,24 +84,24 @@ class WelcomeScreen extends StatelessWidget {
               const SizedBox(height: 16),
               _ModeCard(
                 icon: Icons.phone_android,
-                title: 'Utiliser seul',
-                subtitle: 'Rapports en local, sans compte. Idéal pour commencer.',
+                title: 'welcome_solo_title'.tr(),
+                subtitle: 'welcome_solo_sub'.tr(),
                 onTap: () => _goSolo(context),
                 isHighlighted: true,
               ),
               const SizedBox(height: 12),
               _ModeCard(
                 icon: Icons.group_outlined,
-                title: 'Rejoindre une équipe',
-                subtitle: 'Mon chef a déjà un compte — j\'ai un code d\'invitation.',
+                title: 'welcome_join_title'.tr(),
+                subtitle: 'welcome_join_sub'.tr(),
                 onTap: () => _goJoin(context),
                 isHighlighted: false,
               ),
               const SizedBox(height: 12),
               _ModeCard(
                 icon: Icons.business_center_outlined,
-                title: 'Créer mon équipe',
-                subtitle: 'Je suis responsable et je veux gérer mes techniciens.',
+                title: 'welcome_create_title'.tr(),
+                subtitle: 'welcome_create_sub'.tr(),
                 onTap: () => _goCreate(context),
                 isHighlighted: false,
               ),

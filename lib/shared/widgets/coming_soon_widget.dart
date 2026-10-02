@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 
@@ -21,11 +22,11 @@ class ComingSoonButton extends StatelessWidget {
           children: [
             const Icon(Icons.rocket_launch, color: AppColors.accent),
             const SizedBox(width: 8),
-            const Text('Bientôt disponible'),
+            Text('cs_coming_soon_title'.tr()),
           ],
         ),
         content: Text(
-          '$label est en cours de développement.\nCette fonctionnalité arrivera prochainement !',
+          'cs_coming_soon_desc'.tr(args: [label]),
         ),
         actions: [
           TextButton(
@@ -49,9 +50,9 @@ class ComingSoonButton extends StatelessWidget {
             color: AppColors.accent.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Text(
-            'Bientôt',
-            style: TextStyle(
+          child: Text(
+            'cs_soon'.tr(),
+            style: const TextStyle(
               fontSize: 11,
               color: AppColors.accent,
               fontWeight: FontWeight.w600,
@@ -76,9 +77,9 @@ class ComingSoonButton extends StatelessWidget {
               color: AppColors.accent,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Text(
-              'Bientôt',
-              style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+            child: Text(
+              'cs_soon'.tr(),
+              style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
         ],

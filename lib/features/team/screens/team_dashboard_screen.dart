@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../core/config/app_build.dart'; // kParrainageEnabled [PAUSED-REFERRAL]
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
@@ -7,8 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../../../shared/widgets/text_field_dialog.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../shared/utils/share_origin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../features/reports/models/report_model.dart';
@@ -55,7 +56,7 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
 
     // (1.1 / 2.3) AppBar avec retour sur TOUS les états (sinon les écrans
     // « pas d'équipe » / « en attente » / loading n'ont pas de bouton retour).
-    AppBar teamAppBar() => AppBar(title: const Text('Mon équipe'));
+    AppBar teamAppBar() => AppBar(title: Text('td_my_team'.tr()));
 
     return teamAsync.when(
       loading: () => Scaffold(
@@ -64,7 +65,7 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
       ),
       error: (e, _) => Scaffold(
         appBar: teamAppBar(),
-        body: Center(child: Text('Erreur : $e')),
+        body: Center(child: Text('common_error'.tr(args: ['$e']))),
       ),
       data: (team) {
         if (!team.hasTeam) {
@@ -78,7 +79,7 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
           return Scaffold(
             appBar: teamAppBar(),
             body: _PendingApprovalView(
-              companyName: team.companyName ?? 'l\'équipe',
+              companyName: team.companyName ?? 'td_the_team'.tr(),
             ),
           );
         }
@@ -100,7 +101,7 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
           initialIndex: tabReq?.tab ?? 0,
           child: Scaffold(
             appBar: AppBar(
-              title: Text(team.companyName ?? 'Équipe'),
+              title: Text(team.companyName ?? 'nav_team'.tr()),
               actions: [
                 // (#11) Les 2 icônes badge (rapports en attente / demandes) sont
                 // retirées : redondantes avec les onglets + la pastille du nav
@@ -108,7 +109,7 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
                 if (team.inviteCode != null)
                   IconButton(
                     icon: const Icon(Icons.share_outlined),
-                    tooltip: 'Partager le code d\'invitation',
+                    tooltip: 'td_share_invite_code'.tr(),
                     onPressed: () => _showInviteShareDialog(
                         context, team.companyName, team.inviteCode!),
                   ),
@@ -126,13 +127,14 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
                       label: Text('$pendingCount'),
                       child: const Icon(Icons.groups_outlined),
                     ),
-                    text: 'Gérer',
+                    text: 'td_manage'.tr(),
                   ),
-                  const Tab(
-                      icon: Icon(Icons.assignment_outlined), text: 'Rapports'),
-                  const Tab(
-                      icon: Icon(Icons.settings_outlined),
-                      text: 'Réglages équipe'),
+                  Tab(
+                      icon: const Icon(Icons.assignment_outlined),
+                      text: 'td_reports'.tr()),
+                  Tab(
+                      icon: const Icon(Icons.settings_outlined),
+                      text: 'td_team_settings'.tr()),
                 ],
               ),
             ),
@@ -171,7 +173,7 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
                             }
                             if (snap.hasError) {
                               return Center(
-                                  child: Text('Erreur : ${snap.error}'));
+                                  child: Text('common_error'.tr(args: ['${snap.error}'])));
                             }
                             final allReports = snap.data ?? [];
                             final filtered = _filterStatus == 'all'
@@ -186,9 +188,9 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
                                   _StatsBar(reports: allReports),
                                 Expanded(
                                   child: filtered.isEmpty
-                                      ? const Center(
-                                          child: Text('Aucun rapport.',
-                                              style: TextStyle(
+                                      ? Center(
+                                          child: Text('td_no_reports'.tr(),
+                                              style: const TextStyle(
                                                   color: Colors.black54)))
                                       : ListView.separated(
                                           padding: const EdgeInsets.all(16),
@@ -247,11 +249,11 @@ class _FilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const options = [
-      ('all', 'Tous'),
-      ('submitted', 'Envoyés'),
-      ('pendingValidation', 'À valider'),
-      ('validated', 'Validés'),
+    final options = [
+      ('all', 'td_filter_all'.tr()),
+      ('submitted', 'td_filter_submitted'.tr()),
+      ('pendingValidation', 'td_filter_to_validate'.tr()),
+      ('validated', 'td_filter_validated'.tr()),
     ];
     return Container(
       height: 44,
@@ -314,7 +316,7 @@ class _ReportTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateRaw = data['date'] as String?;
     final date = dateRaw != null
-        ? DateFormat('dd/MM/yyyy').format(DateTime.parse(dateRaw))
+        ? DateFormat.yMd().format(DateTime.parse(dateRaw))
         : '—';
     final clientName = data['client_name'] ?? '—';
     final techName = data['technician_name'] ?? '';
@@ -429,14 +431,14 @@ class _StatsBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          _Stat(label: 'Cette semaine', value: '$thisWeek',
+          _Stat(label: 'td_this_week'.tr(), value: '$thisWeek',
               icon: Icons.calendar_today_outlined, color: AppColors.primary),
           const SizedBox(width: 8),
-          _Stat(label: 'En attente', value: '$submitted',
+          _Stat(label: 'td_pending'.tr(), value: '$submitted',
               icon: Icons.hourglass_empty_outlined,
               color: submitted > 0 ? Colors.orange : Colors.grey),
           const SizedBox(width: 8),
-          _Stat(label: 'Taux valid.', value: rate != null ? '$rate %' : '—',
+          _Stat(label: 'td_valid_rate'.tr(), value: rate != null ? '$rate %' : '—',
               icon: Icons.verified_outlined,
               color: rate != null && rate >= 80 ? Colors.green : Colors.grey),
         ],
@@ -516,7 +518,7 @@ class _ValidateButtonState extends State<_ValidateButton> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
+          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
         );
       }
     } finally {
@@ -544,7 +546,7 @@ class _ValidateButtonState extends State<_ValidateButton> {
                 child: CircularProgressIndicator(
                     strokeWidth: 1.5, color: Colors.white))
             : const Icon(Icons.check, size: 14),
-        label: const Text('Valider'),
+        label: Text('td_validate'.tr()),
       ),
     );
   }
@@ -570,23 +572,23 @@ class _RejectButtonState extends State<_RejectButton> {
     final result = await showDialog<String>(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Retourner le rapport'),
+        title: Text('td_return_report'.tr()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Commentaire pour le technicien (optionnel) :',
-              style: TextStyle(fontSize: 14),
+            Text(
+              'td_comment_for_tech'.tr(),
+              style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
               maxLines: 3,
               autofocus: true,
-              decoration: const InputDecoration(
-                hintText: 'Ex : Signature client manquante...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: 'td_reject_hint'.tr(),
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -594,12 +596,12 @@ class _RejectButtonState extends State<_RejectButton> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dlg, null),
-            child: const Text('Annuler'),
+            child: Text('common_cancel'.tr()),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dlg, controller.text.trim()),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Retourner'),
+            child: Text('td_return'.tr()),
           ),
         ],
       ),
@@ -614,7 +616,7 @@ class _RejectButtonState extends State<_RejectButton> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
+          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
         );
       }
     } finally {
@@ -643,7 +645,7 @@ class _RejectButtonState extends State<_RejectButton> {
                 child: CircularProgressIndicator(
                     strokeWidth: 1.5, color: Colors.red))
             : const Icon(Icons.undo, size: 14),
-        label: const Text('Retourner'),
+        label: Text('td_return'.tr()),
       ),
     );
   }
@@ -655,13 +657,14 @@ void _showInviteShareDialog(
   final name = (companyName != null && companyName.trim().isNotEmpty)
       ? companyName.trim()
       : null;
-  final shareText =
-      'Rejoignez ${name != null ? 'mon équipe "$name"' : 'notre équipe'} '
-      'sur Compte Rendu Technique IA !\nCode d\'invitation : $inviteCode';
+  final teamPart = name != null
+      ? 'td_invite_share_my_team'.tr(args: [name])
+      : 'td_invite_share_our_team'.tr();
+  final shareText = 'td_invite_share_text'.tr(args: [teamPart, inviteCode]);
   showDialog(
     context: context,
     builder: (dlg) => AlertDialog(
-      title: const Text('Inviter dans l\'équipe'),
+      title: Text('td_invite_to_team'.tr()),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -670,8 +673,8 @@ void _showInviteShareDialog(
             Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
           ],
-          const Text('Code d\'invitation',
-              style: TextStyle(fontSize: 11, color: Colors.black54)),
+          Text('ts_invite_code_label'.tr(),
+              style: const TextStyle(fontSize: 11, color: Colors.black54)),
           SelectableText(
             inviteCode,
             style: const TextStyle(
@@ -684,14 +687,14 @@ void _showInviteShareDialog(
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(dlg), child: const Text('Fermer')),
+            onPressed: () => Navigator.pop(dlg), child: Text('td_close'.tr())),
         FilledButton.icon(
           onPressed: () {
             Navigator.pop(dlg);
-            Share.share(shareText);
+            Share.share(shareText, sharePositionOrigin: shareOrigin(context));
           },
           icon: const Icon(Icons.share, size: 18),
-          label: const Text('Partager'),
+          label: Text('td_share_btn'.tr()),
         ),
       ],
     ),
@@ -763,15 +766,14 @@ class _TeamSettingsView extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('100 parrainages actifs !',
+                      Text('td_reward100_title'.tr(),
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                               color: Colors.orange.shade900)),
                       const SizedBox(height: 3),
                       Text(
-                          'Votre équipe a débloqué une récompense spéciale 🏆 — '
-                          'on vous contacte très vite. Bravo !',
+                          'td_reward100_desc'.tr(),
                           style: TextStyle(
                               fontSize: 12, color: Colors.brown.shade700)),
                     ],
@@ -783,7 +785,7 @@ class _TeamSettingsView extends ConsumerWidget {
           // ── Identité de l'équipe : (#6) nom + infos en UN seul formulaire ─
           // (comme en solo). Le nom n'est plus une tuile « Renommer » séparée :
           // il est le 1er champ de la carte ci-dessous.
-          const _TeamSettingsLabel('Identité de l\'équipe'),
+          _TeamSettingsLabel('td_label_identity'.tr()),
           TeamCompanyInfoCard(
               companyId: companyId,
               isAdmin: isAdmin,
@@ -792,7 +794,7 @@ class _TeamSettingsView extends ConsumerWidget {
           // (O) Infos PERSONNELLES du coéquipier (cet appareil) qui apparaissent
           // sur SES rapports d'équipe : son nom de technicien + son logo.
           const SizedBox(height: 14),
-          const _TeamSettingsLabel('Vous, sur vos rapports d\'équipe'),
+          _TeamSettingsLabel('td_label_you_on_reports'.tr()),
           const _TeammateIdentityCard(),
 
           // (#9) « Voir les rapports de l'équipe » retiré : l'onglet « Rapports »
@@ -801,7 +803,7 @@ class _TeamSettingsView extends ConsumerWidget {
           // ── Abonnement : (#9) mené par la facturation, puis statut « Actif »
           // (avec ⚙️ → gérer), sièges, et l'abo solo en toute fin. ───────────
           const SizedBox(height: 16),
-          const _TeamSettingsLabel('Abonnement'),
+          _TeamSettingsLabel('td_label_subscription'.tr()),
           // [PAUSED-REFERRAL] _TeamBillingCard affiche le modèle de prix Stripe
           // dégressif + le pool parrainage → masquée en IAP (le prix réel vient
           // du store/paywall). SubscriptionSection ci-dessous montre le statut.
@@ -870,7 +872,7 @@ class _NoAdminBanner extends StatelessWidget {
                     color: Colors.red.shade700, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text('Équipe sans responsable',
+                  child: Text('td_no_admin_title'.tr(),
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.red.shade800)),
@@ -878,9 +880,7 @@ class _NoAdminBanner extends StatelessWidget {
               ]),
               const SizedBox(height: 6),
               Text(
-                'Le responsable de cette équipe est parti. Elle ne peut plus être '
-                'gérée ni payée. Créez une nouvelle équipe — vos coéquipiers '
-                'pourront vous y rejoindre avec le nouveau code.',
+                'td_no_admin_desc'.tr(),
                 style: TextStyle(fontSize: 12, color: Colors.red.shade900),
               ),
               const SizedBox(height: 10),
@@ -889,7 +889,7 @@ class _NoAdminBanner extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: () => context.go('/team-setup'),
                   icon: const Icon(Icons.add_business_outlined, size: 18),
-                  label: const Text('Créer une nouvelle équipe'),
+                  label: Text('td_create_new_team'.tr()),
                   style: FilledButton.styleFrom(
                       backgroundColor: Colors.red.shade600),
                 ),
@@ -919,10 +919,10 @@ class _TeammateIdentityCardState extends ConsumerState<_TeammateIdentityCard> {
   Future<void> _editName(String current) async {
     final v = await showSingleFieldDialog(
       context: context,
-      title: 'Votre nom de technicien',
+      title: 'td_your_tech_name'.tr(),
       initialValue: current,
-      label: 'Nom du technicien',
-      hint: 'Ex : Jean Dupont',
+      label: 'td_tech_name_label'.tr(),
+      hint: 'td_tech_name_hint'.tr(),
       textCapitalization: TextCapitalization.words,
     );
     if (v == null) return;
@@ -978,9 +978,9 @@ class _TeammateIdentityCardState extends ConsumerState<_TeammateIdentityCard> {
         children: [
           ListTile(
             leading: const Icon(Icons.badge_outlined, color: AppColors.primary),
-            title: const Text('Votre nom de technicien'),
+            title: Text('td_your_tech_name'.tr()),
             subtitle: Text(
-              techName.isEmpty ? 'Appuyer pour définir' : techName,
+              techName.isEmpty ? 'td_tap_to_set'.tr() : techName,
               style: TextStyle(
                   fontSize: 12,
                   color: techName.isEmpty ? Colors.grey : Colors.black87),
@@ -999,11 +999,11 @@ class _TeammateIdentityCardState extends ConsumerState<_TeammateIdentityCard> {
                   )
                 : const Icon(Icons.add_photo_alternate_outlined,
                     color: AppColors.primary),
-            title: const Text('Votre logo'),
+            title: Text('td_your_logo'.tr()),
             subtitle: Text(
               hasLogo
-                  ? 'Affiché sur vos rapports d\'équipe'
-                  : 'Aucun logo — appuyer pour choisir',
+                  ? 'td_logo_shown'.tr()
+                  : 'td_no_logo'.tr(),
               style: TextStyle(
                   fontSize: 12, color: hasLogo ? Colors.green : Colors.grey),
             ),
@@ -1011,7 +1011,7 @@ class _TeammateIdentityCardState extends ConsumerState<_TeammateIdentityCard> {
                 ? IconButton(
                     icon: const Icon(Icons.delete_outline,
                         color: Colors.red, size: 20),
-                    tooltip: 'Supprimer le logo',
+                    tooltip: 'td_remove_logo'.tr(),
                     onPressed: _picking ? null : _removeLogo,
                   )
                 : (_picking
@@ -1030,10 +1030,7 @@ class _TeammateIdentityCardState extends ConsumerState<_TeammateIdentityCard> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Le logo n\'est PAS synchronisé (il reste sur votre appareil). '
-                  'Demandez à l\'administrateur de vous envoyer le logo de '
-                  'l\'entreprise pour l\'ajouter ici — ainsi vos rapports '
-                  'd\'équipe l\'affichent.',
+                  'td_logo_not_synced'.tr(),
                   style: TextStyle(fontSize: 10.5, color: Colors.grey.shade600),
                 ),
               ),
@@ -1072,7 +1069,7 @@ class _TeamManageView extends ConsumerWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Text('Erreur : ${snap.error}');
+            return Text('common_error'.tr(args: ['${snap.error}']));
           }
           final members = snap.data ?? [];
           final pending = members.where((m) => m.isPending).toList();
@@ -1084,9 +1081,9 @@ class _TeamManageView extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          const Expanded(
-                            child: Text('Membres de l\'équipe',
-                                style: TextStyle(
+                          Expanded(
+                            child: Text('td_team_members'.tr(),
+                                style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold)),
                           ),
@@ -1106,7 +1103,7 @@ class _TeamManageView extends ConsumerWidget {
                                 ),
                               ),
                               child: Text(
-                                '$activeCount / $seatLimit sièges',
+                                'td_seats_count'.tr(args: ['$activeCount', '$seatLimit']),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -1127,7 +1124,7 @@ class _TeamManageView extends ConsumerWidget {
                             onPressed: () =>
                                 DefaultTabController.of(context).animateTo(2),
                             icon: const Icon(Icons.event_seat_outlined, size: 18),
-                            label: const Text('Modifier le nombre de sièges'),
+                            label: Text('td_modify_seats'.tr()),
                           ),
                         ),
                       ],
@@ -1146,7 +1143,7 @@ class _TeamManageView extends ConsumerWidget {
                                 size: 16, color: Colors.orange),
                             const SizedBox(width: 6),
                             Text(
-                              'Demandes en attente (${pending.length})',
+                              'td_pending_requests'.tr(args: ['${pending.length}']),
                               style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 13,
@@ -1185,10 +1182,10 @@ class _TeamManageView extends ConsumerWidget {
                                 color:
                                     AppColors.primary.withValues(alpha: 0.7)),
                             const SizedBox(width: 6),
-                            const Expanded(
+                            Expanded(
                               child: Text(
-                                'Appuyez sur ··· pour modifier les droits d\'un membre.',
-                                style: TextStyle(
+                                'td_tap_dots_perms'.tr(),
+                                style: const TextStyle(
                                     fontSize: 11, color: AppColors.primary),
                               ),
                             ),
@@ -1248,27 +1245,22 @@ class _PendingMemberTileState extends State<_PendingMemberTile> {
         context: context,
         builder: (dlg) => AlertDialog(
           icon: Icon(Icons.event_seat_outlined, color: Colors.orange.shade700),
-          title: const Text('Aucun siège disponible'),
+          title: Text('td_no_seat_title'.tr()),
           content: Text(
             limit == null
-                ? 'Vous devez d\'abord souscrire un abonnement équipe (avec au '
-                    'moins un siège) pour activer un membre.\n\nLa personne peut '
-                    'rester en attente : vous pourrez l\'accepter une fois '
-                    'l\'abonnement en place.'
-                : 'Tous les sièges sont occupés (${widget.activeCount}/$limit). '
-                    'Ajoutez un siège (Réglages équipe → Gérer les sièges) avant '
-                    'd\'accepter ce membre.',
+                ? 'td_no_seat_no_sub'.tr()
+                : 'td_no_seat_full'.tr(args: ['${widget.activeCount}', '$limit']),
           ),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dlg),
-                child: const Text('Fermer')),
+                child: Text('td_close'.tr())),
             FilledButton(
               onPressed: () {
                 Navigator.pop(dlg);
                 DefaultTabController.of(context).animateTo(2); // Réglages équipe
               },
-              child: const Text('Gérer l\'abonnement'),
+              child: Text('td_manage_subscription'.tr()),
             ),
           ],
         ),
@@ -1282,7 +1274,7 @@ class _PendingMemberTileState extends State<_PendingMemberTile> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
+          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
         );
       }
     } finally {
@@ -1294,17 +1286,17 @@ class _PendingMemberTileState extends State<_PendingMemberTile> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Refuser la demande ?'),
+        title: Text('td_reject_request_q'.tr()),
         content:
-            Text('${widget.member.displayName} ne rejoindra pas l\'équipe.'),
+            Text('td_reject_request_desc'.tr(args: [widget.member.displayName])),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dlg, false),
-              child: const Text('Annuler')),
+              child: Text('common_cancel'.tr())),
           FilledButton(
             onPressed: () => Navigator.pop(dlg, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Refuser'),
+            child: Text('td_refuse'.tr()),
           ),
         ],
       ),
@@ -1339,12 +1331,12 @@ class _PendingMemberTileState extends State<_PendingMemberTile> {
                 IconButton(
                   icon: const Icon(Icons.check_circle_outline,
                       color: Colors.green),
-                  tooltip: 'Approuver',
+                  tooltip: 'td_approve'.tr(),
                   onPressed: _approve,
                 ),
                 IconButton(
                   icon: const Icon(Icons.cancel_outlined, color: Colors.red),
-                  tooltip: 'Refuser',
+                  tooltip: 'td_refuse'.tr(),
                   onPressed: _reject,
                 ),
               ],
@@ -1384,7 +1376,7 @@ class _MemberTileState extends State<_MemberTile> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
+          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
         );
       }
     } finally {
@@ -1396,19 +1388,18 @@ class _MemberTileState extends State<_MemberTile> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Retirer ce membre ?'),
+        title: Text('td_remove_member_q'.tr()),
         content: Text(
-            '${widget.member.displayName} sera retiré de l\'équipe. '
-            'Il devra rejoindre à nouveau avec le code d\'invitation.'),
+            'td_remove_member_desc'.tr(args: [widget.member.displayName])),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dlg, false),
-            child: const Text('Annuler'),
+            child: Text('common_cancel'.tr()),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dlg, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Retirer'),
+            child: Text('td_remove'.tr()),
           ),
         ],
       ),
@@ -1419,7 +1410,7 @@ class _MemberTileState extends State<_MemberTile> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
+          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
         );
       }
     }
@@ -1472,14 +1463,14 @@ class _MemberTileState extends State<_MemberTile> {
                 // Permission badges
                 if (m.canValidate)
                   Tooltip(
-                    message: 'Peut valider',
+                    message: 'td_can_validate'.tr(),
                     child: Icon(Icons.verified_outlined,
                         size: 16,
                         color: AppColors.primary.withValues(alpha: 0.7)),
                   ),
                 if (m.canInvite)
                   Tooltip(
-                    message: 'Peut inviter',
+                    message: 'td_can_invite'.tr(),
                     child: Icon(Icons.person_add_outlined,
                         size: 16,
                         color: AppColors.primary.withValues(alpha: 0.7)),
@@ -1501,25 +1492,25 @@ class _MemberTileState extends State<_MemberTile> {
                     if (v == 'remove') _remove();
                   },
                   itemBuilder: (_) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'permissions',
                       child: Row(
                         children: [
-                          Icon(Icons.manage_accounts_outlined, size: 18),
-                          SizedBox(width: 8),
-                          Text('Droits'),
+                          const Icon(Icons.manage_accounts_outlined, size: 18),
+                          const SizedBox(width: 8),
+                          Text('td_rights'.tr()),
                         ],
                       ),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'remove',
                       child: Row(
                         children: [
-                          Icon(Icons.person_remove_outlined,
+                          const Icon(Icons.person_remove_outlined,
                               size: 18, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Retirer',
-                              style: TextStyle(color: Colors.red)),
+                          const SizedBox(width: 8),
+                          Text('td_remove'.tr(),
+                              style: const TextStyle(color: Colors.red)),
                         ],
                       ),
                     ),
@@ -1537,7 +1528,7 @@ class _MemberTileState extends State<_MemberTile> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                m.isAdmin ? 'Admin' : (m.active ? 'Tech' : 'Inactif'),
+                m.isAdmin ? 'td_role_admin'.tr() : (m.active ? 'td_role_tech'.tr() : 'td_role_inactive'.tr()),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -1588,7 +1579,7 @@ class _PermissionsSheetState extends State<_PermissionsSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
+          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
         );
       }
     } finally {
@@ -1604,19 +1595,19 @@ class _PermissionsSheetState extends State<_PermissionsSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Droits de ${widget.member.displayName}',
+          Text('td_perms_of'.tr(args: [widget.member.displayName]),
               style: const TextStyle(
                   fontSize: 17, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text('Ces droits s\'ajoutent au rôle Tech.',
+          Text('td_perms_added'.tr(),
               style:
                   TextStyle(fontSize: 12, color: Colors.grey.shade600)),
           const SizedBox(height: 16),
           SwitchListTile(
             value: _canValidate,
             onChanged: (v) => setState(() => _canValidate = v),
-            title: const Text('Peut valider des rapports'),
-            subtitle: const Text('Voit le bouton "Valider" sur les rapports envoyés'),
+            title: Text('td_perm_validate_title'.tr()),
+            subtitle: Text('td_perm_validate_sub'.tr()),
             secondary:
                 const Icon(Icons.verified_outlined, color: AppColors.primary),
             activeThumbColor: AppColors.primary,
@@ -1624,8 +1615,8 @@ class _PermissionsSheetState extends State<_PermissionsSheet> {
           SwitchListTile(
             value: _canInvite,
             onChanged: (v) => setState(() => _canInvite = v),
-            title: const Text('Peut inviter des membres'),
-            subtitle: const Text('Voit et peut partager le code d\'invitation'),
+            title: Text('td_perm_invite_title'.tr()),
+            subtitle: Text('td_perm_invite_sub'.tr()),
             secondary: const Icon(Icons.person_add_outlined,
                 color: AppColors.primary),
             activeThumbColor: AppColors.primary,
@@ -1641,7 +1632,7 @@ class _PermissionsSheetState extends State<_PermissionsSheet> {
                       height: 18,
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white))
-                  : const Text('Enregistrer'),
+                  : Text('common_save'.tr()),
             ),
           ),
         ],
@@ -1669,7 +1660,7 @@ class _NoTeamPromoView extends ConsumerWidget {
               Icon(Icons.lock_outline, size: 56, color: Colors.grey.shade400),
               const SizedBox(height: 16),
               Text(
-                'Connectez-vous pour accéder à l\'espace équipe',
+                'td_login_team_space'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
               ),
@@ -1677,7 +1668,7 @@ class _NoTeamPromoView extends ConsumerWidget {
               FilledButton.icon(
                 onPressed: () => context.go('/auth'),
                 icon: const Icon(Icons.login),
-                label: const Text('Se connecter'),
+                label: Text('auth_sign_in'.tr()),
               ),
             ],
           ),
@@ -1701,14 +1692,14 @@ class _NoTeamPromoView extends ConsumerWidget {
                 size: 44, color: AppColors.primary),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Travaillez en équipe',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          Text(
+            'td_work_in_team'.tr(),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
-            'Partagez, validez et suivez les comptes rendus de toute votre équipe en temps réel.',
+            'td_promo_sub'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
           ),
@@ -1716,25 +1707,22 @@ class _NoTeamPromoView extends ConsumerWidget {
           _FeatureRow(
             icon: Icons.assignment_turned_in_outlined,
             color: Colors.green,
-            title: 'Flux de validation',
-            subtitle:
-                'Les techs envoient leurs rapports, l\'admin valide ou retourne.',
+            title: 'td_feat_validation_flow_title'.tr(),
+            subtitle: 'td_feat_validation_flow_sub'.tr(),
           ),
           const SizedBox(height: 16),
           _FeatureRow(
             icon: Icons.people_outline,
             color: AppColors.primary,
-            title: 'Gestion des membres',
-            subtitle:
-                'Invitez, activez/désactivez et gérez les droits de chaque technicien.',
+            title: 'td_feat_members_title'.tr(),
+            subtitle: 'td_feat_members_sub'.tr(),
           ),
           const SizedBox(height: 16),
           _FeatureRow(
             icon: Icons.bar_chart_outlined,
             color: Colors.orange,
-            title: 'Statistiques équipe',
-            subtitle:
-                'Taux de validation, rapports par semaine, activité par membre.',
+            title: 'td_feat_stats_title'.tr(),
+            subtitle: 'td_feat_stats_sub'.tr(),
           ),
           const SizedBox(height: 40),
           SizedBox(
@@ -1742,7 +1730,7 @@ class _NoTeamPromoView extends ConsumerWidget {
             child: FilledButton.icon(
               onPressed: () => context.go('/team-setup'),
               icon: const Icon(Icons.add_business_outlined),
-              label: const Text('Créer mon équipe'),
+              label: Text('welcome_create_title'.tr()),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
@@ -1754,7 +1742,7 @@ class _NoTeamPromoView extends ConsumerWidget {
             child: OutlinedButton.icon(
               onPressed: () => context.go('/team-setup'),
               icon: const Icon(Icons.group_add_outlined),
-              label: const Text('Rejoindre une équipe existante'),
+              label: Text('td_join_existing'.tr()),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
@@ -1837,19 +1825,19 @@ class _PendingApprovalView extends StatelessWidget {
                   size: 38, color: Colors.orange.shade600),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Demande envoyée',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              'td_request_sent'.tr(),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Text(
-              'En attente de validation par l\'administrateur de $companyName.',
+              'td_awaiting_validation'.tr(args: [companyName]),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 8),
             Text(
-              'Vous recevrez une notification dès que votre accès sera activé.',
+              'td_will_notify'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
             ),
@@ -1882,11 +1870,11 @@ class _ReportDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateRaw = data['date'] as String?;
     final date = dateRaw != null
-        ? DateFormat('dd MMMM yyyy', 'fr_FR').format(DateTime.parse(dateRaw))
+        ? DateFormat.yMMMMd().format(DateTime.parse(dateRaw))
         : '—';
     final endDateRaw = data['end_date'] as String?;
     final endDate = endDateRaw != null
-        ? DateFormat('dd MMMM yyyy', 'fr_FR').format(DateTime.parse(endDateRaw))
+        ? DateFormat.yMMMMd().format(DateTime.parse(endDateRaw))
         : null;
 
     Widget infoRow(String label, String? value) {
@@ -1948,23 +1936,23 @@ class _ReportDetailSheet extends StatelessWidget {
               child: ListView(
                 controller: controller,
                 children: [
-                  infoRow('Technicien', data['technician_name']),
-                  infoRow('Date',
-                      endDate != null ? 'Du $date au $endDate' : date),
-                  infoRow('Adresse', data['client_address']),
-                  infoRow('Contact', data['client_contact']),
-                  infoRow('Contrat', data['contract_number']),
-                  infoRow('Type', data['intervention_type']),
-                  infoRow('Description', data['description']),
-                  infoRow('Observations', data['observations']),
+                  infoRow('td_f_technician'.tr(), data['technician_name']),
+                  infoRow('td_f_date'.tr(),
+                      endDate != null ? 'td_date_range'.tr(args: [date, endDate]) : date),
+                  infoRow('field_address'.tr(), data['client_address']),
+                  infoRow('td_f_contact'.tr(), data['client_contact']),
+                  infoRow('td_f_contract'.tr(), data['contract_number']),
+                  infoRow('td_f_type'.tr(), data['intervention_type']),
+                  infoRow('td_f_description'.tr(), data['description']),
+                  infoRow('td_f_observations'.tr(), data['observations']),
                   infoRow(
-                      'Équipement',
+                      'td_f_equipment'.tr(),
                       [
                         data['equipment_type'],
                         data['equipment_brand'],
                         data['equipment_model'],
                         if ((data['equipment_serial'] ?? '').isNotEmpty)
-                          'n° ${data['equipment_serial']}',
+                          'td_serial_prefix'.tr(args: ['${data['equipment_serial']}']),
                       ]
                           .where((v) =>
                               v != null && (v as String).isNotEmpty)
@@ -1986,7 +1974,7 @@ class _ReportDetailSheet extends StatelessWidget {
                             Icon(Icons.feedback_outlined,
                                 size: 14, color: Colors.red.shade700),
                             const SizedBox(width: 6),
-                            Text('Commentaire de l\'admin',
+                            Text('td_admin_comment'.tr(),
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -2055,13 +2043,13 @@ class _ValidationPdfButtonState extends State<_ValidationPdfButton> {
         context,
         MaterialPageRoute(
           // (1.3) Zoom garanti (boutons +/− + pan).
-          builder: (_) => ZoomablePdfView(bytes: bytes, title: 'Aperçu rapport'),
+          builder: (_) => ZoomablePdfView(bytes: bytes, title: 'td_report_preview'.tr()),
         ),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur PDF : $e')),
+          SnackBar(content: Text('td_pdf_error'.tr(args: ['$e']))),
         );
       }
     } finally {
@@ -2092,7 +2080,7 @@ class _ValidationPdfButtonState extends State<_ValidationPdfButton> {
                   )
                 : const Icon(Icons.picture_as_pdf_outlined, size: 20),
             label: Text(
-              _loading ? 'Génération…' : 'Voir le rapport de validation (PDF)',
+              _loading ? 'td_generating'.tr() : 'td_view_validation_pdf'.tr(),
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
             style: FilledButton.styleFrom(
@@ -2105,10 +2093,7 @@ class _ValidationPdfButtonState extends State<_ValidationPdfButton> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Aperçu fidèle des métadonnées soumises par le technicien. '
-                'Les photos restent sur son appareil (non transmises) — '
-                'elles apparaissent en emplacements réservés dans le PDF. '
-                'Utilisez les boutons +/− pour zoomer dans l\'aperçu.',
+                'td_validation_pdf_note'.tr(),
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
               ),
             ),
@@ -2161,19 +2146,14 @@ class _InviteCodeCardState extends State<_InviteCodeCard> {
         ? _storeUrlIos!
         : null;
     final iosLine = iosUrl != null
-        ? '🍎 iOS : $iosUrl'
-        : '🍎 iOS : cherchez "Compte Rendu Technique IA" sur l\'App Store';
+        ? 'td_invite_ios_line'.tr(args: [iosUrl])
+        : 'td_invite_ios_fallback'.tr();
     final teamLabel = widget.companyName != null
-        ? 'mon équipe "${widget.companyName}"'
-        : 'notre équipe';
+        ? 'td_invite_share_my_team'.tr(args: [widget.companyName!])
+        : 'td_invite_share_our_team'.tr();
 
-    return 'Rejoignez $teamLabel sur Compte Rendu Technique IA !\n'
-        'Code d\'invitation : ${widget.inviteCode}\n\n'
-        '1. Téléchargez l\'app :\n'
-        '📱 Android : $android\n'
-        '$iosLine\n\n'
-        '2. Une fois installée, ouvrez ce lien ou entrez le code manuellement :\n'
-        '$_deepLink';
+    return 'td_invite_full_share'
+        .tr(args: [teamLabel, widget.inviteCode, android, iosLine, _deepLink]);
   }
 
   @override
@@ -2188,9 +2168,9 @@ class _InviteCodeCardState extends State<_InviteCodeCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Code d\'invitation',
-            style: TextStyle(fontSize: 12, color: Colors.black54),
+          Text(
+            'ts_invite_code_label'.tr(),
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
           ),
           const SizedBox(height: 6),
           Row(
@@ -2208,18 +2188,19 @@ class _InviteCodeCardState extends State<_InviteCodeCard> {
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.copy_outlined, size: 20),
-                tooltip: 'Copier le code',
+                tooltip: 'ts_copy_code'.tr(),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: widget.inviteCode));
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Code copié !')),
+                    SnackBar(content: Text('ts_code_copied'.tr())),
                   );
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.share_outlined, size: 20),
-                tooltip: 'Partager le lien',
-                onPressed: () => Share.share(_buildShareText()),
+                tooltip: 'td_share_link'.tr(),
+                onPressed: () => Share.share(_buildShareText(),
+                    sharePositionOrigin: shareOrigin(context)),
               ),
             ],
           ),
@@ -2244,10 +2225,10 @@ class _AdminDashboardHint extends StatelessWidget {
         children: [
           Icon(Icons.info_outline, size: 13, color: AppColors.primary.withValues(alpha: 0.6)),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Rapports de votre équipe — tous les rapports soumis par vos techniciens apparaissent ici.',
-              style: TextStyle(fontSize: 11, color: Colors.black54),
+              'td_admin_hint'.tr(),
+              style: const TextStyle(fontSize: 11, color: Colors.black54),
             ),
           ),
         ],

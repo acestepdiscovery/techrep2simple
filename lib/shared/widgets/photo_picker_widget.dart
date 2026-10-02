@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -38,12 +39,12 @@ class PhotoPickerWidget extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt, color: AppColors.primary),
-              title: const Text('Prendre une photo'),
+              title: Text('pp_take_photo'.tr()),
               onTap: () { Navigator.pop(context); _pick(context, ImageSource.camera); },
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, color: AppColors.primary),
-              title: const Text('Galerie photo'),
+              title: Text('pp_gallery'.tr()),
               onTap: () { Navigator.pop(context); _pick(context, ImageSource.gallery); },
             ),
           ],
@@ -58,7 +59,7 @@ class PhotoPickerWidget extends StatelessWidget {
       return OutlinedButton.icon(
         onPressed: () => _showOptions(context),
         icon: const Icon(Icons.add_a_photo),
-        label: const Text('Ajouter des photos'),
+        label: Text('pp_add_photos'.tr()),
       );
     }
     return SizedBox(

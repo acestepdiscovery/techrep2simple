@@ -4,6 +4,16 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<!-- i18n 2026-10-02 : langues supportées (doit suivre main.dart supportedLocales).
+	     Requis sur iOS pour qu'easy_localization suive la langue du téléphone et que
+	     l'App Store liste ces langues. Ajouter une langue = ajouter son code ici aussi. -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>fr</string>
+		<string>en</string>
+		<string>de</string>
+		<string>es</string>
+	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Compte Rendu Technique IA</string>
 	<key>CFBundleExecutable</key>

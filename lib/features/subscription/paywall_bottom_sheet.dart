@@ -10,6 +10,7 @@
 
 import 'dart:io' show Platform;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -94,10 +95,10 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
     _closed = true;
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
-    messenger.showSnackBar(const SnackBar(
-      content: Text('Votre abonnement Pro est actif ✓'),
+    messenger.showSnackBar(SnackBar(
+      content: Text('pw_pro_active'.tr()),
       backgroundColor: Colors.green,
-      duration: Duration(seconds: 5),
+      duration: const Duration(seconds: 5),
     ));
   }
 
@@ -123,15 +124,12 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
           await showDialog(
             context: context,
             builder: (d) => AlertDialog(
-              title: const Text('Trop de membres actifs'),
-              content: Text(
-                  'Votre équipe a $activeCount membres actifs. Désactivez '
-                  '${activeCount - product.seats} membre(s) avant de passer au '
-                  'palier « jusqu\'à ${product.seats} membres ».'),
+              title: Text('pw_too_many_members'.tr()),
+              content: Text('pw_too_many_desc'.tr(args: ['$activeCount', '${activeCount - product.seats}', '${product.seats}'])),
               actions: [
                 FilledButton(
                     onPressed: () => Navigator.pop(d),
-                    child: const Text('Compris')),
+                    child: Text('common_understood'.tr())),
               ],
             ),
           );
@@ -166,7 +164,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
     if (url.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Page bientôt disponible.')),
+          SnackBar(content: Text('pw_page_soon'.tr())),
         );
       }
       return;
@@ -231,7 +229,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      widget.reason ?? 'Débloquez toutes les fonctionnalités',
+                      widget.reason ?? 'pw_unlock_all'.tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                     ),
@@ -259,9 +257,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'Vous êtes déjà Pro via votre équipe — vos rapports '
-                                  'd\'ÉQUIPE sont couverts. Cet abonnement solo couvre '
-                                  'uniquement vos rapports PERSO (sous votre identité).',
+                                  'pw_already_pro_team'.tr(),
                                   style: TextStyle(
                                       fontSize: 11.5, color: Colors.blue.shade900),
                                 ),
@@ -289,7 +285,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Vous êtes responsable d\'une équipe',
+                                    'pw_you_are_admin'.tr(),
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 13,
@@ -299,9 +295,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                               ]),
                               const SizedBox(height: 4),
                               Text(
-                                'Cet abonnement « Pour moi » ne couvre que VOUS. Pour '
-                                'donner le Pro à tous vos techniciens (et payer moins '
-                                'cher par personne), prenez l\'abonnement équipe.',
+                                'pw_solo_only_you'.tr(),
                                 style: TextStyle(
                                     fontSize: 11.5,
                                     color: Colors.orange.shade900),
@@ -313,8 +307,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                                       setState(() => _forCompany = true),
                                   icon: const Icon(Icons.group_outlined,
                                       size: 16),
-                                  label: const Text(
-                                      'Aller à « Pour mon équipe »'),
+                                  label: Text('pw_go_team'.tr()),
                                   style: TextButton.styleFrom(
                                     padding: EdgeInsets.zero,
                                     minimumSize: Size.zero,
@@ -327,27 +320,27 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                           ),
                         ),
                       _FeatureRow(Icons.picture_as_pdf_outlined,
-                          'Exports PDF illimités',
-                          'Générez autant de rapports que nécessaire'),
+                          'pw_feat_pdf'.tr(),
+                          'pw_feat_pdf_sub'.tr()),
                       _FeatureRow(Icons.draw_outlined,
-                          'Signature distante du client',
-                          'Le client signe à distance, depuis un lien'),
-                      _FeatureRow(Icons.cloud_outlined, 'Sauvegarde cloud',
-                          'Vos rapports accessibles partout'),
+                          'pw_feat_sig'.tr(),
+                          'pw_feat_sig_sub'.tr()),
+                      _FeatureRow(Icons.cloud_outlined, 'pw_feat_cloud'.tr(),
+                          'pw_feat_cloud_sub'.tr()),
                     ] else ...[
-                      _FeatureRow(Icons.all_inclusive, 'Tout l\'abonnement solo',
-                          'Exports illimités, signature distante, cloud — pour CHAQUE membre',
+                      _FeatureRow(Icons.all_inclusive, 'pw_feat_all_solo'.tr(),
+                          'pw_feat_all_solo_sub'.tr(),
                           color: Colors.indigo),
                       _FeatureRow(Icons.fact_check_outlined,
-                          'Aperçu + validation des rapports',
-                          'Consultez et validez/retournez les rapports de vos techniciens',
+                          'pw_feat_validate'.tr(),
+                          'pw_feat_validate_sub'.tr(),
                           color: Colors.green.shade600),
                       _FeatureRow(Icons.manage_accounts_outlined,
-                          'Gestion des membres',
-                          'Invitations, droits, sièges, activité de l\'équipe',
+                          'pw_feat_members'.tr(),
+                          'pw_feat_members_sub'.tr(),
                           color: Colors.orange.shade700),
-                      _FeatureRow(Icons.trending_down, 'Prix dégressif',
-                          'Plus l\'équipe est grande, moins cher par siège',
+                      _FeatureRow(Icons.trending_down, 'pw_feat_degressive'.tr(),
+                          'pw_feat_degressive_sub'.tr(),
                           color: Colors.teal.shade600),
                     ],
                     const SizedBox(height: 24),
@@ -357,12 +350,12 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                       if (canSubscribeForTeam) ...[
                         if (companyActive) ...[
                           _ActivePlanBanner(
-                            text: '$companySeatLimit sièges actifs',
+                            text: 'pw_seats_active'.tr(args: ['$companySeatLimit']),
                             onManage: _openStoreManage,
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Changez de palier ci-dessous (mise à niveau gérée par le store).',
+                            'pw_change_tier_info'.tr(),
                             style: TextStyle(
                                 fontSize: 12, color: Colors.grey.shade600),
                           ),
@@ -381,8 +374,8 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                         _SubscribeButton(
                           loading: busy,
                           label: companyActive
-                              ? 'Changer de palier'
-                              : 'Activer pour l\'équipe',
+                              ? 'pw_change_tier'.tr()
+                              : 'pw_activate_team'.tr(),
                           icon: Icons.group,
                           onTap: () => _buy(
                             productById(_selectedTeamId)!,
@@ -395,7 +388,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                         const SizedBox(height: 12),
                         _SubscribeButton(
                           loading: busy,
-                          label: 'Souscrire en solo à la place',
+                          label: 'pw_subscribe_solo_instead'.tr(),
                           icon: Icons.person,
                           secondary: true,
                           onTap: () => setState(() => _forCompany = false),
@@ -405,7 +398,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                         const SizedBox(height: 12),
                         _SubscribeButton(
                           loading: busy,
-                          label: 'Voir les abonnements individuels',
+                          label: 'pw_see_individual'.tr(),
                           icon: Icons.person,
                           secondary: true,
                           onTap: () => setState(() => _forCompany = false),
@@ -416,7 +409,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                       OutlinedButton.icon(
                         onPressed: () => setState(() => _forCompany = true),
                         icon: const Icon(Icons.group_outlined, size: 16),
-                        label: const Text('Voir les abonnements pour équipe'),
+                        label: Text('pw_see_team_plans'.tr()),
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(40),
                           textStyle: const TextStyle(fontSize: 12),
@@ -438,14 +431,11 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                               if (userSub?['cancel_at_period_end'] == true) {
                                 final e = userSub.periodEnd;
                                 final until = e != null
-                                    ? ' jusqu\'au ${e.day}/${e.month}/${e.year}'
+                                    ? 'pw_until'.tr(args: ['${e.day}/${e.month}/${e.year}'])
                                     : '';
-                                return 'Votre offre « $label » est RÉSILIÉE — l\'accès '
-                                    'reste ACTIF$until, puis se termine. Re-souscrivez '
-                                    'ci-dessous pour réactiver ou changer.';
+                                return 'pw_sub_canceled'.tr(args: [label, until]);
                               }
-                              return 'Vous avez déjà l\'offre « $label ». Vous pouvez '
-                                  'en changer ci-dessous.';
+                              return 'pw_already_have'.tr(args: [label]);
                             }(),
                             style: TextStyle(
                                 fontSize: 11.5,
@@ -473,8 +463,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
-                            '⚠️ « À vie » est un achat unique : votre abonnement actuel '
-                            'continuera jusqu\'à ce que vous l\'annuliez dans le store.',
+                            'pw_lifetime_warn'.tr(),
                             style: TextStyle(
                                 fontSize: 11.5, color: Colors.orange.shade900),
                           ),
@@ -483,18 +472,17 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                       _SubscribeButton(
                         loading: busy,
                         label: currentSoloId == null
-                            ? 'S\'abonner'
+                            ? 'pw_subscribe'.tr()
                             : (_selectedSoloId == currentSoloId
-                                ? 'Offre déjà active'
-                                : 'Changer pour cette offre'),
+                                ? 'pw_already_active'.tr()
+                                : 'pw_change_to_this'.tr()),
                         icon: Icons.workspace_premium_outlined,
                         onTap: () {
                           if (currentSoloId != null &&
                               _selectedSoloId == currentSoloId) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'C\'est déjà votre offre actuelle.')));
+                                SnackBar(
+                                    content: Text('pw_already_current'.tr())));
                             return;
                           }
                           _buy(productById(_selectedSoloId)!);
@@ -504,7 +492,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
 
                     if (!_productsLoaded) ...[
                       const SizedBox(height: 10),
-                      Text('Chargement des prix…',
+                      Text('pw_loading_prices'.tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               fontSize: 11, color: Colors.grey.shade400)),
@@ -529,7 +517,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                     TextButton.icon(
                       onPressed: busy ? null : () => _iap.restore(),
                       icon: const Icon(Icons.restore, size: 16),
-                      label: const Text('Restaurer mes achats'),
+                      label: Text('pw_restore'.tr()),
                     ),
 
                     const SizedBox(height: 12),
@@ -538,21 +526,14 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Pas maintenant',
-                          style: TextStyle(color: Colors.grey)),
+                      child: Text('pw_not_now'.tr(),
+                          style: const TextStyle(color: Colors.grey)),
                     ),
                     const SizedBox(height: 8),
                     // (Apple Review 3.1.2 + Google) Mention d'abonnement OBLIGATOIRE
                     // près du bouton d'achat + liens CGU/Confidentialité fonctionnels.
                     Text(
-                      'Abonnement à renouvellement automatique. Le paiement est '
-                      'débité via l\'App Store ou Google Play à la confirmation de '
-                      'l\'achat. Sauf résiliation au moins 24 h avant la fin de la '
-                      'période en cours, l\'abonnement se renouvelle automatiquement '
-                      'au même tarif. Gérez ou résiliez à tout moment dans les '
-                      'réglages d\'abonnement de votre compte (App Store / Google '
-                      'Play). Les formules mensuelles sont sans engagement ; '
-                      'l\'achat « à vie » est un paiement unique non récurrent.',
+                      'pw_sub_mention'.tr(),
                       textAlign: TextAlign.center,
                       style:
                           TextStyle(fontSize: 11, color: Colors.grey.shade500),
@@ -569,8 +550,8 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                             minimumSize: const Size(0, 0),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text("Conditions d'utilisation",
-                              style: TextStyle(fontSize: 11)),
+                          child: Text('pw_terms'.tr(),
+                              style: const TextStyle(fontSize: 11)),
                         ),
                         Text('·',
                             style: TextStyle(
@@ -583,8 +564,8 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                             minimumSize: const Size(0, 0),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text('Politique de confidentialité',
-                              style: TextStyle(fontSize: 11)),
+                          child: Text('settings_privacy_policy'.tr(),
+                              style: const TextStyle(fontSize: 11)),
                         ),
                       ],
                     ),
@@ -599,11 +580,9 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
   }
 
   void _copyShareMessage(BuildContext context) {
-    const msg =
-        'J\'utilise "Rapport Technique IA" pour mes bons d\'intervention — rapide, pro, PDF en un clic. Disponible sur iOS et Android. À tester absolument !';
-    Clipboard.setData(const ClipboardData(text: msg));
+    Clipboard.setData(ClipboardData(text: 'settings_share_text'.tr()));
     ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Message copié !')));
+        .showSnackBar(SnackBar(content: Text('pw_message_copied'.tr())));
   }
 }
 
@@ -625,13 +604,13 @@ class _TeamToggle extends StatelessWidget {
       child: Row(
         children: [
           _ToggleOption(
-            label: 'Pour moi',
+            label: 'pw_for_me'.tr(),
             icon: Icons.person_outline,
             selected: !forCompany,
             onTap: () => onChanged(false),
           ),
           _ToggleOption(
-            label: 'Pour mon équipe',
+            label: 'pw_for_team'.tr(),
             icon: Icons.group_outlined,
             selected: forCompany,
             onTap: () => onChanged(true),
@@ -809,7 +788,7 @@ class _ProductTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: Colors.green.shade200),
                   ),
-                  child: Text('Actif',
+                  child: Text('pw_active_badge'.tr(),
                       style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -850,7 +829,7 @@ class _ActivePlanBanner extends StatelessWidget {
           Icon(Icons.check_circle_outline, color: Colors.green.shade700, size: 20),
           const SizedBox(width: 8),
           Expanded(
-            child: Text('Abonnement actif · $text',
+            child: Text('pw_sub_active_prefix'.tr(args: [text]),
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Colors.green.shade800,
@@ -861,7 +840,7 @@ class _ActivePlanBanner extends StatelessWidget {
             style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 visualDensity: VisualDensity.compact),
-            child: const Text('Gérer', style: TextStyle(fontSize: 12)),
+            child: Text('pw_manage'.tr(), style: const TextStyle(fontSize: 12)),
           ),
         ],
       ),
@@ -943,7 +922,7 @@ class _TeamMemberInfoCard extends StatelessWidget {
               Icon(Icons.tips_and_updates_outlined,
                   color: Colors.blue.shade700, size: 20),
               const SizedBox(width: 8),
-              Text('Le bon plan pour votre équipe',
+              Text('pw_team_good_plan'.tr(),
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.blue.shade800,
@@ -952,16 +931,14 @@ class _TeamMemberInfoCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Si votre responsable souscrit le plan équipe, '
-            'vous bénéficiez de l\'accès Pro automatiquement — '
-            'sans rien payer de votre poche.',
+            'pw_team_member_desc'.tr(),
             style: TextStyle(fontSize: 13, color: Colors.blue.shade800),
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: onShareTap,
             icon: const Icon(Icons.share_outlined, size: 16),
-            label: const Text('Lui envoyer l\'appli'),
+            label: Text('pw_send_app'.tr()),
             style: FilledButton.styleFrom(
               backgroundColor: Colors.blue.shade700,
               visualDensity: VisualDensity.compact,
@@ -995,7 +972,7 @@ class _NoTeamInfoCard extends ConsumerWidget {
               Icon(Icons.group_add_outlined,
                   color: Colors.grey.shade700, size: 20),
               const SizedBox(width: 8),
-              Text('Plan pour une équipe',
+              Text('pw_team_plan'.tr(),
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.grey.shade800,
@@ -1003,13 +980,11 @@ class _NoTeamInfoCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 4),
-          Text('À partir de 5,99 €/mois (jusqu\'à 2 membres)',
+          Text('pw_team_from_price'.tr(),
               style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
           const SizedBox(height: 10),
           Text(
-            'Vous gérez des techniciens ? Créez votre espace équipe, '
-            'puis activez l\'abonnement équipe pour que tous vos techniciens '
-            'aient accès Pro automatiquement.',
+            'pw_no_team_desc'.tr(),
             style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
           ),
           const SizedBox(height: 12),
@@ -1029,7 +1004,7 @@ class _NoTeamInfoCard extends ConsumerWidget {
                 context.push(user != null ? '/team-setup' : '/auth');
               },
               icon: const Icon(Icons.group_add, size: 18),
-              label: const Text('Créer / rejoindre une équipe'),
+              label: Text('pw_create_join_team'.tr()),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 textStyle: const TextStyle(fontSize: 13),
@@ -1046,10 +1021,11 @@ class _NoTeamInfoCard extends ConsumerWidget {
 class _ShareAppCard extends StatelessWidget {
   const _ShareAppCard();
 
-  static const _shareText =
-      'J\'utilise "Rapport Technique IA" pour mes bons d\'intervention — '
-      'rapide, professionnel, PDF en un clic. Disponible sur iOS et Android. '
-      'À tester absolument !';
+  // (i18n) Remplacé par la clé `settings_share_text` (.tr()). Conservé en commentaire.
+  // static const _shareText =
+  //     'J\'utilise "Rapport Technique IA" pour mes bons d\'intervention — '
+  //     'rapide, professionnel, PDF en un clic. Disponible sur iOS et Android. '
+  //     'À tester absolument !';
 
   @override
   Widget build(BuildContext context) {
@@ -1076,10 +1052,9 @@ class _ShareAppCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Faire connaître l\'appli',
-                    style:
-                        TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                Text('À vos collègues, votre chef, d\'autres entreprises…',
+                Text('settings_share_app'.tr(),
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text('settings_share_app_sub'.tr(),
                     style:
                         TextStyle(fontSize: 11, color: Colors.grey.shade600)),
               ],
@@ -1087,15 +1062,15 @@ class _ShareAppCard extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              Clipboard.setData(const ClipboardData(text: _shareText));
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('Message copié dans le presse-papier !')));
+              Clipboard.setData(ClipboardData(text: 'settings_share_text'.tr()));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('pw_message_copied_clipboard'.tr())));
             },
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               textStyle: const TextStyle(fontSize: 12),
             ),
-            child: const Text('Copier'),
+            child: Text('pw_copy'.tr()),
           ),
         ],
       ),

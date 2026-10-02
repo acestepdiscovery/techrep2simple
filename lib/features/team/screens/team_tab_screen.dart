@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,12 +19,12 @@ class TeamTabScreen extends ConsumerWidget {
     final teamAsync = ref.watch(teamStateProvider);
     return teamAsync.when(
       loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Équipe')),
+        appBar: AppBar(title: Text('nav_team'.tr())),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: const Text('Équipe')),
-        body: Center(child: Text('Erreur : $e')),
+        appBar: AppBar(title: Text('nav_team'.tr())),
+        body: Center(child: Text('common_error'.tr(args: ['$e']))),
       ),
       data: (team) {
         if (team.hasTeam) return const TeamDashboardScreen();
@@ -49,7 +50,7 @@ class _EmptyTeamState extends StatelessWidget {
                   size: 72, color: Colors.grey.shade300),
               const SizedBox(height: 16),
               Text(
-                'Vous travaillez à plusieurs ?',
+                'tt_work_together_q'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 18,
@@ -58,17 +59,13 @@ class _EmptyTeamState extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Une équipe permet à plusieurs techniciens d\'une même entreprise '
-                'd\'utiliser l\'app ensemble : identité d\'entreprise commune sur '
-                'les PDF, validation des rapports, et un abonnement mutualisé où '
-                'le parrainage de chacun fait baisser la facture commune.',
+                'tt_team_desc'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 8),
               Text(
-                'Ce n\'est pas obligatoire — si vous travaillez seul, tout se '
-                'passe dans Réglages.',
+                'tt_not_mandatory'.tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 12,
@@ -79,7 +76,7 @@ class _EmptyTeamState extends StatelessWidget {
               FilledButton.icon(
                 onPressed: () => context.push('/team-setup'),
                 icon: const Icon(Icons.group_add_outlined),
-                label: const Text('Créer ou rejoindre une équipe'),
+                label: Text('tt_create_join'.tr()),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                 ),

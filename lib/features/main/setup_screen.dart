@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,13 +32,13 @@ class SetupScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mon compte'),
+        title: Text('sc_my_account'.tr()),
         actions: [
           // (#5) Accès express au parrainage : copie le code + snackbar.
           // [PAUSED-REFERRAL] masqué tant que le parrainage est en pause.
           if (kParrainageEnabled && user != null)
             IconButton(
-              tooltip: 'Copier mon code de parrainage',
+              tooltip: 'sc_copy_referral_code'.tr(),
               icon: const Icon(Icons.card_giftcard_outlined),
               onPressed: () async {
                 final messenger = ScaffoldMessenger.of(context);
@@ -45,16 +46,15 @@ class SetupScreen extends ConsumerWidget {
                   final code = await ReferralService.getOrCreateCode(user.uid);
                   await Clipboard.setData(ClipboardData(text: code));
                   messenger.showSnackBar(SnackBar(
-                    content: Text('Code de parrainage « $code » copié ! '
-                        'Plus d\'infos dans la page Parrainage.'),
+                    content: Text('sc_referral_copied'.tr(args: [code])),
                     action: SnackBarAction(
-                      label: 'Parrainage',
+                      label: 'sc_referral'.tr(),
                       onPressed: () => context.push('/referral'),
                     ),
                   ));
                 } catch (_) {
-                  messenger.showSnackBar(const SnackBar(
-                      content: Text('Impossible de récupérer le code.')));
+                  messenger.showSnackBar(SnackBar(
+                      content: Text('sc_code_failed'.tr())));
                 }
               },
             ),
@@ -122,45 +122,45 @@ class SetupScreen extends ConsumerWidget {
           if (ref.watch(canSwitchProfileProvider)) const ProfileSwitcherCard(),
 
           // ── Checklist ───────────────────────────────────────────────────
-          const Text('Configuration', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black54)),
+          Text('sc_configuration'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black54)),
           const SizedBox(height: 10),
 
           _StepTile(
             index: 1,
-            title: 'Compte créé',
+            title: 'sc_step_account'.tr(),
             done: user != null,
             subtitle: user != null
-                ? (user.email ?? 'Connecté')
-                : 'Non connecté — certaines fonctions sont limitées',
-            actionLabel: user != null ? null : 'Se connecter',
+                ? (user.email ?? 'sc_connected'.tr())
+                : 'sc_not_connected_limited'.tr(),
+            actionLabel: user != null ? null : 'auth_sign_in'.tr(),
             onAction: user != null ? null : () => context.push('/auth'),
           ),
           _StepTile(
             index: 2,
-            title: 'Infos de l\'entreprise',
+            title: 'sc_step_company'.tr(),
             done: companyName.isNotEmpty || techName.isNotEmpty,
             subtitle: companyName.isNotEmpty
                 ? companyName
                 : techName.isNotEmpty
                     ? techName
-                    : 'Non renseigné — apparaît sur vos PDFs',
-            actionLabel: 'Paramètres',
+                    : 'sc_company_not_set'.tr(),
+            actionLabel: 'sc_settings'.tr(),
             onAction: () => context.go('/settings'),
           ),
           _StepTile(
             index: 3,
-            title: 'Abonnement Pro',
+            title: 'sc_step_pro'.tr(),
             done: isPro,
             disabled: user == null, // (e7) nécessite un compte
             subtitle: user == null
-                ? 'Connectez-vous pour vous abonner'
+                ? 'sc_login_to_subscribe'.tr()
                 : isPro
-                    ? 'Actif — exports illimités, signature distante, factures'
-                    : 'Non souscrit — 5 exports/mois, fonctions limitées',
+                    ? 'sc_pro_active_desc'.tr()
+                    : 'sc_not_subscribed'.tr(),
             // (I) Tuile interactive même quand Pro → mène à la gestion de l'abo.
             actionLabel: user == null
                 ? null
-                : (isPro ? 'Gérer' : 'Voir les offres'),
+                : (isPro ? 'pw_manage'.tr() : 'sc_see_offers'.tr()),
             onAction: user == null
                 ? null
                 : (isPro
@@ -173,14 +173,14 @@ class SetupScreen extends ConsumerWidget {
           // [PAUSED-REFERRAL] tuile parrainage masquée (pivot IAP simple).
           if (kParrainageEnabled) _StepTile(
             index: 4,
-            title: 'Parrainage',
+            title: 'sc_referral'.tr(),
             done: false,
             optional: true,
             disabled: user == null, // (e7)
             subtitle: user == null
-                ? 'Connectez-vous pour parrainer'
-                : 'Invitez des proches — vous payez tous les deux moins (jusqu\'à −50%)',
-            actionLabel: 'Mon parrainage',
+                ? 'sc_login_referral'.tr()
+                : 'sc_referral_desc'.tr(),
+            actionLabel: 'sc_my_referral'.tr(),
             onAction: () => context.push('/referral'),
             // (e3) Progression de parrainage (cases qui se remplissent).
             footer: user == null
@@ -193,16 +193,16 @@ class SetupScreen extends ConsumerWidget {
           ),
           _StepTile(
             index: 5,
-            title: 'Équipe',
+            title: 'nav_team'.tr(),
             done: team?.hasTeam ?? false,
             optional: true,
             disabled: user == null, // (e7)
             subtitle: user == null
-                ? 'Connectez-vous pour créer/rejoindre une équipe'
+                ? 'sc_login_team'.tr()
                 : team?.hasTeam == true
-                    ? '${team!.companyName ?? 'Équipe configurée'} · ${team.role == 'admin' ? 'Admin' : 'Technicien'}'
-                    : 'Optionnel — permet la validation et le partage de rapports',
-            actionLabel: team?.hasTeam == true ? null : 'Configurer',
+                    ? '${team!.companyName ?? 'sc_team_configured'.tr()} · ${team.role == 'admin' ? 'td_role_admin'.tr() : 'sc_technician'.tr()}'
+                    : 'sc_team_optional_desc'.tr(),
+            actionLabel: team?.hasTeam == true ? null : 'sc_configure'.tr(),
             onAction: team?.hasTeam == true ? null : () => context.push('/team-setup'),
           ),
 
@@ -210,8 +210,8 @@ class SetupScreen extends ConsumerWidget {
 
           // (D-opt1) Abonnement pro PERSONNEL géré ICI (déplacé des Réglages).
           if (user != null) ...[
-            const Text('Abonnement pro personnel',
-                style: TextStyle(
+            Text('sc_personal_pro_sub'.tr(),
+                style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                     color: Colors.black54)),
@@ -227,7 +227,7 @@ class SetupScreen extends ConsumerWidget {
           ],
 
           // ── Quick links ──────────────────────────────────────────────────
-          const Text('Accès rapide', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black54)),
+          Text('sc_quick_access'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black54)),
           const SizedBox(height: 10),
           // (e1) Lien « Paramètres » retiré : déjà accessible depuis la barre de navigation.
           // (#10) « Mon équipe », « Abonnement » et « Parrainage » retirés d'Accès
@@ -242,7 +242,7 @@ class SetupScreen extends ConsumerWidget {
           // _QuickLink(icon: Icons.card_giftcard_outlined, label: 'Parrainage', onTap: () => context.push('/referral')),
           // In compact nav layout, Clients tab is removed — provide direct access here
           if (kEnableNewNavLayout)
-            _QuickLink(icon: Icons.contacts_outlined, label: 'Mes clients', onTap: () => context.push('/clients')),
+            _QuickLink(icon: Icons.contacts_outlined, label: 'sc_my_clients'.tr(), onTap: () => context.push('/clients')),
         ],
       ),
     );
@@ -260,25 +260,25 @@ void _openProSubscription(BuildContext context, WidgetRef ref, dynamic team) {
     showDialog<void>(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Quel abonnement gérer ?'),
-        content: const Text(
-            'Vous avez les deux. Lequel voulez-vous gérer ?'),
+        title: Text('sc_which_sub'.tr()),
+        content: Text(
+            'sc_have_both'.tr()),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(dlg);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(
-                      'Votre abonnement solo se gère ci-dessous, dans « Abonnement pro personnel ».')));
+                      'sc_solo_below'.tr())));
             },
-            child: const Text('Solo'),
+            child: Text('sc_solo'.tr()),
           ),
           FilledButton(
             onPressed: () {
               Navigator.pop(dlg);
               context.go('/team-tab');
             },
-            child: const Text('Équipe'),
+            child: Text('nav_team'.tr()),
           ),
         ],
       ),
@@ -286,9 +286,9 @@ void _openProSubscription(BuildContext context, WidgetRef ref, dynamic team) {
   } else if (teamActive) {
     context.go('/team-tab');
   } else {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
-            'Votre abonnement se gère ci-dessous, dans « Abonnement pro personnel » 👇')));
+            'sc_sub_below'.tr())));
   }
 }
 
@@ -339,55 +339,55 @@ class SetupChecklistSheet extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('Configuration du compte', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+          Text('sc_account_config'.tr(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
           const SizedBox(height: 4),
-          const Text('Suivez ces étapes pour tirer le meilleur de l\'app.',
-              style: TextStyle(fontSize: 13, color: Colors.black54)),
+          Text('sc_follow_steps'.tr(),
+              style: const TextStyle(fontSize: 13, color: Colors.black54)),
           const SizedBox(height: 16),
           _StepTile(
             index: 1,
-            title: 'Compte créé',
+            title: 'sc_step_account'.tr(),
             done: user != null,
-            subtitle: user?.email ?? 'Non connecté',
-            actionLabel: user != null ? null : 'Se connecter',
+            subtitle: user?.email ?? 'sc_not_connected'.tr(),
+            actionLabel: user != null ? null : 'auth_sign_in'.tr(),
             onAction: user != null ? null : () { Navigator.pop(context); context.push('/auth'); },
           ),
           _StepTile(
             index: 2,
-            title: 'Infos de l\'entreprise',
+            title: 'sc_step_company'.tr(),
             done: companyName.isNotEmpty || techName.isNotEmpty,
-            subtitle: companyName.isNotEmpty ? companyName : techName.isNotEmpty ? techName : 'Non renseigné',
-            actionLabel: 'Paramètres',
+            subtitle: companyName.isNotEmpty ? companyName : techName.isNotEmpty ? techName : 'sc_not_set'.tr(),
+            actionLabel: 'sc_settings'.tr(),
             onAction: () { Navigator.pop(context); context.go('/settings'); },
           ),
           _StepTile(
             index: 3,
-            title: 'Abonnement Pro',
+            title: 'sc_step_pro'.tr(),
             done: isPro,
-            subtitle: isPro ? 'Actif' : 'Exports illimités, signature distante, factures',
-            actionLabel: isPro ? null : 'S\'abonner',
+            subtitle: isPro ? 'pw_active_badge'.tr() : 'sc_pro_features'.tr(),
+            actionLabel: isPro ? null : 'pw_subscribe'.tr(),
             onAction: isPro ? null : () { Navigator.pop(context); PaywallBottomSheet.show(context); },
             important: !isPro,
           ),
           // [PAUSED-REFERRAL] entrée parrainage masquée (pivot IAP simple).
           if (kParrainageEnabled) _StepTile(
             index: 4,
-            title: 'Parrainage',
+            title: 'sc_referral'.tr(),
             done: false,
             optional: true,
-            subtitle: 'Invitez des proches — jusqu\'à −50% chacun',
-            actionLabel: 'Voir',
+            subtitle: 'sc_referral_desc_short'.tr(),
+            actionLabel: 'ai_view'.tr(),
             onAction: () { Navigator.pop(context); context.push('/referral'); },
           ),
           _StepTile(
             index: 5,
-            title: 'Équipe',
+            title: 'nav_team'.tr(),
             done: team?.hasTeam ?? false,
             optional: true,
             subtitle: team?.hasTeam == true
-                ? team!.companyName ?? 'Configurée'
-                : 'Optionnel',
-            actionLabel: team?.hasTeam == true ? null : 'Configurer',
+                ? team!.companyName ?? 'sc_configured'.tr()
+                : 'sc_optional_short'.tr(),
+            actionLabel: team?.hasTeam == true ? null : 'sc_configure'.tr(),
             onAction: team?.hasTeam == true ? null : () { Navigator.pop(context); context.push('/team-setup'); },
           ),
         ],
@@ -494,7 +494,7 @@ class _StepTile extends StatelessWidget {
                 Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                 if (optional) ...[
                   const SizedBox(width: 6),
-                  Text('optionnel', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                  Text('sc_optional'.tr(), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
                 ],
               ]),
               const SizedBox(height: 2),
@@ -613,12 +613,12 @@ class _TeamSubscriptionPointer extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Abonnement équipe',
+                Text('ss_team_sub'.tr(),
                     style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                         color: Colors.indigo.shade800)),
-                Text('Se gère dans l\'onglet Équipe → Réglages équipe.',
+                Text('sc_team_sub_managed'.tr(),
                     style: TextStyle(
                         fontSize: 11, color: Colors.indigo.shade700)),
               ],

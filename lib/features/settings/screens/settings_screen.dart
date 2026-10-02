@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../shared/utils/share_origin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/app_build.dart';
@@ -23,6 +25,9 @@ import '../../auth/providers/auth_provider.dart';
 import '../../reports/providers/debug_nav_providers.dart';
 import '../../subscription/subscription_provider.dart';
 import '../../subscription/paywall_bottom_sheet.dart';
+import '../../reports/models/tax_options.dart';
+import '../../reports/models/currency_options.dart';
+import '../widgets/tax_editor.dart';
 import '../providers/settings_provider.dart';
 
 // (K) Demande de déroulé de la tuile « Mon entreprise » des Réglages (depuis le
@@ -57,10 +62,10 @@ class SettingsScreen extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Réglages')),
+      appBar: AppBar(title: Text('settings_title'.tr())),
       body: settings.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Erreur : $e')),
+        error: (e, _) => Center(child: Text('common_error'.tr(args: ['$e']))),
         data: (s) => ListView(
           children: [
             const _AccountCard(),
@@ -72,18 +77,18 @@ class SettingsScreen extends ConsumerWidget {
             // const _TeamSettingsPointer(),
 
             // (B) Remontés juste sous « Mon entreprise » : Compte, Abonnement, Parrainage.
-            _SectionTitle('Compte'),
+            _SectionTitle('settings_section_account'.tr()),
             const _TeamSection(),
 
             // (D-opt1) L'abonnement pro PERSONNEL est désormais dans « Mon compte ».
-            _SectionTitle('Abonnement (solo)'),
+            _SectionTitle('settings_section_sub_solo'.tr()),
             ListTile(
               leading: const Icon(Icons.workspace_premium_outlined,
                   color: AppColors.primary),
-              title: const Text('Abonnement pro personnel'),
-              subtitle: const Text(
-                  'Se gère dans « Mon compte ». Appuyez pour voir les offres.',
-                  style: TextStyle(fontSize: 12)),
+              title: Text('settings_personal_sub'.tr()),
+              subtitle: Text(
+                  'settings_personal_sub_desc'.tr(),
+                  style: const TextStyle(fontSize: 12)),
               trailing:
                   const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
               // (I) Ouvre le paywall ; en le fermant on se retrouve sur Mon compte.
@@ -94,15 +99,15 @@ class SettingsScreen extends ConsumerWidget {
             ),
 
             if (kParrainageEnabled) ...[
-              _SectionTitle('Parrainage'),
+              _SectionTitle('settings_section_referral'.tr()),
               const _ParrainageSection(),
             ],
 
             // (B) Sections techniques REPLIÉES derrière une seule tuile chacune.
             _CollapsibleSettingsTile(
               icon: Icons.picture_as_pdf_outlined,
-              title: 'RAPPORTS PDF',
-              subtitle: 'Gabarit, numérotation',
+              title: 'settings_pdf_reports'.tr(),
+              subtitle: 'settings_pdf_reports_sub'.tr(),
               children: [
                 _TemplateTile(
                   current: s['pdf_template'] ?? 'professionnel',
@@ -121,12 +126,28 @@ class SettingsScreen extends ConsumerWidget {
                       .read(settingsProvider.notifier)
                       .set('report_number_start', v),
                 ),
+                _TaxTile(
+                  rate: s['tax_rate'],
+                  label: s['tax_label'],
+                  mention: s['tax_mention'],
+                  onSave: (cfg) async {
+                    final n = ref.read(settingsProvider.notifier);
+                    await n.set('tax_rate', cfg.rate.toString());
+                    await n.set('tax_label', cfg.label);
+                    await n.set('tax_mention', cfg.mention);
+                  },
+                ),
+                _CurrencyTile(
+                  code: s['currency_code'],
+                  onSave: (code) =>
+                      ref.read(settingsProvider.notifier).set('currency_code', code),
+                ),
               ],
             ),
             _CollapsibleSettingsTile(
               icon: Icons.cloud_upload_outlined,
-              title: 'INTÉGRATION CLOUD',
-              subtitle: 'Envoi auto, dossier de destination',
+              title: 'settings_cloud_integration'.tr(),
+              subtitle: 'settings_cloud_integration_sub'.tr(),
               children: [
                 const _CloudIntegrationsEntry(),
                 _FolderPatternTile(
@@ -138,35 +159,39 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
 
-            _SectionTitle('Feedback & support'),
+            // (i18n) Sélecteur de langue — suit le téléphone par défaut, surchargeable.
+            _SectionTitle('display_section'.tr()),
+            const _LanguageTile(),
+
+            _SectionTitle('settings_section_feedback'.tr()),
             const _FeedbackSection(),
 
-            _SectionTitle('À propos'),
+            _SectionTitle('settings_section_about'.tr()),
             const _VersionTile(),
             ListTile(
               leading: const Icon(Icons.privacy_tip_outlined),
-              title: const Text('Politique de confidentialité'),
+              title: Text('settings_privacy_policy'.tr()),
               trailing: const Icon(Icons.open_in_new,
                   size: 16, color: Colors.grey),
               onTap: () => _openLegal(context, kPrivacyPolicyUrl),
             ),
             ListTile(
               leading: const Icon(Icons.description_outlined),
-              title: const Text("Conditions d'utilisation (CGU/CGV)"),
+              title: Text('settings_terms'.tr()),
               trailing: const Icon(Icons.open_in_new,
                   size: 16, color: Colors.grey),
               onTap: () => _openLegal(context, kTermsUrl),
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline),
-              title: const Text('Suppression des données'),
+              title: Text('settings_data_deletion'.tr()),
               trailing: const Icon(Icons.open_in_new,
                   size: 16, color: Colors.grey),
               onTap: () => _openLegal(context, kDataDeletionUrl),
             ),
             ListTile(
               leading: const Icon(Icons.help_outline),
-              title: const Text('Aide & support'),
+              title: Text('settings_help_support'.tr()),
               trailing: const Icon(Icons.open_in_new,
                   size: 16, color: Colors.grey),
               onTap: () => _openLegal(context, kSupportUrl),
@@ -285,10 +310,11 @@ class _TeamSettingsPointer extends ConsumerWidget {
 // ─── (B) Faire connaître l'appli ──────────────────────────────────────────────
 class _ShareAppTile extends StatelessWidget {
   const _ShareAppTile();
-  static const _shareText =
-      'J\'utilise "Rapport Technique IA" pour mes bons d\'intervention — '
-      'rapide, professionnel, PDF en un clic. Disponible sur iOS et Android. '
-      'À tester absolument !';
+  // (i18n) Remplacé par la clé `settings_share_text` (.tr()). Conservé en commentaire.
+  // static const _shareText =
+  //     'J\'utilise "Rapport Technique IA" pour mes bons d\'intervention — '
+  //     'rapide, professionnel, PDF en un clic. Disponible sur iOS et Android. '
+  //     'À tester absolument !';
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -298,21 +324,22 @@ class _ShareAppTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
-            onTap: () => Share.share(_shareText),
+            onTap: () =>
+                Share.share('settings_share_text'.tr(), sharePositionOrigin: shareOrigin(context)),
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(children: [
                 Icon(Icons.favorite_outline, color: AppColors.primary, size: 22),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Faire connaître l\'appli',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
-                      SizedBox(height: 2),
-                      Text('À vos collègues, votre chef, d\'autres entreprises…',
-                          style: TextStyle(fontSize: 11)),
+                      Text('settings_share_app'.tr(),
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 2),
+                      Text('settings_share_app_sub'.tr(),
+                          style: const TextStyle(fontSize: 11)),
                     ],
                   ),
                 ),
@@ -355,13 +382,13 @@ class _EditableTile extends StatelessWidget {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dlg),
-              child: const Text('Annuler')),
+              child: Text('common_cancel'.tr())),
           ElevatedButton(
             onPressed: () async {
               await onSave(ctrl.text.trim());
               if (dlg.mounted) Navigator.pop(dlg);
             },
-            child: const Text('Enregistrer'),
+            child: Text('common_save'.tr()),
           ),
         ],
       ),
@@ -373,7 +400,7 @@ class _EditableTile extends StatelessWidget {
         leading: Icon(icon, color: AppColors.primary),
         title: Text(label),
         subtitle: Text(
-          value.isEmpty ? 'Appuyer pour définir' : value,
+          value.isEmpty ? 'settings_tap_to_set'.tr() : value,
           style: TextStyle(
             color: value.isEmpty ? Colors.grey : Colors.black87,
             fontStyle:
@@ -394,7 +421,7 @@ class _CloudIntegrationsEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.cloud_upload_outlined, color: AppColors.primary),
-      title: const Text('Envoi automatique vers le cloud'),
+      title: Text('settings_cloud_auto'.tr()),
       subtitle: Row(children: [
         const Icon(Icons.add_to_drive, size: 16, color: Color(0xFF1FA463)),   // Google Drive vert
         const SizedBox(width: 5),
@@ -411,7 +438,7 @@ class _CloudIntegrationsEntry extends StatelessWidget {
       onTap: () => showDialog(
         context: context,
         builder: (dialogCtx) => AlertDialog(
-          title: const Text('Intégrations cloud'),
+          title: Text('settings_cloud_integrations'.tr()),
           contentPadding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
           content: const SizedBox(
             width: double.maxFinite,
@@ -427,7 +454,7 @@ class _CloudIntegrationsEntry extends StatelessWidget {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dialogCtx),
-                child: const Text('Fermer')),
+                child: Text('common_close'.tr())),
           ],
         ),
       ),
@@ -478,23 +505,23 @@ class _GoogleDriveTileState extends State<_GoogleDriveTile> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (_email != null) ...[
-              const Text('Compte connecté :', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text('settings_connected_account'.tr(), style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               Text(_email!, style: const TextStyle(color: Colors.green)),
               const SizedBox(height: 12),
-              const Text(
-                'Les PDF sont envoyés dans le dossier "Rapport Technique" de ce compte Drive.',
-                style: TextStyle(fontSize: 12),
+              Text(
+                'settings_cloud_pdf_folder'.tr(args: ['Drive']),
+                style: const TextStyle(fontSize: 12),
               ),
             ] else ...[
-              const Text(
-                'La connexion à Google Drive se fait automatiquement lors du premier envoi.',
-                style: TextStyle(fontSize: 13),
+              Text(
+                'settings_cloud_auto_connect_info'.tr(args: ['Google Drive']),
+                style: const TextStyle(fontSize: 13),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Un sélecteur de compte Google s\'ouvrira et demandera l\'autorisation d\'accès au Drive.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+              Text(
+                'settings_google_picker_info'.tr(),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ],
@@ -506,11 +533,11 @@ class _GoogleDriveTileState extends State<_GoogleDriveTile> {
                 await _disconnect();
                 if (dialogCtx.mounted) Navigator.pop(dialogCtx);
               },
-              child: const Text('Se déconnecter', style: TextStyle(color: Colors.red)),
+              child: Text('settings_disconnect'.tr(), style: const TextStyle(color: Colors.red)),
             ),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Fermer'),
+            child: Text('common_close'.tr()),
           ),
         ],
       ),
@@ -535,7 +562,7 @@ class _GoogleDriveTileState extends State<_GoogleDriveTile> {
           color: connected ? Colors.green : AppColors.primary),
       title: const Text('Google Drive'),
       subtitle: Text(
-        connected ? 'Connecté : $_email' : 'Connexion auto au premier envoi',
+        connected ? 'rd_connected_as'.tr(args: [_email ?? '']) : 'settings_auto_connect'.tr(),
         style: TextStyle(
           color: connected ? Colors.green : Colors.grey,
           fontSize: 12,
@@ -573,7 +600,7 @@ class _DropboxTileState extends State<_DropboxTile> {
   Future<void> _load() async {
     var name = await DropboxService.displayName;
     if (name == null && await DropboxService.isConnected) {
-      name = 'Compte Dropbox';
+      name = 'settings_dropbox_account'.tr();
     }
     if (mounted) setState(() { _name = name; _loading = false; });
   }
@@ -597,23 +624,23 @@ class _DropboxTileState extends State<_DropboxTile> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (_name != null) ...[
-              const Text('Compte connecté :', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text('settings_connected_account'.tr(), style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               Text(_name!, style: const TextStyle(color: Colors.green)),
               const SizedBox(height: 12),
-              const Text(
-                'Les PDF sont envoyés dans le dossier "Rapport Technique" de ce compte Dropbox.',
-                style: TextStyle(fontSize: 12),
+              Text(
+                'settings_cloud_pdf_folder'.tr(args: ['Dropbox']),
+                style: const TextStyle(fontSize: 12),
               ),
             ] else ...[
-              const Text(
-                'La connexion à Dropbox se fait automatiquement lors du premier envoi.',
-                style: TextStyle(fontSize: 13),
+              Text(
+                'settings_cloud_auto_connect_info'.tr(args: ['Dropbox']),
+                style: const TextStyle(fontSize: 13),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Le navigateur s\'ouvrira pour vous connecter à votre compte Dropbox.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+              Text(
+                'settings_dropbox_browser_info'.tr(),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ],
@@ -625,11 +652,11 @@ class _DropboxTileState extends State<_DropboxTile> {
                 await _disconnect();
                 if (dialogCtx.mounted) Navigator.pop(dialogCtx);
               },
-              child: const Text('Se déconnecter', style: TextStyle(color: Colors.red)),
+              child: Text('settings_disconnect'.tr(), style: const TextStyle(color: Colors.red)),
             ),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Fermer'),
+            child: Text('common_close'.tr()),
           ),
         ],
       ),
@@ -651,7 +678,7 @@ class _DropboxTileState extends State<_DropboxTile> {
           color: connected ? Colors.green : AppColors.primary),
       title: const Text('Dropbox'),
       subtitle: Text(
-        connected ? 'Connecté : $_name' : 'Connexion auto au premier envoi',
+        connected ? 'rd_connected_as'.tr(args: [_name ?? '']) : 'settings_auto_connect'.tr(),
         style: TextStyle(color: connected ? Colors.green : Colors.grey, fontSize: 12),
       ),
       trailing: Icon(
@@ -686,7 +713,7 @@ class _OneDriveTileState extends State<_OneDriveTile> {
   Future<void> _load() async {
     var name = await OneDriveService.displayName;
     if (name == null && await OneDriveService.isConnected) {
-      name = 'Compte Microsoft';
+      name = 'settings_microsoft_account'.tr();
     }
     if (mounted) setState(() { _name = name; _loading = false; });
   }
@@ -710,23 +737,23 @@ class _OneDriveTileState extends State<_OneDriveTile> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (_name != null) ...[
-              const Text('Compte connecté :', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text('settings_connected_account'.tr(), style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               Text(_name!, style: const TextStyle(color: Colors.green)),
               const SizedBox(height: 12),
-              const Text(
-                'Les PDF sont envoyés dans le dossier "Rapport Technique" de ce compte OneDrive.',
-                style: TextStyle(fontSize: 12),
+              Text(
+                'settings_cloud_pdf_folder'.tr(args: ['OneDrive']),
+                style: const TextStyle(fontSize: 12),
               ),
             ] else ...[
-              const Text(
-                'La connexion à OneDrive se fait automatiquement lors du premier envoi.',
-                style: TextStyle(fontSize: 13),
+              Text(
+                'settings_cloud_auto_connect_info'.tr(args: ['OneDrive']),
+                style: const TextStyle(fontSize: 13),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Le navigateur s\'ouvrira pour vous connecter à votre compte Microsoft.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+              Text(
+                'settings_onedrive_browser_info'.tr(),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ],
@@ -738,11 +765,11 @@ class _OneDriveTileState extends State<_OneDriveTile> {
                 await _disconnect();
                 if (dialogCtx.mounted) Navigator.pop(dialogCtx);
               },
-              child: const Text('Se déconnecter', style: TextStyle(color: Colors.red)),
+              child: Text('settings_disconnect'.tr(), style: const TextStyle(color: Colors.red)),
             ),
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Fermer'),
+            child: Text('common_close'.tr()),
           ),
         ],
       ),
@@ -764,7 +791,7 @@ class _OneDriveTileState extends State<_OneDriveTile> {
           color: connected ? Colors.green : AppColors.primary),
       title: const Text('OneDrive (Microsoft)'),
       subtitle: Text(
-        connected ? 'Connecté : $_name' : 'Connexion auto au premier envoi',
+        connected ? 'rd_connected_as'.tr(args: [_name ?? '']) : 'settings_auto_connect'.tr(),
         style: TextStyle(color: connected ? Colors.green : Colors.grey, fontSize: 12),
       ),
       trailing: Icon(
@@ -789,13 +816,15 @@ class _NumberFormatTile extends StatefulWidget {
 }
 
 class _NumberFormatTileState extends State<_NumberFormatTile> {
+  // (i18n) Le 2e champ = CLÉ de traduction (le libellé n'est PAS stocké, c'est la
+  // valeur `{num}`… qui l'est) → `.tr()` au rendu, compatible `const`.
   static const _presets = [
-    ('{num}', 'Simple', '001'),
-    ('{year}-{num}', 'Annuel', '2026-001'),
-    ('{year}/{num}', 'Année/Numéro', '2026/001'),
-    ('{company}/{year}/{month}/{day}/{num}', 'Société/Date', 'AMARIS/2026/04/23/001'),
-    ('{client}-{num}', 'Client-Numéro', 'DUPONT-001'),
-    ('{client}/{year}/{month}/{day}/{num}', 'Client/Date', 'DUPONT/2026/05/18/001'),
+    ('{num}', 'fmt_preset_simple', '001'),
+    ('{year}-{num}', 'fmt_preset_annual', '2026-001'),
+    ('{year}/{num}', 'fmt_preset_year_num', '2026/001'),
+    ('{company}/{year}/{month}/{day}/{num}', 'fmt_preset_company_date', 'AMARIS/2026/04/23/001'),
+    ('{client}-{num}', 'fmt_preset_client_num', 'DUPONT-001'),
+    ('{client}/{year}/{month}/{day}/{num}', 'fmt_preset_client_date', 'DUPONT/2026/05/18/001'),
   ];
 
   void _showDialog(BuildContext context) {
@@ -808,7 +837,7 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          title: const Text('Format du numéro de rapport'),
+          title: Text('fmt_dialog_title'.tr()),
           content: Scrollbar(
             thumbVisibility: true,
             child: SingleChildScrollView(
@@ -823,15 +852,15 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
                     ..._presets.map((p) {
                       final (value, label, example) = p;
                       return ChoiceChip(
-                        label: Text(label, style: const TextStyle(fontSize: 12)),
+                        label: Text(label.tr(), style: const TextStyle(fontSize: 12)),
                         selected: !showCustom && selected == value,
                         visualDensity: VisualDensity.compact,
-                        tooltip: 'Ex : $example',
+                        tooltip: 'common_example'.tr(args: [example]),
                         onSelected: (_) => setS(() { selected = value; showCustom = false; }),
                       );
                     }),
                     ChoiceChip(
-                      label: const Text('Personnalisé', style: TextStyle(fontSize: 12)),
+                      label: Text('fmt_custom'.tr(), style: const TextStyle(fontSize: 12)),
                       selected: showCustom,
                       visualDensity: VisualDensity.compact,
                       onSelected: (_) => setS(() => showCustom = true),
@@ -840,7 +869,7 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
                 ),
                 if (!showCustom) ...[
                   const SizedBox(height: 6),
-                  Text('Ex : ${PdfService.resolveReportNumber(1, selected, clientName: 'Dupont', date: DateTime.now(), technicianName: 'Jean Dupont', companyName: 'MonEntreprise')}',
+                  Text('common_example'.tr(args: [PdfService.resolveReportNumber(1, selected, clientName: 'Dupont', date: DateTime.now(), technicianName: 'Jean Dupont', companyName: 'MonEntreprise')]),
                       style: const TextStyle(fontSize: 11, color: Colors.blue)),
                 ],
                 if (showCustom) ...[
@@ -859,17 +888,17 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
                     runSpacing: 4,
                     children: [
                       for (final (token, label, isSep) in [
-                        ('{num}', 'Numéro', false),
-                        ('{client}', 'Client', false),
-                        ('{company}', 'Société', false),
-                        ('{year}', 'Année', false),
-                        ('{month}', 'Mois', false),
-                        ('{day}', 'Jour', false),
-                        ('{tech}', 'Tech.', false),
+                        ('{num}', 'fmt_token_num'.tr(), false),
+                        ('{client}', 'fmt_token_client'.tr(), false),
+                        ('{company}', 'fmt_token_company'.tr(), false),
+                        ('{year}', 'fmt_token_year'.tr(), false),
+                        ('{month}', 'fmt_token_month'.tr(), false),
+                        ('{day}', 'fmt_token_day'.tr(), false),
+                        ('{tech}', 'fmt_token_tech'.tr(), false),
                         ('/', '/', true),
                         ('-', '-', true),
                         ('_', '_', true),
-                        (' ', '·espace', true),
+                        (' ', 'fmt_token_space'.tr(), true),
                       ])
                         ActionChip(
                           label: Text(label,
@@ -897,7 +926,7 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Aperçu : ${PdfService.resolveReportNumber(1, customCtrl.text.isEmpty ? '{num}' : customCtrl.text, clientName: 'Dupont', date: DateTime(2026, 5, 18), technicianName: 'Jean Dupont', companyName: 'MonEntreprise')}',
+                    'fmt_preview'.tr(args: [PdfService.resolveReportNumber(1, customCtrl.text.isEmpty ? '{num}' : customCtrl.text, clientName: 'Dupont', date: DateTime(2026, 5, 18), technicianName: 'Jean Dupont', companyName: 'MonEntreprise')]),
                     style: const TextStyle(fontSize: 11, color: Colors.blue),
                   ),
                 ],
@@ -908,7 +937,7 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Annuler')),
+                child: Text('common_cancel'.tr())),
             ElevatedButton(
               onPressed: () async {
                 final value = showCustom
@@ -917,7 +946,7 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
                 await widget.onSave(value);
                 if (ctx.mounted) Navigator.pop(ctx);
               },
-              child: const Text('Enregistrer'),
+              child: Text('common_save'.tr()),
             ),
           ],
         ),
@@ -938,8 +967,8 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.tag, color: AppColors.primary),
-      title: const Text('Format du numéro de rapport'),
-      subtitle: Text('Ex : $_preview',
+      title: Text('settings_number_format'.tr()),
+      subtitle: Text('common_example'.tr(args: [_preview]),
           style: const TextStyle(fontSize: 12, color: Colors.black87)),
       trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
       onTap: () => _showDialog(context),
@@ -975,7 +1004,7 @@ class _NumberStartTileState extends State<_NumberStartTile> {
     showDialog(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Numéro de départ'),
+        title: Text('settings_start_number'.tr()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -989,42 +1018,42 @@ class _NumberStartTileState extends State<_NumberStartTile> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Dernier rapport existant : $_currentMax\nProchain numéro : ${_currentMax + 1}',
+                  'settings_last_report'.tr(args: ['$_currentMax', '${_currentMax + 1}']),
                   style: TextStyle(fontSize: 12, color: Colors.blue.shade800),
                 ),
               ),
-            const Text(
-              'Forcer le numéro minimum pour les nouveaux rapports.',
-              style: TextStyle(fontSize: 13),
+            Text(
+              'settings_force_min'.tr(),
+              style: const TextStyle(fontSize: 13),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: ctrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'N° de départ minimum',
+              decoration: InputDecoration(
+                labelText: 'settings_min_start_number'.tr(),
                 hintText: '1',
                 isDense: true,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Ex : 8 si vous avez déjà 7 rapports papier à part.',
-              style: TextStyle(fontSize: 11, color: Colors.grey),
+            Text(
+              'settings_start_example'.tr(),
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
             ),
           ],
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dialogCtx),
-              child: const Text('Annuler')),
+              child: Text('common_cancel'.tr())),
           ElevatedButton(
             onPressed: () async {
               final v = int.tryParse(ctrl.text.trim()) ?? 1;
               await widget.onSave(v.toString());
               if (dialogCtx.mounted) Navigator.pop(dialogCtx);
             },
-            child: const Text('Enregistrer'),
+            child: Text('common_save'.tr()),
           ),
         ],
       ),
@@ -1035,17 +1064,114 @@ class _NumberStartTileState extends State<_NumberStartTile> {
   Widget build(BuildContext context) {
     final start = int.tryParse(widget.current) ?? 1;
     final next = _currentMax > 0
-        ? 'Prochain : ${_currentMax + 1} (dernier existant : $_currentMax)'
+        ? 'settings_next_num'.tr(args: ['${_currentMax + 1}', '$_currentMax'])
         : start == 1
-            ? 'Commence à 1 (par défaut)'
-            : 'Minimum : $start';
+            ? 'settings_starts_at_1'.tr()
+            : 'settings_minimum'.tr(args: ['$start']);
     return ListTile(
       leading: const Icon(Icons.looks_one_outlined, color: AppColors.primary),
-      title: const Text('Numéro de départ'),
+      title: Text('settings_start_number'.tr()),
       subtitle: Text(next,
           style: const TextStyle(fontSize: 12, color: Colors.black87)),
       trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
       onTap: () => _showDialog(context),
+    );
+  }
+}
+
+// ─── Tax tile (défaut global TVA/taxe pour les factures) ─────────────────────
+
+class _TaxTile extends StatelessWidget {
+  final String? rate;
+  final String? label;
+  final String? mention;
+  final Future<void> Function(TaxConfig) onSave;
+  const _TaxTile({
+    required this.rate,
+    required this.label,
+    required this.mention,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = <String, String?>{
+      'tax_rate': rate,
+      'tax_label': label,
+      'tax_mention': mention,
+    };
+    final region =
+        WidgetsBinding.instance.platformDispatcher.locale.countryCode;
+    final language = context.locale.languageCode;
+    final cfg = resolveGlobalTax(settings, region: region, language: language);
+    final localeDefault = defaultTaxConfig(region: region, language: language);
+    return ListTile(
+      leading: const Icon(Icons.percent, color: AppColors.primary),
+      title: Text('tax_title'.tr()),
+      subtitle: Text('${cfg.label} ${formatTaxRate(cfg.rate)} %',
+          style: const TextStyle(fontSize: 12, color: Colors.black87)),
+      trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+      onTap: () async {
+        final result = await showTaxEditor(context,
+            initial: cfg, localeDefault: localeDefault);
+        if (result != null) await onSave(result);
+      },
+    );
+  }
+}
+
+// ─── Currency tile (devise des factures) ─────────────────────────────────────
+
+class _CurrencyTile extends StatelessWidget {
+  final String? code;
+  final Future<void> Function(String) onSave;
+  const _CurrencyTile({required this.code, required this.onSave});
+
+  @override
+  Widget build(BuildContext context) {
+    final region =
+        WidgetsBinding.instance.platformDispatcher.locale.countryCode;
+    final language = context.locale.languageCode;
+    final current = resolveCurrencyCode(
+      {if (code != null) 'currency_code': code},
+      region: region,
+      language: language,
+    );
+    return ListTile(
+      leading: const Icon(Icons.payments_outlined, color: AppColors.primary),
+      title: Text('currency_title'.tr()),
+      subtitle: Text(currencyDisplay(current),
+          style: const TextStyle(fontSize: 12, color: Colors.black87)),
+      trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+      onTap: () async {
+        String selected = current;
+        final result = await showDialog<String>(
+          context: context,
+          builder: (_) => StatefulBuilder(
+            builder: (ctx, setS) => AlertDialog(
+              title: Text('currency_title'.tr()),
+              content: DropdownButton<String>(
+                value: selected,
+                isExpanded: true,
+                items: kCurrencyCodes
+                    .map((c) => DropdownMenuItem(
+                        value: c, child: Text(currencyDisplay(c))))
+                    .toList(),
+                onChanged: (v) => setS(() => selected = v ?? selected),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text('common_cancel'.tr())),
+                ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, selected),
+                    child: Text('common_save'.tr())),
+              ],
+            ),
+          ),
+        );
+        if (result != null) await onSave(result);
+      },
     );
   }
 }
@@ -1091,15 +1217,15 @@ class _FolderPatternTile extends StatelessWidget {
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          title: const Text('Dossier de destination des PDF'),
+          title: Text('settings_pdf_folder_dest'.tr()),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Chemin du dossier dans votre cloud. Utilisez "/" pour créer des sous-dossiers.',
-                  style: TextStyle(fontSize: 13),
+                Text(
+                  'settings_folder_path_info'.tr(),
+                  style: const TextStyle(fontSize: 13),
                 ),
                 const SizedBox(height: 10),
                 TextField(
@@ -1111,7 +1237,7 @@ class _FolderPatternTile extends StatelessWidget {
                   onChanged: (_) => setS(() {}),
                 ),
                 const SizedBox(height: 8),
-                const Text('Variables :', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                Text('settings_variables'.tr(), style: const TextStyle(fontSize: 11, color: Colors.grey)),
                 const SizedBox(height: 4),
                 Wrap(
                   spacing: 6,
@@ -1127,7 +1253,7 @@ class _FolderPatternTile extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
-                const Text('Modèles :', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                Text('settings_templates_label'.tr(), style: const TextStyle(fontSize: 11, color: Colors.grey)),
                 const SizedBox(height: 4),
                 ...[ for (final (pattern, label) in _presets)
                   InkWell(
@@ -1148,9 +1274,9 @@ class _FolderPatternTile extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 6),
-                const Text(
-                  'Laissez vide pour "Rapport Technique" par défaut.',
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                Text(
+                  'settings_folder_empty_default'.tr(),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ],
             ),
@@ -1158,13 +1284,13 @@ class _FolderPatternTile extends StatelessWidget {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Annuler')),
+                child: Text('common_cancel'.tr())),
             ElevatedButton(
               onPressed: () async {
                 await onSave(ctrl.text.trim());
                 if (ctx.mounted) Navigator.pop(ctx);
               },
-              child: const Text('Enregistrer'),
+              child: Text('common_save'.tr()),
             ),
           ],
         ),
@@ -1179,8 +1305,8 @@ class _FolderPatternTile extends StatelessWidget {
       title: const Text('Dossier de destination des PDF'),
       subtitle: Text(
         current.isEmpty
-            ? 'Chemin dans le cloud : Rapport Technique (par défaut)'
-            : 'Chemin dans le cloud : $current',
+            ? 'settings_cloud_path_default'.tr()
+            : 'settings_cloud_path'.tr(args: [current]),
         style: const TextStyle(fontSize: 12, color: Colors.black87),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -1200,15 +1326,15 @@ class _TemplateTile extends StatelessWidget {
   const _TemplateTile({required this.current, required this.onSave});
 
   static const _options = [
-    ('professionnel', 'Professionnel', '2 colonnes — infos + signatures côte à côte'),
-    ('simple', 'Simple', 'Sections empilées, fond bleu — rapide et épuré'),
+    ('professionnel', 'rd_template_pro_name', 'settings_template_pro_desc'),
+    ('simple', 'rd_template_simple', 'settings_template_simple_desc'),
   ];
 
   void _showDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Style de rapport PDF'),
+        title: Text('settings_pdf_style'.tr()),
         content: RadioGroup<String>(
           groupValue: current,
           onChanged: (v) async {
@@ -1221,8 +1347,8 @@ class _TemplateTile extends StatelessWidget {
               final (value, label, desc) = o;
               return RadioListTile<String>(
                 value: value,
-                title: Text(label),
-                subtitle: Text(desc, style: const TextStyle(fontSize: 12)),
+                title: Text(label.tr()),
+                subtitle: Text(desc.tr(), style: const TextStyle(fontSize: 12)),
               );
             }).toList(),
           ),
@@ -1230,7 +1356,7 @@ class _TemplateTile extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dlg),
-            child: const Text('Annuler'),
+            child: Text('common_cancel'.tr()),
           ),
         ],
       ),
@@ -1239,10 +1365,10 @@ class _TemplateTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = current == 'professionnel' ? 'Professionnel' : 'Simple';
+    final label = current == 'professionnel' ? 'rd_template_pro_name'.tr() : 'rd_template_simple'.tr();
     return ListTile(
       leading: const Icon(Icons.description_outlined, color: AppColors.primary),
-      title: const Text('Style de rapport PDF'),
+      title: Text('settings_pdf_style'.tr()),
       subtitle: Text(label,
           style: const TextStyle(fontSize: 12, color: Colors.black87)),
       trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
@@ -1288,15 +1414,15 @@ class _LogoTileState extends State<_LogoTile> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Supprimer le logo ?'),
+        title: Text('settings_remove_logo_q'.tr()),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dialogCtx, false),
-              child: const Text('Annuler')),
+              child: Text('common_cancel'.tr())),
           TextButton(
               onPressed: () => Navigator.pop(dialogCtx, true),
-              child: const Text('Supprimer',
-                  style: TextStyle(color: Colors.red))),
+              child: Text('common_delete'.tr(),
+                  style: const TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -1319,9 +1445,9 @@ class _LogoTileState extends State<_LogoTile> {
             )
           : const Icon(Icons.add_photo_alternate_outlined,
               color: AppColors.primary),
-      title: const Text('Logo entreprise'),
+      title: Text('settings_company_logo'.tr()),
       subtitle: Text(
-        hasLogo ? 'Affiché dans l\'en-tête du PDF' : 'Aucun logo — appuyer pour choisir',
+        hasLogo ? 'settings_logo_shown'.tr() : 'settings_no_logo'.tr(),
         style: TextStyle(
           fontSize: 12,
           color: hasLogo ? Colors.green : Colors.grey,
@@ -1331,7 +1457,7 @@ class _LogoTileState extends State<_LogoTile> {
           ? IconButton(
               icon: const Icon(Icons.delete_outline,
                   color: Colors.red, size: 20),
-              tooltip: 'Supprimer le logo',
+              tooltip: 'settings_remove_logo'.tr(),
               onPressed: _isPicking ? null : _remove,
             )
           : const Icon(Icons.edit_outlined, size: 18, color: Colors.grey),
@@ -1357,10 +1483,10 @@ class _TeamSection extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.manage_accounts_outlined,
                 color: AppColors.primary),
-            title: const Text('Mon profil'),
-            subtitle: const Text(
-                'Email, mot de passe, déconnexion, suppression',
-                style: TextStyle(fontSize: 12)),
+            title: Text('settings_my_profile'.tr()),
+            subtitle: Text(
+                'settings_my_profile_sub'.tr(),
+                style: const TextStyle(fontSize: 12)),
             trailing:
                 const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
             onTap: () => context.push('/profile-account'),
@@ -1368,7 +1494,7 @@ class _TeamSection extends ConsumerWidget {
         else
           ListTile(
             leading: const Icon(Icons.login, color: AppColors.primary),
-            title: const Text('Se connecter / créer un compte'),
+            title: Text('settings_login_create'.tr()),
             trailing:
                 const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
             onTap: () => context.push('/auth'),
@@ -1376,8 +1502,7 @@ class _TeamSection extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
           child: Text(
-            'Votre équipe (membres, identité, abonnement) se gère dans '
-            'l\'onglet « Équipe » (barre du bas).',
+            'settings_team_managed_in_tab'.tr(),
             style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
           ),
         ),
@@ -1556,16 +1681,16 @@ class _AccountCard extends ConsumerWidget {
                 Icon(Icons.account_circle_outlined,
                     size: 36, color: AppColors.primary.withValues(alpha: 0.5)),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Non connecté',
-                          style: TextStyle(
+                      Text('settings_not_logged_in'.tr(),
+                          style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 14)),
-                      SizedBox(height: 2),
-                      Text('Connectez-vous pour synchroniser vos données.',
-                          style: TextStyle(fontSize: 11, color: Colors.grey)),
+                      const SizedBox(height: 2),
+                      Text('settings_login_to_sync'.tr(),
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)),
                     ],
                   ),
                 ),
@@ -1577,7 +1702,7 @@ class _AccountCard extends ConsumerWidget {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     textStyle: const TextStyle(fontSize: 12),
                   ),
-                  child: const Text('Se connecter'),
+                  child: Text('auth_sign_in'.tr()),
                 ),
               ],
             ),
@@ -1692,9 +1817,9 @@ class _CompanySectionState extends ConsumerState<_CompanySection> {
     List<Widget> persoFields() => [
           _EditableTile(
             icon: Icons.business,
-            label: 'Nom de l\'entreprise',
+            label: 'settings_company_name'.tr(),
             value: soloCompanyName,
-            hint: 'Ex : Dupont Plomberie',
+            hint: 'settings_company_name_hint'.tr(),
             onSave: (v) async {
               await ref.read(settingsProvider.notifier).set('company_name', v);
               IdentityAuditService.logField(
@@ -1706,17 +1831,17 @@ class _CompanySectionState extends ConsumerState<_CompanySection> {
           ),
           _EditableTile(
             icon: Icons.person_outline,
-            label: 'Nom du technicien',
+            label: 'settings_technician_name'.tr(),
             value: s['technician_name'] ?? '',
-            hint: 'Ex : Jean Dupont',
+            hint: 'settings_technician_name_hint'.tr(),
             onSave: (v) =>
                 ref.read(settingsProvider.notifier).set('technician_name', v),
           ),
           _EditableTile(
             icon: Icons.location_on_outlined,
-            label: 'Adresse entreprise',
+            label: 'settings_company_address'.tr(),
             value: s['company_address'] ?? '',
-            hint: 'Ex : 15 rue de la Paix, 75001 Paris',
+            hint: 'settings_company_address_hint'.tr(),
             onSave: (v) async {
               final old = (s['company_address'] ?? '').toString();
               await ref
@@ -1731,25 +1856,25 @@ class _CompanySectionState extends ConsumerState<_CompanySection> {
           ),
           _EditableTile(
             icon: Icons.phone_outlined,
-            label: 'Téléphone entreprise',
+            label: 'settings_company_phone'.tr(),
             value: s['company_phone'] ?? '',
-            hint: 'Ex : 06 12 34 56 78',
+            hint: 'settings_company_phone_hint'.tr(),
             onSave: (v) =>
                 ref.read(settingsProvider.notifier).set('company_phone', v),
           ),
           _EditableTile(
             icon: Icons.email_outlined,
-            label: 'Email entreprise',
+            label: 'settings_company_email'.tr(),
             value: s['company_email'] ?? '',
-            hint: 'Ex : contact@monentreprise.fr',
+            hint: 'settings_company_email_hint'.tr(),
             onSave: (v) =>
                 ref.read(settingsProvider.notifier).set('company_email', v),
           ),
           _EditableTile(
             icon: Icons.badge_outlined,
-            label: 'SIRET',
+            label: 'settings_siret'.tr(),
             value: s['company_siret'] ?? '',
-            hint: 'Ex : 123 456 789 00012',
+            hint: 'settings_siret_hint'.tr(),
             onSave: (v) async {
               final old = (s['company_siret'] ?? '').toString();
               await ref
@@ -1764,9 +1889,9 @@ class _CompanySectionState extends ConsumerState<_CompanySection> {
           ),
           _EditableTile(
             icon: Icons.receipt_long_outlined,
-            label: 'N° TVA',
+            label: 'settings_vat'.tr(),
             value: s['company_tva'] ?? '',
-            hint: 'Ex : FR12345678900',
+            hint: 'settings_vat_hint'.tr(),
             onSave: (v) =>
                 ref.read(settingsProvider.notifier).set('company_tva', v),
           ),
@@ -1800,9 +1925,9 @@ class _CompanySectionState extends ConsumerState<_CompanySection> {
                   Icon(Icons.groups_outlined,
                       size: 16, color: AppColors.primary),
                   const SizedBox(width: 6),
-                  const Expanded(
-                    child: Text('Vous faites partie d\'une équipe',
-                        style: TextStyle(
+                  Expanded(
+                    child: Text('settings_in_team'.tr(),
+                        style: const TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primary)),
@@ -1810,10 +1935,7 @@ class _CompanySectionState extends ConsumerState<_CompanySection> {
                 ]),
                 const SizedBox(height: 4),
                 Text(
-                  'Vos rapports d\'équipe utilisent l\'identité de l\'ÉQUIPE '
-                  '(gérée par le responsable), pas ces champs. Ceux-ci ne '
-                  'servent que si vous prenez EN PLUS un abonnement perso (solo), '
-                  'pour faire des rapports à votre propre nom.',
+                  'settings_in_team_desc'.tr(),
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
                 ),
                 const SizedBox(height: 8),
@@ -1822,7 +1944,7 @@ class _CompanySectionState extends ConsumerState<_CompanySection> {
                   child: OutlinedButton.icon(
                     onPressed: () => context.go('/team-tab'),
                     icon: const Icon(Icons.groups_outlined, size: 16),
-                    label: const Text('Voir l\'identité de l\'équipe'),
+                    label: Text('settings_see_team_identity'.tr()),
                     style: OutlinedButton.styleFrom(
                       visualDensity: VisualDensity.compact,
                       textStyle: const TextStyle(fontSize: 12),
@@ -1854,9 +1976,9 @@ class _CompanySectionState extends ConsumerState<_CompanySection> {
               Icons.business_outlined,
               color: isFilled ? Colors.grey : AppColors.primary,
             ),
-            title: const Text(
-              'MON ENTREPRISE',
-              style: TextStyle(
+            title: Text(
+              'settings_my_company'.tr(),
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
@@ -1865,13 +1987,12 @@ class _CompanySectionState extends ConsumerState<_CompanySection> {
             ),
             subtitle: anyIdentityFilled
                 ? Text(
-                    'Apparaît sur vos PDF. Évitez de la changer après envoi de '
-                    'rapports (cohérence des documents déjà transmis).',
+                    'settings_company_filled_warn'.tr(),
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                   )
-                : const Text(
-                    'À compléter pour vos PDF',
-                    style: TextStyle(fontSize: 11, color: AppColors.primary),
+                : Text(
+                    'settings_company_to_complete'.tr(),
+                    style: const TextStyle(fontSize: 11, color: AppColors.primary),
                   ),
             shape: const Border(),
             collapsedShape: const Border(),
@@ -1933,7 +2054,7 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
     final email = _emailCtrl.text.trim();
     if (msg.isEmpty || email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Message et email requis.')),
+        SnackBar(content: Text('settings_msg_email_required'.tr())),
       );
       return;
     }
@@ -1980,15 +2101,15 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
       if (!mounted) return;
       setState(() { _sent = true; _expanded = false; _consent = false; });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Message envoyé — merci !'),
+        SnackBar(
+          content: Text('settings_msg_sent_thanks'.tr()),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
+          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
         );
       }
     } finally {
@@ -2001,9 +2122,9 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
     if (_sent && !_expanded) {
       return ListTile(
         leading: const Icon(Icons.check_circle_outline, color: Colors.green),
-        title: const Text('Feedback envoyé'),
-        subtitle: const Text('Vous pouvez en envoyer un autre si besoin',
-            style: TextStyle(fontSize: 11)),
+        title: Text('settings_feedback_sent'.tr()),
+        subtitle: Text('settings_feedback_sent_sub'.tr(),
+            style: const TextStyle(fontSize: 11)),
         trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
         onTap: () => setState(() { _expanded = true; _sent = false; _msgCtrl.clear(); }),
       );
@@ -2012,9 +2133,9 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
     if (!_expanded) {
       return ListTile(
         leading: const Icon(Icons.feedback_outlined, color: AppColors.primary),
-        title: const Text('Envoyer un feedback / signaler un problème'),
-        subtitle: const Text('Votre message ira directement au développeur',
-            style: TextStyle(fontSize: 11)),
+        title: Text('settings_send_feedback'.tr()),
+        subtitle: Text('settings_feedback_sub'.tr(),
+            style: const TextStyle(fontSize: 11)),
         trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
         onTap: () => setState(() => _expanded = true),
       );
@@ -2028,10 +2149,10 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
           TextField(
             controller: _msgCtrl,
             maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: 'Votre message',
-              hintText: 'Décrivez le problème ou partagez une suggestion…',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: 'settings_your_message'.tr(),
+              hintText: 'settings_message_hint'.tr(),
+              border: const OutlineInputBorder(),
               alignLabelWithHint: true,
             ),
           ),
@@ -2039,10 +2160,10 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
           TextField(
             controller: _emailCtrl,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              labelText: 'Votre email (pour vous répondre)',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.mail_outline),
+            decoration: InputDecoration(
+              labelText: 'settings_your_email'.tr(),
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.mail_outline),
             ),
           ),
           const SizedBox(height: 6),
@@ -2061,13 +2182,12 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
                     onChanged: (v) => setState(() => _consent = v ?? false),
                   ),
                   const SizedBox(width: 4),
-                  const Expanded(
+                  Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(top: 10),
+                      padding: const EdgeInsets.only(top: 10),
                       child: Text(
-                        'J\'accepte d\'être recontacté(e) par email pour des offres, '
-                        'nouveautés ou bons plans (facultatif).',
-                        style: TextStyle(fontSize: 12),
+                        'settings_feedback_consent'.tr(),
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ),
                   ),
@@ -2087,13 +2207,13 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.send_outlined, size: 16),
-                  label: const Text('Envoyer'),
+                  label: Text('common_send'.tr()),
                 ),
               ),
               const SizedBox(width: 10),
               TextButton(
                 onPressed: () => setState(() => _expanded = false),
-                child: const Text('Annuler'),
+                child: Text('common_cancel'.tr()),
               ),
             ],
           ),
@@ -2104,6 +2224,120 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
 }
 
 // ─── Section title ─────────────────────────────────────────────────────────────
+
+// ─── (i18n) Sélecteur de langue ──────────────────────────────────────────────
+// Moteur = easy_localization : `context.setLocale(...)` change la langue en direct,
+// `context.resetLocale()` + `deleteSaveLocale()` reviennent à la langue du téléphone.
+// On garde en plus le drapeau `lang_follow_system` (SharedPreferences) UNIQUEMENT
+// pour AFFICHER si on suit le système (easy_localization ne distingue pas « système »
+// d'un choix explicite identique à la langue du téléphone).
+class _LanguageTile extends StatefulWidget {
+  const _LanguageTile();
+  @override
+  State<_LanguageTile> createState() => _LanguageTileState();
+}
+
+class _LanguageTileState extends State<_LanguageTile> {
+  bool _followSystem = true;
+
+  // Langues proposées : code → nom affiché DANS sa propre langue. Pour en ajouter
+  // une : 1) une entrée ici, 2) sa Locale dans main.dart (supportedLocales),
+  // 3) le fichier assets/translations/<code>.json. Rien d'autre.
+  static const Map<String, String> _languages = {
+    'fr': 'Français',
+    'en': 'English',
+    'de': 'Deutsch',
+    'es': 'Español',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFlag();
+  }
+
+  Future<void> _loadFlag() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() => _followSystem = prefs.getBool('lang_follow_system') ?? true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final code = context.locale.languageCode;
+    final subtitle = _followSystem
+        ? 'language_system'.tr()
+        : (_languages[code] ?? code.toUpperCase());
+    return ListTile(
+      leading: const Icon(Icons.translate_outlined, color: AppColors.primary),
+      title: Text('language'.tr()),
+      subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+      trailing: const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
+      onTap: _showPicker,
+    );
+  }
+
+  Future<void> _showPicker() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetCtx) {
+        final activeCode = context.locale.languageCode;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Text('language_choose'.tr(),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+              // Option « suivre la langue du téléphone ».
+              ListTile(
+                leading: const Icon(Icons.smartphone_outlined),
+                title: Text('language_system'.tr()),
+                subtitle: Text('language_current_system'.tr(),
+                    style: const TextStyle(fontSize: 12)),
+                trailing: _followSystem
+                    ? const Icon(Icons.check, color: AppColors.primary)
+                    : null,
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('lang_follow_system', true);
+                  if (!mounted) return;
+                  await context.deleteSaveLocale();
+                  if (!mounted) return;
+                  await context.resetLocale();
+                  if (sheetCtx.mounted) Navigator.pop(sheetCtx);
+                  if (mounted) setState(() => _followSystem = true);
+                },
+              ),
+              const Divider(height: 1),
+              // Langues explicites.
+              for (final e in _languages.entries)
+                ListTile(
+                  title: Text(e.value),
+                  trailing: (!_followSystem && activeCode == e.key)
+                      ? const Icon(Icons.check, color: AppColors.primary)
+                      : null,
+                  onTap: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('lang_follow_system', false);
+                    if (!mounted) return;
+                    await context.setLocale(Locale(e.key));
+                    if (sheetCtx.mounted) Navigator.pop(sheetCtx);
+                    if (mounted) setState(() => _followSystem = false);
+                  },
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
 
 class _SectionTitle extends StatelessWidget {
   final String title;
@@ -2205,7 +2439,7 @@ class _VersionTileState extends State<_VersionTile> {
     return ListTile(
       leading: const Icon(Icons.info_outline),
       title: const Text('Version'),
-      trailing: const Text('1.0.0', style: TextStyle(color: Colors.grey)),
+      trailing: const Text('1.1.0', style: TextStyle(color: Colors.grey)),
       onTap: _onTap,
     );
   }
@@ -2249,7 +2483,7 @@ class _Stage2DialogState extends State<_Stage2Dialog> {
               child: Icon(Icons.memory, size: 48, color: Colors.grey),
             ),
           ),
-          const Text('Build 1.0.0 · raptech1',
+          const Text('Build 1.1.0 · raptech1',
               style: TextStyle(fontSize: 12, color: Colors.grey)),
         ],
       ),

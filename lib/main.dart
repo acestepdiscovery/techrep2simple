@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +12,12 @@ const bool kFirebaseEnabled = true;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('fr_FR', null);
+  // Localisation (easy_localization) : charge le cache des traductions.
+  await EasyLocalization.ensureInitialized();
+  // (i18n dates) Initialise les symboles de date de TOUTES les langues (mois,
+  // jours…) → `DateFormat.yMd()/yMMMMd()` s'affichent dans la langue/format du
+  // pays. La locale courante est appliquée via `Intl.defaultLocale` (app.dart).
+  await initializeDateFormatting();
   if (kFirebaseEnabled) {
     try {
       await Firebase.initializeApp();
@@ -30,5 +36,19 @@ void main() async {
   } catch (_) {
     // Store not available (e.g. desktop/web) → IAP simply inert.
   }
-  runApp(const ProviderScope(child: TechReportApp()));
+  runApp(
+    EasyLocalization(
+      // Langues prises en charge. Ajouter une langue = ajouter sa Locale ici
+      // ET déposer assets/translations/<code>.json. Rien d'autre.
+      supportedLocales: const [Locale('fr'), Locale('en'), Locale('de'), Locale('es')],
+      path: 'assets/translations',
+      // Langue de secours : si la langue du téléphone n'est pas prise en charge,
+      // ou si une clé manque dans une traduction → on retombe sur le français.
+      fallbackLocale: const Locale('fr'),
+      useFallbackTranslations: true,
+      // Pas de startLocale → au 1er lancement, easy_localization suit la langue
+      // du téléphone (puis mémorise le choix manuel fait dans Réglages).
+      child: const ProviderScope(child: TechReportApp()),
+    ),
+  );
 }

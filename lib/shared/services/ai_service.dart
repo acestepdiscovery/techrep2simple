@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import '../../core/config/cf_config.dart';
 
 class AiActionResult {
@@ -34,6 +35,11 @@ class AiService {
 
   Future<AiActionResult> _callCf(Map<String, dynamic> body) async {
     try {
+      // (i18n IA) Langue de l'app injectée par défaut (le serveur doit répondre
+      // dans cette langue). `Intl.defaultLocale` est synchronisé sur la langue
+      // active dans app.dart. Un `lang` explicite passé par l'appelant prime.
+      body['lang'] ??= (Intl.defaultLocale ?? 'fr').split('_').first;
+
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return const AiActionResult(error: 'not_authenticated');
       final token = await user.getIdToken();
@@ -72,11 +78,15 @@ class AiService {
     }
   }
 
+  // (i18n IA) `lang` = langue de l'app (context.locale.languageCode). Le prompt
+  // côté serveur (CF /ai-action) doit s'en servir pour RÉPONDRE dans cette langue
+  // (descriptions / observations / rapport amélioré → dans la langue de l'user).
   Future<AiActionResult> audioToReport({
     required String audioB64,
     required String audioMime,
     String? companyId,
     String? note,
+    String? lang,
   }) =>
       _callCf({
         'action': 'audio_to_report',
@@ -84,6 +94,7 @@ class AiService {
         'audio_mime': audioMime,
         if (companyId != null) 'company_id': companyId,
         if (note != null && note.isNotEmpty) 'note': note,
+        if (lang != null) 'lang': lang,
       });
 
   Future<AiActionResult> imageToReport({
@@ -91,6 +102,7 @@ class AiService {
     String imageMime = 'image/jpeg',
     String? companyId,
     String? note,
+    String? lang,
   }) =>
       _callCf({
         'action': 'image_to_report',
@@ -98,6 +110,7 @@ class AiService {
         'image_mime': imageMime,
         if (companyId != null) 'company_id': companyId,
         if (note != null && note.isNotEmpty) 'note': note,
+        if (lang != null) 'lang': lang,
       });
 
   Future<AiActionResult> documentToReport({
@@ -105,6 +118,7 @@ class AiService {
     required String contentType,   // 'text', 'pdf_b64', 'docx_b64'
     String? companyId,
     String? note,
+    String? lang,
   }) =>
       _callCf({
         'action': 'document_to_report',
@@ -112,6 +126,7 @@ class AiService {
         'content_type': contentType,
         if (companyId != null) 'company_id': companyId,
         if (note != null && note.isNotEmpty) 'note': note,
+        if (lang != null) 'lang': lang,
       });
 
   Future<AiActionResult> improveReport({
@@ -120,6 +135,7 @@ class AiService {
     String? note,
     String? noteAudioB64,
     String? noteAudioMime,
+    String? lang,
   }) =>
       _callCf({
         'action': 'improve_report',
@@ -129,5 +145,6 @@ class AiService {
         if (noteAudioB64 != null && noteAudioB64.isNotEmpty)
           'note_audio_b64': noteAudioB64,
         if (noteAudioMime != null) 'note_audio_mime': noteAudioMime,
+        if (lang != null) 'lang': lang,
       });
 }

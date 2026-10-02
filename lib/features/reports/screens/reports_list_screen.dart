@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -100,10 +101,10 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
       showDialog(
         context: context,
         builder: (dialogCtx) => AlertDialog(
-          title: const Text('Application indisponible'),
+          title: Text('app_unavailable_title'.tr()),
           content: Text(result.message),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('Fermer')),
+            TextButton(onPressed: () => Navigator.pop(dialogCtx), child: Text('common_close'.tr())),
           ],
         ),
       );
@@ -157,10 +158,10 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_showTeamView ? 'Équipe' : 'Mes rapports'),
+        title: Text(_showTeamView ? 'nav_team'.tr() : 'rl_my_reports'.tr()),
         leading: IconButton(
           icon: const HomeBackIcon(size: 22),
-          tooltip: 'Accueil (page de garde)',
+          tooltip: 'rl_tooltip_home'.tr(),
           onPressed: () => context.push('/welcome'),
         ),
         actions: [
@@ -168,20 +169,20 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
           if (kEnableNewNavLayout)
             IconButton(
               icon: const ClientsIcon(size: 22),
-              tooltip: 'Mes clients',
+              tooltip: 'rl_tooltip_clients'.tr(),
               onPressed: () => context.push('/clients'),
             ),
           // Profil (avatar + badge « P »), distinct de Clients (« C »)
           IconButton(
             icon: const ProfileIcon(size: 22),
-            tooltip: 'Mon profil',
+            tooltip: 'rl_tooltip_profile'.tr(),
             onPressed: () => context.push('/profile-account'),
           ),
           // (B/L) Archive des rapports supprimés.
           if (!_showTeamView)
             IconButton(
               icon: const Icon(Icons.inventory_2_outlined, size: 22),
-              tooltip: 'Archive (rapports supprimés)',
+              tooltip: 'rl_tooltip_archive'.tr(),
               onPressed: () => context.push('/archive'),
             ),
           // (simplification) Icône « Équipe » retirée de Rapports : l'équipe a
@@ -218,7 +219,7 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
                     controller: _searchController,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      hintText: 'Rechercher (client, type, description…)',
+                      hintText: 'rl_search_hint'.tr(),
                       hintStyle:
                           TextStyle(color: Colors.white.withValues(alpha: 0.6)),
                       prefixIcon: Icon(Icons.search,
@@ -252,10 +253,10 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.white60,
                   indicatorColor: AppColors.accent,
-                  tabs: const [
-                    Tab(text: 'Tous'),
-                    Tab(text: 'En cours'),
-                    Tab(text: 'Envoyés'),
+                  tabs: [
+                    Tab(text: 'rl_tab_all'.tr()),
+                    Tab(text: 'rl_tab_drafts'.tr()),
+                    Tab(text: 'rl_tab_sent'.tr()),
                   ],
                 ),
               ],
@@ -296,7 +297,7 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
                   child: reportsAsync.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(child: Text('Erreur: $e')),
+                    error: (e, _) => Center(child: Text('common_error'.tr(args: ['$e']))),
                     data: (allReports) {
                       // (B/L) On masque les rapports archivés (supprimés) de la
                       // liste principale ; ils restent dans l'onglet Archive.
@@ -334,7 +335,7 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
               heroTag: _fabHeroTag,
               onPressed: () => _showNewReportSheet(context),
               icon: const Icon(Icons.add),
-              label: const Text('Nouveau rapport'),
+              label: Text('rl_new_report'.tr()),
             ),
     );
   }
@@ -395,9 +396,9 @@ class _ExportQuotaBannerState extends ConsumerState<_ExportQuotaBanner>
           children: [
             Icon(Icons.all_inclusive, size: 14, color: AppColors.primary),
             const SizedBox(width: 8),
-            const Text(
-              'Exports illimités',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+            Text(
+              'quota_unlimited'.tr(),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
             const SizedBox(width: 6),
             Container(
@@ -440,7 +441,7 @@ class _ExportQuotaBannerState extends ConsumerState<_ExportQuotaBanner>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '$used export${used != 1 ? 's' : ''} ce mois · $remaining restant${remaining != 1 ? 's' : ''}',
+                  '${'quota_this_month'.plural(used)} · ${'quota_remaining'.plural(remaining)}',
                   style: TextStyle(
                     fontSize: 12,
                     color: isNearLimit ? Colors.orange.shade700 : Colors.grey.shade700,
@@ -495,20 +496,20 @@ class _NewReportSheetState extends State<_NewReportSheet> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('Nouveau rapport',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text('rl_new_report'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: widget.onNew,
             icon: const Icon(Icons.edit_outlined),
-            label: const Text('Rapport vierge'),
+            label: Text('nr_blank'.tr()),
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           ),
           const SizedBox(height: 10),
           OutlinedButton.icon(
             onPressed: () => setState(() => _showTemplates = !_showTemplates),
             icon: const Icon(Icons.copy_outlined),
-            label: Text(_showTemplates ? 'Masquer les modèles' : 'Depuis un modèle'),
+            label: Text(_showTemplates ? 'nr_hide_templates'.tr() : 'nr_from_template'.tr()),
             style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           ),
           if (_showTemplates) ...[
@@ -518,7 +519,7 @@ class _NewReportSheetState extends State<_NewReportSheet> {
             else if (_templates!.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text('Aucun modèle enregistré.\nSauvegardez un rapport comme modèle depuis son écran de détail.',
+                child: Text('nr_no_templates'.tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
               )
@@ -535,7 +536,7 @@ class _NewReportSheetState extends State<_NewReportSheet> {
                       leading: const Icon(Icons.description_outlined),
                       title: Text(t.name),
                       subtitle: Text(
-                          'Créé le ${t.createdAt.day.toString().padLeft(2, '0')}/${t.createdAt.month.toString().padLeft(2, '0')}/${t.createdAt.year}',
+                          'nr_created_on'.tr(args: ['${t.createdAt.day.toString().padLeft(2, '0')}/${t.createdAt.month.toString().padLeft(2, '0')}/${t.createdAt.year}']),
                           style: const TextStyle(fontSize: 12)),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
@@ -571,7 +572,7 @@ class _ReportsList extends StatelessWidget {
                 size: 72, color: Colors.grey.shade300),
             const SizedBox(height: 16),
             Text(
-              'Aucun rapport',
+              'rl_empty_title'.tr(),
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -579,7 +580,7 @@ class _ReportsList extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Créez votre premier bon d\'intervention.',
+              'rl_empty_sub'.tr(),
               style:
                   TextStyle(color: Colors.grey.shade400, fontSize: 13),
             ),
@@ -608,7 +609,7 @@ class _ReportCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateStr =
-        DateFormat('dd/MM/yyyy', 'fr_FR').format(report.date);
+        DateFormat.yMd().format(report.date);
     final numStr = report.reportNumber > 0
         ? '#${report.reportNumber.toString().padLeft(3, '0')}'
         : '';
@@ -640,7 +641,7 @@ class _ReportCard extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       report.clientName.isEmpty
-                          ? 'Client non renseigné'
+                          ? 'rc_client_unset'.tr()
                           : report.clientName,
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 16),
@@ -696,7 +697,7 @@ class _ReportCard extends ConsumerWidget {
                               color: Colors.orange.shade700),
                           const SizedBox(width: 3),
                           Text(
-                            'Photos dem.',
+                            'rc_photos_requested'.tr(),
                             style: TextStyle(
                                 fontSize: 10,
                                 color: Colors.orange.shade700,
@@ -743,7 +744,7 @@ class _ReportCard extends ConsumerWidget {
                   child: FilledButton.tonalIcon(
                     onPressed: () => context.push('/report/${report.id}'),
                     icon: const Icon(Icons.build_outlined, size: 18),
-                    label: const Text('Corriger et renvoyer'),
+                    label: Text('rc_fix_resend'.tr()),
                     style: FilledButton.styleFrom(
                       backgroundColor:
                           AppColors.statusRejected.withValues(alpha: 0.12),
@@ -836,7 +837,7 @@ class _DraftProgress extends StatelessWidget {
     return Row(
       children: [
         Text(
-          'Avancement ',
+          'dp_progress'.tr(),
           style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
         ),
         ...List.generate(5, (i) => Container(
@@ -853,7 +854,7 @@ class _DraftProgress extends StatelessWidget {
         if (total > 0) ...[
           const SizedBox(width: 6),
           Text(
-            '· $total élément${total > 1 ? 's' : ''}',
+            'dp_elements'.plural(total),
             style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
           ),
         ],
@@ -879,7 +880,7 @@ class _PendingApprovalBanner extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Votre accès à l\'équipe est en attente d\'approbation par l\'administrateur.',
+              'pending_approval_banner'.tr(),
               style: TextStyle(
                   fontSize: 13, color: Colors.amber.shade800),
             ),
@@ -984,14 +985,14 @@ class _TeamViewToggle extends StatelessWidget {
             selectedBorderColor: Colors.white,
             constraints: const BoxConstraints(minHeight: 30, minWidth: 110),
             textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            children: const [
+            children: [
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Text('Mes rapports'),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text('rl_my_reports'.tr()),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Text('Équipe'),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text('nav_team'.tr()),
               ),
             ],
           ),
@@ -1025,7 +1026,7 @@ class _TeamReportsMergedSection extends ConsumerWidget {
           return const Center(child: CircularProgressIndicator());
         }
         if (snap.hasError) {
-          return Center(child: Text('Erreur : ${snap.error}'));
+          return Center(child: Text('common_error'.tr(args: ['${snap.error}'])));
         }
         final reports = snap.data ?? [];
         if (reports.isEmpty) {
@@ -1037,7 +1038,7 @@ class _TeamReportsMergedSection extends ConsumerWidget {
                     size: 64, color: Colors.grey.shade300),
                 const SizedBox(height: 12),
                 Text(
-                  'Aucun rapport dans l\'équipe.',
+                  'team_no_reports'.tr(),
                   style:
                       TextStyle(color: Colors.grey.shade500, fontSize: 14),
                 ),
@@ -1090,9 +1091,8 @@ class _TeamMergedTile extends StatelessWidget {
   void _onTap(BuildContext context) {
     if (!isAdmin && !_isOwnReport) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Accès limité — consultez uniquement vos propres rapports.'),
+        SnackBar(
+          content: Text('team_access_limited'.tr()),
         ),
       );
       return;
@@ -1115,7 +1115,7 @@ class _TeamMergedTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateRaw = data['date'] as String?;
     final date = dateRaw != null
-        ? DateFormat('dd/MM/yyyy').format(DateTime.parse(dateRaw))
+        ? DateFormat.yMd().format(DateTime.parse(dateRaw))
         : '—';
     final clientName = data['client_name'] as String? ?? '—';
     final techName = data['technician_name'] as String? ?? '';
@@ -1237,7 +1237,7 @@ class _MergedReportDetailSheet extends StatelessWidget {
 
     final dateRaw = (d['date'] as String?) ?? (data['date'] as String?);
     final date = dateRaw != null
-        ? DateFormat('dd MMMM yyyy', 'fr_FR').format(DateTime.parse(dateRaw))
+        ? DateFormat.yMMMMd().format(DateTime.parse(dateRaw))
         : '—';
     final techName = d['technician_name'] as String? ?? '';
     final rejectionComment = data['rejection_comment'] as String? ?? '';
@@ -1302,23 +1302,23 @@ class _MergedReportDetailSheet extends StatelessWidget {
               child: ListView(
                 controller: controller,
                 children: [
-                  if (techName.isNotEmpty) infoRow('Technicien', techName),
-                  infoRow('Date', date),
+                  if (techName.isNotEmpty) infoRow('field_technician'.tr(), techName),
+                  infoRow('field_date'.tr(), date),
                   if (isAdmin) ...[
-                    infoRow('Adresse', d['client_address'] as String?),
-                    infoRow('Contact', d['client_contact'] as String?),
-                    infoRow('Contrat', d['contract_number'] as String?),
-                    infoRow('Type', d['intervention_type'] as String?),
-                    infoRow('Description', d['description'] as String?),
-                    infoRow('Observations', d['observations'] as String?),
+                    infoRow('field_address'.tr(), d['client_address'] as String?),
+                    infoRow('field_contact'.tr(), d['client_contact'] as String?),
+                    infoRow('field_contract'.tr(), d['contract_number'] as String?),
+                    infoRow('field_type'.tr(), d['intervention_type'] as String?),
+                    infoRow('field_description'.tr(), d['description'] as String?),
+                    infoRow('field_observations'.tr(), d['observations'] as String?),
                     infoRow(
-                        'Équipement',
+                        'field_equipment'.tr(),
                         [
                           d['equipment_type'],
                           d['equipment_brand'],
                           d['equipment_model'],
                           if ((d['equipment_serial'] ?? '').toString().isNotEmpty)
-                            'n° ${d['equipment_serial']}',
+                            'equipment_serial_prefix'.tr(args: ['${d['equipment_serial']}']),
                         ]
                             .where((v) => v != null && (v as String).isNotEmpty)
                             .join(' – ')),
@@ -1330,7 +1330,7 @@ class _MergedReportDetailSheet extends StatelessWidget {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            '$photoCount photo${photoCount > 1 ? 's' : ''} — stockées sur l\'appareil du technicien',
+                            'photos_on_device'.plural(photoCount),
                             style: const TextStyle(
                                 fontSize: 12, color: Colors.black38),
                           ),
@@ -1371,7 +1371,7 @@ class _MergedReportDetailSheet extends StatelessWidget {
                                   color: Colors.blue.shade600),
                               const SizedBox(width: 8),
                               Text(
-                                'Demande de photos envoyée au technicien.',
+                                'photo_request_sent_admin'.tr(),
                                 style: TextStyle(
                                     fontSize: 13,
                                     color: Colors.blue.shade800),
@@ -1430,14 +1430,14 @@ class _PhotoRequestButtonState extends State<_PhotoRequestButton> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Demande de photos envoyée au technicien.')),
+          SnackBar(
+              content: Text('photo_request_sent_admin'.tr())),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Erreur : $e')));
+            .showSnackBar(SnackBar(content: Text('common_error'.tr(args: ['$e']))));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -1467,7 +1467,7 @@ class _PhotoRequestButtonState extends State<_PhotoRequestButton> {
           ),
           onPressed: null,
           icon: Icon(Icons.hourglass_empty, size: iconSize),
-          label: Text(widget.fullWidth ? 'Demande envoyée' : 'Photos dem.'),
+          label: Text(widget.fullWidth ? 'prq_request_sent'.tr() : 'rc_photos_requested'.tr()),
         ),
       );
     }
@@ -1491,7 +1491,7 @@ class _PhotoRequestButtonState extends State<_PhotoRequestButton> {
                 height: iconSize,
                 child: const CircularProgressIndicator(strokeWidth: 1.5))
             : Icon(Icons.photo_camera_outlined, size: iconSize),
-        label: const Text('Dem. photos'),
+        label: Text('prq_request_photos'.tr()),
       ),
     );
   }

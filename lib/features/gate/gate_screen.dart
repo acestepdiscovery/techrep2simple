@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -135,7 +136,7 @@ class _GateScreenState extends State<GateScreen> {
       final reason = data['reason'] as String?;
       return (reason != null && reason.isNotEmpty)
           ? reason
-          : 'Usage non conforme aux conditions d\'utilisation.';
+          : 'gate_block_default_reason'.tr();
     } catch (_) {
       return null; // fail open — never block the app on a network error
     }
@@ -180,12 +181,12 @@ class _GateScreenState extends State<GateScreen> {
     showDialog(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Mise à jour disponible'),
+        title: Text('update_available_title'.tr()),
         content: Text(result.updateMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dlg),
-            child: const Text('Plus tard'),
+            child: Text('common_later'.tr()),
           ),
           if (url != null)
             FilledButton(
@@ -193,7 +194,7 @@ class _GateScreenState extends State<GateScreen> {
                 Navigator.pop(dlg);
                 launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
               },
-              child: const Text('Mettre à jour'),
+              child: Text('update_now'.tr()),
             ),
         ],
       ),
@@ -272,9 +273,9 @@ class _GateScreenState extends State<GateScreen> {
                 const Icon(Icons.system_update_outlined,
                     color: Colors.white, size: 64),
                 const SizedBox(height: 24),
-                const Text(
-                  'Mise à jour requise',
-                  style: TextStyle(
+                Text(
+                  'update_required_title'.tr(),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -295,7 +296,7 @@ class _GateScreenState extends State<GateScreen> {
                       mode: LaunchMode.externalApplication,
                     ),
                     icon: Icon(Icons.download_outlined, color: AppColors.primary),
-                    label: Text('Mettre à jour',
+                    label: Text('update_now'.tr(),
                         style: TextStyle(color: AppColors.primary,
                             fontWeight: FontWeight.bold)),
                   ),
@@ -334,7 +335,7 @@ class _GateScreenState extends State<GateScreen> {
                 ),
                 onPressed: _check,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Réessayer'),
+                label: Text('common_retry'.tr()),
               ),
             ],
           ),
@@ -396,9 +397,9 @@ class _BlockedViewState extends State<_BlockedView> {
             children: [
               Icon(Icons.block_outlined, size: 64, color: Colors.red.shade400),
               const SizedBox(height: 16),
-              const Text(
-                'Compte suspendu',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              Text(
+                'account_suspended_title'.tr(),
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -416,19 +417,19 @@ class _BlockedViewState extends State<_BlockedView> {
                 ),
               ),
               const SizedBox(height: 32),
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Vous pensez qu\'il s\'agit d\'une erreur ?',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                  'account_blocked_error_q'.tr(),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                 ),
               ),
               const SizedBox(height: 8),
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Envoyez-nous votre réclamation ci-dessous.',
-                  style: TextStyle(color: Colors.black54, fontSize: 13),
+                  'account_blocked_appeal_prompt'.tr(),
+                  style: const TextStyle(color: Colors.black54, fontSize: 13),
                 ),
               ),
               const SizedBox(height: 12),
@@ -436,9 +437,9 @@ class _BlockedViewState extends State<_BlockedView> {
                 TextField(
                   controller: _msgCtrl,
                   maxLines: 4,
-                  decoration: const InputDecoration(
-                    hintText: 'Expliquez votre situation...',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: 'account_blocked_appeal_hint'.tr(),
+                    border: const OutlineInputBorder(),
                     filled: true,
                     fillColor: Colors.white,
                   ),
@@ -453,7 +454,7 @@ class _BlockedViewState extends State<_BlockedView> {
                             width: 16, height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.send_outlined, size: 18),
-                    label: const Text('Envoyer la réclamation'),
+                    label: Text('account_blocked_send_appeal'.tr()),
                     style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
                   ),
                 ),
@@ -465,13 +466,13 @@ class _BlockedViewState extends State<_BlockedView> {
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.green.shade200),
                   ),
-                  child: const Row(children: [
-                    Icon(Icons.check_circle_outline, color: Colors.green),
-                    SizedBox(width: 12),
+                  child: Row(children: [
+                    const Icon(Icons.check_circle_outline, color: Colors.green),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Réclamation envoyée. Nous l\'examinons et vous répondrons par email.',
-                        style: TextStyle(fontSize: 13),
+                        'account_blocked_appeal_sent'.tr(),
+                        style: const TextStyle(fontSize: 13),
                       ),
                     ),
                   ]),
@@ -484,7 +485,7 @@ class _BlockedViewState extends State<_BlockedView> {
                   if (context.mounted) context.go('/welcome');
                 },
                 icon: const Icon(Icons.logout, size: 18),
-                label: const Text('Se déconnecter et utiliser un autre compte'),
+                label: Text('account_blocked_signout'.tr()),
                 style: TextButton.styleFrom(foregroundColor: Colors.grey.shade600),
               ),
             ],

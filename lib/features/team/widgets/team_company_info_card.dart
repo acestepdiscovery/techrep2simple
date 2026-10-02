@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/services/team_service.dart';
@@ -123,13 +124,13 @@ class _TeamCompanyInfoCardState extends ConsumerState<TeamCompanyInfoCard> {
         FocusScope.of(context).unfocus();
         _tileController.collapse();
       }
-      messenger.showSnackBar(const SnackBar(
-        content: Text('Infos entreprise de l\'équipe enregistrées ✓'),
+      messenger.showSnackBar(SnackBar(
+        content: Text('tc_saved'.tr()),
         backgroundColor: Colors.green,
       ));
     } catch (e) {
       messenger.showSnackBar(SnackBar(
-        content: Text('Erreur : ${e.toString().replaceFirst('Exception: ', '')}'),
+        content: Text('common_error'.tr(args: [e.toString().replaceFirst('Exception: ', '')])),
         backgroundColor: Colors.red,
       ));
     } finally {
@@ -146,10 +147,8 @@ class _TeamCompanyInfoCardState extends ConsumerState<TeamCompanyInfoCard> {
         keyboardType: keyboard,
         readOnly: locked,
         onTap: locked
-            ? () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text(
-                    'Champ verrouillé (identité légale figée après 10 rapports). '
-                    'Contactez le support pour corriger.')))
+            ? () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('tc_field_locked'.tr())))
             : null,
         decoration: InputDecoration(
           labelText: label,
@@ -193,19 +192,19 @@ class _TeamCompanyInfoCardState extends ConsumerState<TeamCompanyInfoCard> {
         tilePadding: EdgeInsets.zero,
         childrenPadding: const EdgeInsets.only(bottom: 8),
         leading: const Icon(Icons.business_outlined, size: 20),
-        title: const Text('Infos entreprise de l\'équipe',
+        title: Text('tc_company_info_title'.tr(),
             style: TextStyle(fontSize: 14)),
-        subtitle: const Text(
-          'Gérées par l\'administrateur · lecture seule.',
-          style: TextStyle(fontSize: 11),
+        subtitle: Text(
+          'tc_member_subtitle'.tr(),
+          style: const TextStyle(fontSize: 11),
         ),
         children: [
-          _readOnlyRow('Nom', team?.companyName ?? ''),
-          _readOnlyRow('Adresse', team?.companyAddress ?? ''),
-          _readOnlyRow('Téléphone', team?.companyPhone ?? ''),
-          _readOnlyRow('Email', team?.companyEmail ?? ''),
-          _readOnlyRow('SIRET', team?.companySiret ?? ''),
-          _readOnlyRow('N° TVA', team?.companyTva ?? ''),
+          _readOnlyRow('rd_name'.tr(), team?.companyName ?? ''),
+          _readOnlyRow('field_address'.tr(), team?.companyAddress ?? ''),
+          _readOnlyRow('cr_phone'.tr(), team?.companyPhone ?? ''),
+          _readOnlyRow('auth_field_email'.tr(), team?.companyEmail ?? ''),
+          _readOnlyRow('settings_siret'.tr(), team?.companySiret ?? ''),
+          _readOnlyRow('settings_vat'.tr(), team?.companyTva ?? ''),
         ],
       );
     }
@@ -217,31 +216,26 @@ class _TeamCompanyInfoCardState extends ConsumerState<TeamCompanyInfoCard> {
       tilePadding: EdgeInsets.zero,
       childrenPadding: const EdgeInsets.only(bottom: 8),
       leading: const Icon(Icons.business_outlined, size: 20),
-      title: const Text('Infos entreprise de l\'équipe',
+      title: Text('tc_company_info_title'.tr(),
           style: TextStyle(fontSize: 14)),
-      subtitle: const Text(
-        'Adresse, SIRET… affichés sur les PDF de l\'équipe (optionnel).',
-        style: TextStyle(fontSize: 11),
+      subtitle: Text(
+        'tc_admin_subtitle'.tr(),
+        style: const TextStyle(fontSize: 11),
       ),
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(
-            'Ces infos s\'impriment sur les PDF de l\'équipe et sont '
-            'SYNCHRONISÉES automatiquement avec tous vos techniciens. '
-            'Des modifications trop fréquentes sont interdites : ces données '
-            'identifient votre entreprise. Les changer régulièrement (par ex. '
-            'pour faire tourner le compte entre plusieurs sociétés) est '
-            'considéré comme une fraude et peut entraîner la suspension du compte.',
+            'tc_admin_warning'.tr(),
             style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
           ),
         ),
-        _field(_name, 'Nom de l\'entreprise (équipe)'),
-        _field(_address, 'Adresse'),
-        _field(_phone, 'Téléphone', keyboard: TextInputType.phone),
-        _field(_email, 'Email', keyboard: TextInputType.emailAddress),
-        _field(_siret, 'SIRET'),
-        _field(_tva, 'N° TVA'),
+        _field(_name, 'tc_company_name'.tr()),
+        _field(_address, 'field_address'.tr()),
+        _field(_phone, 'cr_phone'.tr(), keyboard: TextInputType.phone),
+        _field(_email, 'auth_field_email'.tr(), keyboard: TextInputType.emailAddress),
+        _field(_siret, 'settings_siret'.tr()),
+        _field(_tva, 'settings_vat'.tr()),
         SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
@@ -252,7 +246,7 @@ class _TeamCompanyInfoCardState extends ConsumerState<TeamCompanyInfoCard> {
                     child: CircularProgressIndicator(
                         strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.save_outlined, size: 18),
-            label: const Text('Enregistrer'),
+            label: Text('common_save'.tr()),
           ),
         ),
       ],

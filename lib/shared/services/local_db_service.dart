@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:math' show max;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../../features/reports/models/report_model.dart';
+import '../../features/reports/models/sector_options.dart';
 import '../../features/clients/models/client_model.dart';
 
 class LocalDbService {
@@ -25,7 +27,7 @@ class LocalDbService {
 
   Future<Database> _initDb() async {
     final path = join(await getDatabasesPath(), 'techreport.db');
-    return openDatabase(path, version: 9, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    return openDatabase(path, version: 11, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -83,6 +85,55 @@ class LocalDbService {
         await db.execute('ALTER TABLE reports ADD COLUMN custom_fields TEXT');
       } catch (_) {}
     }
+    if (oldVersion < 10) {
+      // (i18n « méthode B ») Convertit UNE FOIS les valeurs d'options secteur
+      // stockées en FRANÇAIS (« Cuivre »…) vers les CLÉS stables (`copper`…),
+      // pour que les anciens rapports s'affichent dans la langue courante.
+      // Garde-fous : (1) ne touche QUE les champs dropdown
+      // (`sectorDropdownFieldKeys`) → jamais un champ libre ; (2) ne convertit
+      // QUE les valeurs exactement reconnues ; (3) idempotent (une clé déjà
+      // migrée n'est plus dans `sectorOptionFromFrench`) ; (4) ne tourne qu'une
+      // fois via la version de schéma. Tout est encapsulé dans un try → un
+      // souci de parsing sur un rapport n'empêche jamais l'ouverture de l'app.
+      try {
+        final rows = await db.query('reports', columns: ['id', 'sector_fields']);
+        for (final row in rows) {
+          final raw = row['sector_fields'] as String?;
+          if (raw == null || raw.isEmpty || raw == '{}') continue;
+          Map<String, dynamic> sf;
+          try {
+            sf = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+          } catch (_) {
+            continue; // JSON illisible → on laisse ce rapport tel quel
+          }
+          var changed = false;
+          for (final key in sf.keys.toList()) {
+            if (!sectorDropdownFieldKeys.contains(key)) continue;
+            final mapped = sectorOptionFromFrench[sf[key]?.toString()];
+            if (mapped != null) {
+              sf[key] = mapped;
+              changed = true;
+            }
+          }
+          if (changed) {
+            await db.update('reports', {'sector_fields': jsonEncode(sf)},
+                where: 'id = ?', whereArgs: [row['id']]);
+          }
+        }
+      } catch (_) {}
+    }
+    if (oldVersion < 11) {
+      // (Taxe facture) Override de taxe par rapport (taux/intitulé/mention).
+      // null = utilise le défaut global des Réglages → les anciens rapports
+      // restent inchangés et suivent le défaut.
+      for (final col in [
+        'ALTER TABLE reports ADD COLUMN tax_rate REAL',
+        'ALTER TABLE reports ADD COLUMN tax_label TEXT',
+        'ALTER TABLE reports ADD COLUMN tax_mention TEXT',
+      ]) {
+        try { await db.execute(col); } catch (_) {}
+      }
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -123,6 +174,9 @@ class LocalDbService {
         labor_hours REAL,
         labor_rate REAL,
         materials TEXT DEFAULT '[]',
+        tax_rate REAL,
+        tax_label TEXT,
+        tax_mention TEXT,
         pdf_template TEXT,
         report_number_format TEXT,
         rejection_comment TEXT,

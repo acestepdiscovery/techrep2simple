@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:image_picker/image_picker.dart';
 import '../../features/reports/models/report_model.dart';
+import '../../features/reports/models/sector_options.dart';
+import '../../features/reports/models/tax_options.dart';
+import '../../features/reports/models/currency_options.dart';
 
 class PdfService {
   static const _blue = PdfColor.fromInt(0xFF1565C0);
@@ -13,6 +16,11 @@ class PdfService {
   static const _grey = PdfColor.fromInt(0xFF757575);
   static const _divider = PdfColor.fromInt(0xFFDEE2E6);
   static const _white70 = PdfColor(1, 1, 1, 0.7);
+
+  // Devise du document, posée au début de generateReport/generateInvoice
+  // (instance neuve à chaque appel → pas de contamination entre PDF).
+  String _currencyCode = 'EUR';
+  String _money(num v) => formatMoney(v, code: _currencyCode);
 
   Future<Uint8List> generateReport(
     ReportModel report, {
@@ -27,7 +35,9 @@ class PdfService {
     String? companyTva,
     String pdfTemplate = 'professionnel',
     String reportNumberFormat = '{num}',
+    String? currencyCode,
   }) async {
+    _currencyCode = currencyCode ?? 'EUR';
     // Load signature images
     pw.MemoryImage? sigClientStart;
     pw.MemoryImage? sigTechStart;
@@ -58,9 +68,9 @@ class PdfService {
     }
 
     final logo = logoBytes != null ? pw.MemoryImage(logoBytes) : null;
-    final fmt = DateFormat('dd/MM/yyyy', 'fr_FR');
+    final fmt = DateFormat.yMd();
     final dateStr = report.endDate != null
-        ? 'Du ${fmt.format(report.date)} au ${fmt.format(report.endDate!)}'
+        ? 'td_date_range'.tr(args: [fmt.format(report.date), fmt.format(report.endDate!)])
         : fmt.format(report.date);
     final reportNumber = resolveReportNumber(
       report.reportNumber,
@@ -94,7 +104,7 @@ class PdfService {
 
     // ── Simple layout (default) ──────────────────────────────────────────────
     final doc = pw.Document(
-      title: 'Rapport d\'intervention — ${report.clientName}',
+      title: 'pdf_doc_title'.tr(args: [report.clientName]),
       author: companyName ?? 'Tech Report',
     );
 
@@ -177,7 +187,7 @@ class PdfService {
     bool f(String? v) => v != null && v.trim().isNotEmpty;
 
     final doc = pw.Document(
-      title: 'Rapport d\'intervention — ${report.clientName}',
+      title: 'pdf_doc_title'.tr(args: [report.clientName]),
       author: companyName ?? '',
     );
 
@@ -193,7 +203,7 @@ class PdfService {
               children: [
                 pw.Text(companyName ?? '',
                     style: const pw.TextStyle(fontSize: 8, color: _grey)),
-                pw.Text('N° $reportNumber',
+                pw.Text('pdf_number_prefix'.tr(args: [reportNumber]),
                     style: const pw.TextStyle(fontSize: 8, color: _grey)),
               ],
             ),
@@ -229,16 +239,16 @@ class PdfService {
                               style: const pw.TextStyle(fontSize: 9)),
                         pw.SizedBox(height: 3),
                         if (f(companyPhone))
-                          pw.Text('TÉL : ${companyPhone!}',
+                          pw.Text('pdf_tel'.tr(args: [companyPhone!]),
                               style: const pw.TextStyle(fontSize: 9)),
                         if (f(companyEmail))
-                          pw.Text('Mail : ${companyEmail!}',
+                          pw.Text('pdf_mail'.tr(args: [companyEmail!]),
                               style: const pw.TextStyle(fontSize: 9)),
                         if (f(companySiret))
-                          pw.Text('Siret : ${companySiret!}',
+                          pw.Text('pdf_siret'.tr(args: [companySiret!]),
                               style: const pw.TextStyle(fontSize: 9)),
                         if (f(companyTva))
-                          pw.Text('N° Tva : ${companyTva!}',
+                          pw.Text('pdf_tva'.tr(args: [companyTva!]),
                               style: const pw.TextStyle(fontSize: 9)),
                       ],
                     ),
@@ -247,11 +257,11 @@ class PdfService {
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    pw.Text('RAPPORT D\'INTERVENTION',
+                    pw.Text('pdf_report_title'.tr(),
                         style: pw.TextStyle(
                             fontWeight: pw.FontWeight.bold, fontSize: 15)),
                     pw.SizedBox(height: 4),
-                    pw.Text('N° $reportNumber',
+                    pw.Text('pdf_number_prefix'.tr(args: [reportNumber]),
                         style: pw.TextStyle(
                             fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   ],
@@ -268,9 +278,9 @@ class PdfService {
         child: pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('N° $reportNumber',
+            pw.Text('pdf_number_prefix'.tr(args: [reportNumber]),
                 style: const pw.TextStyle(color: _grey, fontSize: 8)),
-            pw.Text('Page ${ctx.pageNumber} / ${ctx.pagesCount}',
+            pw.Text('pdf_page'.tr(args: ['${ctx.pageNumber}', '${ctx.pagesCount}']),
                 style: const pw.TextStyle(color: _grey, fontSize: 8)),
           ],
         ),
@@ -292,26 +302,26 @@ class PdfService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('INFOS',
+                    pw.Text('pdf_infos'.tr(),
                         style: pw.TextStyle(
                             fontWeight: pw.FontWeight.bold, fontSize: 11)),
                     pw.SizedBox(height: 8),
-                    _profRow('Client', report.clientName),
+                    _profRow('pdf_lbl_client'.tr(), report.clientName),
                     if (f(report.clientAddress))
-                      _profRow('Adresse', report.clientAddress),
+                      _profRow('pdf_lbl_address'.tr(), report.clientAddress),
                     if (f(report.clientAddress))
-                      _profRow('Lieu d\'intervention', report.clientAddress),
+                      _profRow('pdf_lbl_location'.tr(), report.clientAddress),
                     if (f(report.clientContact))
-                      _profRow('Interlocuteur', report.clientContact),
-                    if (f(technicianName)) _profRow('Technicien', technicianName!),
+                      _profRow('pdf_lbl_contact'.tr(), report.clientContact),
+                    if (f(technicianName)) _profRow('pdf_lbl_technician'.tr(), technicianName!),
                     if (report.startTime != null)
-                      _profRow('Début d\'intervention',
+                      _profRow('pdf_lbl_start'.tr(),
                           '$dateStr ${_timeStr(report.startTime!)}'),
                     if (report.endTime != null)
-                      _profRow('Fin d\'intervention',
+                      _profRow('pdf_lbl_end'.tr(),
                           '$dateStr ${_timeStr(report.endTime!)}'),
-                    _profRow('Sous contrat',
-                        report.sousContrat ? 'Oui' : 'Non'),
+                    _profRow('pdf_lbl_under_contract'.tr(),
+                        report.sousContrat ? 'pdf_yes'.tr() : 'pdf_no'.tr()),
                     // (#4b) Champs personnalisés saisis par l'utilisateur.
                     ...report.customFields.entries
                         .map((e) => _profRow(e.key, e.value)),
@@ -324,7 +334,7 @@ class PdfService {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text(sigTechStart != null ? 'TECHNICIEN (DÉBUT)' : 'SIGNATURE INTERVENANT',
+                  pw.Text(sigTechStart != null ? 'pdf_tech_start'.tr() : 'pdf_sig_tech'.tr(),
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   pw.SizedBox(height: 8),
                   pw.Container(
@@ -336,7 +346,7 @@ class PdfService {
                   ),
                   if (sigTech != null && sigTechStart != null) ...[
                     pw.SizedBox(height: 8),
-                    pw.Text('TECHNICIEN (FIN)',
+                    pw.Text('pdf_tech_end'.tr(),
                         style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                     pw.SizedBox(height: 8),
                     pw.Container(
@@ -346,7 +356,7 @@ class PdfService {
                     ),
                   ],
                   pw.SizedBox(height: 16),
-                  pw.Text(sigClientStart != null ? 'CLIENT (DÉBUT)' : 'SIGNATURE CLIENT',
+                  pw.Text(sigClientStart != null ? 'pdf_client_start'.tr() : 'pdf_sig_client'.tr(),
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   pw.SizedBox(height: 8),
                   pw.Container(
@@ -358,7 +368,7 @@ class PdfService {
                   ),
                   if (sigClient != null && sigClientStart != null) ...[
                     pw.SizedBox(height: 8),
-                    pw.Text('CLIENT (FIN)',
+                    pw.Text('pdf_client_end'.tr(),
                         style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                     pw.SizedBox(height: 8),
                     pw.Container(
@@ -374,7 +384,7 @@ class PdfService {
         ),
         pw.SizedBox(height: 16),
         // ── MOTIFS ──────────────────────────────────────────────────────────
-        pw.Text('MOTIFS',
+        pw.Text('pdf_motifs'.tr(),
             style:
                 pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
         pw.SizedBox(height: 6),
@@ -384,7 +394,7 @@ class PdfService {
         ),
         if (f(report.observations)) ...[
           pw.SizedBox(height: 12),
-          pw.Text('OBSERVATIONS',
+          pw.Text('pdf_observations'.tr(),
               style: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold, fontSize: 11)),
           pw.SizedBox(height: 6),
@@ -400,7 +410,7 @@ class PdfService {
         ],
         if (photoImages.isNotEmpty) ...[
           pw.SizedBox(height: 20),
-          pw.Text('PHOTO(S)',
+          pw.Text('pdf_photos'.tr(),
               style: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold, fontSize: 11)),
           pw.SizedBox(height: 8),
@@ -497,7 +507,7 @@ class PdfService {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
-                    'RAPPORT D\'INTERVENTION',
+                    'pdf_report_title'.tr(),
                     style: pw.TextStyle(
                       color: PdfColors.white,
                       fontSize: 14,
@@ -520,13 +530,13 @@ class PdfService {
                       style: const pw.TextStyle(color: _white70, fontSize: 8),
                     ),
                   if (filled(companySiret))
-                    pw.Text('SIRET : ${companySiret!}',
+                    pw.Text('pdf_siret_caps'.tr(args: [companySiret!]),
                         style: const pw.TextStyle(color: _white70, fontSize: 8)),
                   if (filled(companyTva))
-                    pw.Text('N° TVA : ${companyTva!}',
+                    pw.Text('pdf_tva_caps'.tr(args: [companyTva!]),
                         style: const pw.TextStyle(color: _white70, fontSize: 8)),
                   if (filled(technicianName))
-                    pw.Text('Tech. : ${technicianName!}',
+                    pw.Text('pdf_tech_prefix'.tr(args: [technicianName!]),
                         style: const pw.TextStyle(color: _white70, fontSize: 9)),
                 ],
               ),
@@ -536,7 +546,7 @@ class PdfService {
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text(
-                'N° $reportNumber',
+                'pdf_number_prefix'.tr(args: [reportNumber]),
                 style: pw.TextStyle(
                   color: PdfColors.white,
                   fontSize: 12,
@@ -565,7 +575,7 @@ class PdfService {
                 style: const pw.TextStyle(
                     color: _grey, fontSize: 8)),
             pw.Text(
-                'Page ${ctx.pageNumber} / ${ctx.pagesCount}',
+                'pdf_page'.tr(args: ['${ctx.pageNumber}', '${ctx.pagesCount}']),
                 style: const pw.TextStyle(
                     color: _grey, fontSize: 8)),
           ],
@@ -579,23 +589,23 @@ class PdfService {
       pw.TextStyle baseStyle,
       pw.TextStyle boldStyle) =>
       _section(
-        title: 'CLIENT',
+        title: 'pdf_sec_client'.tr(),
         child: pw.Table(
           children: [
-            _tableRow('Nom', report.clientName, baseStyle, boldStyle),
+            _tableRow('pdf_lbl_name'.tr(), report.clientName, baseStyle, boldStyle),
             if (report.clientAddress.isNotEmpty)
-              _tableRow('Adresse', report.clientAddress, baseStyle,
+              _tableRow('pdf_lbl_address'.tr(), report.clientAddress, baseStyle,
                   boldStyle),
             if (report.clientPhone.isNotEmpty)
-              _tableRow('Téléphone', report.clientPhone, baseStyle,
+              _tableRow('pdf_lbl_phone'.tr(), report.clientPhone, baseStyle,
                   boldStyle),
             if (report.clientContact.isNotEmpty)
-              _tableRow('Contact', report.clientContact, baseStyle,
+              _tableRow('pdf_lbl_contact_short'.tr(), report.clientContact, baseStyle,
                   boldStyle),
             if (report.contractNumber.isNotEmpty)
-              _tableRow('N° contrat', report.contractNumber, baseStyle,
+              _tableRow('pdf_lbl_contract'.tr(), report.contractNumber, baseStyle,
                   boldStyle),
-            _tableRow('Sous contrat', report.sousContrat ? 'Oui' : 'Non',
+            _tableRow('pdf_lbl_under_contract'.tr(), report.sousContrat ? 'pdf_yes'.tr() : 'pdf_no'.tr(),
                 baseStyle, boldStyle),
             // (#4b) Champs personnalisés saisis par l'utilisateur.
             ...report.customFields.entries.map(
@@ -610,16 +620,16 @@ class PdfService {
       pw.TextStyle baseStyle,
       pw.TextStyle boldStyle) =>
       _section(
-        title: 'INTERVENTION',
+        title: 'pdf_sec_intervention'.tr(),
         child: pw.Table(
           children: [
             if (report.interventionType.isNotEmpty)
-              _tableRow('Type', report.interventionType, baseStyle,
+              _tableRow('pdf_lbl_type'.tr(), report.interventionType, baseStyle,
                   boldStyle),
-            _tableRow('Date', dateStr, baseStyle, boldStyle),
+            _tableRow('pdf_lbl_date'.tr(), dateStr, baseStyle, boldStyle),
             if (report.startTime != null)
               _tableRow(
-                'Horaire',
+                'pdf_lbl_schedule'.tr(),
                 '${_timeStr(report.startTime!)} – '
                     '${report.endTime != null ? _timeStr(report.endTime!) : "—"}',
                 baseStyle,
@@ -634,20 +644,20 @@ class PdfService {
       pw.TextStyle baseStyle,
       pw.TextStyle boldStyle) =>
       _section(
-        title: 'ÉQUIPEMENT',
+        title: 'pdf_sec_equipment'.tr(),
         child: pw.Table(
           children: [
             if (report.equipmentType.isNotEmpty)
-              _tableRow('Type', report.equipmentType, baseStyle,
+              _tableRow('pdf_lbl_type'.tr(), report.equipmentType, baseStyle,
                   boldStyle),
             if (report.equipmentBrand.isNotEmpty)
-              _tableRow('Marque', report.equipmentBrand, baseStyle,
+              _tableRow('pdf_lbl_brand'.tr(), report.equipmentBrand, baseStyle,
                   boldStyle),
             if (report.equipmentModel.isNotEmpty)
-              _tableRow('Modèle', report.equipmentModel, baseStyle,
+              _tableRow('pdf_lbl_model'.tr(), report.equipmentModel, baseStyle,
                   boldStyle),
             if (report.equipmentSerial.isNotEmpty)
-              _tableRow('N° série', report.equipmentSerial, baseStyle,
+              _tableRow('pdf_lbl_serial'.tr(), report.equipmentSerial, baseStyle,
                   boldStyle),
           ],
         ),
@@ -666,7 +676,7 @@ class PdfService {
         children: entries
             .map((e) => _tableRow(
                   _formatKey(e.key),
-                  e.value.toString(),
+                  sectorValueLabel(e.value.toString()),
                   baseStyle,
                   boldStyle,
                 ))
@@ -681,7 +691,7 @@ class PdfService {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           _section(
-            title: 'TRAVAUX RÉALISÉS',
+            title: 'pdf_sec_work'.tr(),
             child: pw.Text(
               report.description.isEmpty ? '—' : report.description,
               style: baseStyle.copyWith(lineSpacing: 2),
@@ -690,7 +700,7 @@ class PdfService {
           if (report.observations.isNotEmpty) ...[
             pw.SizedBox(height: 10),
             _section(
-              title: 'OBSERVATIONS / RECOMMANDATIONS',
+              title: 'pdf_sec_observations'.tr(),
               child: pw.Text(
                 report.observations,
                 style: baseStyle.copyWith(lineSpacing: 2),
@@ -713,10 +723,10 @@ class PdfService {
 
     if (report.laborHours != null && report.laborHours! > 0) {
       rows.add(_tableRow(
-        'Main-d\'œuvre',
+        'pdf_lbl_labor'.tr(),
         '${report.laborHours!.toStringAsFixed(1)} h × '
-            '${(report.laborRate ?? 0).toStringAsFixed(2)} €/h = '
-            '${labor.toStringAsFixed(2)} €',
+            '${_money(report.laborRate ?? 0)}/h = '
+            '${_money(labor)}',
         baseStyle,
         boldStyle,
       ));
@@ -725,15 +735,15 @@ class PdfService {
     for (final m in report.materials) {
       rows.add(_tableRow(
         m.label,
-        '${m.quantity} × ${m.unitPrice.toStringAsFixed(2)} € = '
-            '${m.total.toStringAsFixed(2)} €',
+        '${m.quantity} × ${_money(m.unitPrice)} = '
+            '${_money(m.total)}',
         baseStyle,
         boldStyle,
       ));
     }
 
     return _section(
-      title: 'FACTURATION',
+      title: 'pdf_sec_billing'.tr(),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -742,10 +752,10 @@ class PdfService {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.end,
             children: [
-              pw.Text('TOTAL HT : ',
+              pw.Text('pdf_total_ht'.tr(),
                   style: boldStyle.copyWith(
                       color: _blue, fontSize: 10)),
-              pw.Text('${total.toStringAsFixed(2)} €',
+              pw.Text(_money(total),
                   style: boldStyle.copyWith(
                       color: _blue, fontSize: 11)),
             ],
@@ -786,7 +796,7 @@ class PdfService {
       );
     }
     return _section(
-      title: 'PHOTOS',
+      title: 'pdf_sec_photos'.tr(),
       child: pw.Column(children: rows),
     );
   }
@@ -821,23 +831,23 @@ class PdfService {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           if (hasStart) ...[
-            pw.Text('Début d\'intervention',
+            pw.Text('pdf_lbl_start'.tr(),
                 style: boldStyle.copyWith(fontSize: 8, color: _grey)),
             pw.SizedBox(height: 6),
-            sigRow('Signature client (début)', sigClientStart,
-                'Signature technicien (début)', sigTechStart),
+            sigRow('pdf_sig_client_start'.tr(), sigClientStart,
+                'pdf_sig_tech_start'.tr(), sigTechStart),
             if (hasEnd) pw.SizedBox(height: 12),
           ],
           if (hasEnd) ...[
             if (hasStart)
-              pw.Text('Fin d\'intervention',
+              pw.Text('pdf_lbl_end'.tr(),
                   style: boldStyle.copyWith(fontSize: 8, color: _grey)),
             if (hasStart) pw.SizedBox(height: 6),
-            sigRow('Signature client${hasStart ? ' (fin)' : ''}', sigClient,
-                'Signature technicien${hasStart ? ' (fin)' : ''}', sigTech),
+            sigRow(hasStart ? 'pdf_sig_client_end'.tr() : 'pdf_sig_client_base'.tr(), sigClient,
+                hasStart ? 'pdf_sig_tech_end'.tr() : 'pdf_sig_tech_base'.tr(), sigTech),
           ],
           if (!hasStart && !hasEnd)
-            sigRow('Signature client', null, 'Signature technicien', null),
+            sigRow('pdf_sig_client_base'.tr(), null, 'pdf_sig_tech_base'.tr(), null),
         ],
       ),
     );
@@ -970,8 +980,8 @@ class PdfService {
       (r.laborHours != null && r.laborHours! > 0) ||
       r.materials.isNotEmpty;
 
-  String _timeStr(DateTime dt) =>
-      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  // Heure locale-aware : 24 h (fr/de/es…) ou 12 h AM/PM (en-US/AU) selon la locale.
+  String _timeStr(DateTime dt) => DateFormat.jm().format(dt);
 
   String _sectorLabel(SectorTemplate s) => s.label;
 
@@ -991,18 +1001,35 @@ class PdfService {
     String? companyEmail,
     String? companySiret,
     Uint8List? logoBytes,
+    // Taxe : valeurs EFFECTIVES (override du rapport sinon défaut global), en
+    // pourcent. Fournies par l'appelant. Repli ultime = 20 % / « VAT ».
+    double? taxRate,
+    String? taxLabel,
+    String? taxMention,
+    String? currencyCode,
   }) async {
+    _currencyCode = currencyCode ?? 'EUR';
     final logo = logoBytes != null ? pw.MemoryImage(logoBytes) : null;
-    final fmt = DateFormat('dd/MM/yyyy', 'fr_FR');
+    final fmt = DateFormat.yMd();
     final today = fmt.format(DateTime.now());
     final invoiceNum =
-        'FAC-${report.reportNumber.toString().padLeft(3, '0')}-${DateTime.now().year}';
+        '${'pdf_invoice_prefix'.tr()}-${report.reportNumber.toString().padLeft(3, '0')}-${DateTime.now().year}';
 
     final laborTotal = (report.laborHours ?? 0) * (report.laborRate ?? 0);
     final matsTotal =
         report.materials.fold<double>(0, (a, m) => a + m.total);
     final subtotal = laborTotal + matsTotal;
-    final tva = subtotal * 0.20;
+    // Taxe effective : override du rapport > valeur passée par l'appelant
+    // (défaut global) > repli 20 %. taxRate est en POURCENT.
+    final effRate = report.taxRate ?? taxRate ?? 20.0;
+    final effLabel = (report.taxLabel != null && report.taxLabel!.trim().isNotEmpty)
+        ? report.taxLabel!
+        : ((taxLabel != null && taxLabel.trim().isNotEmpty) ? taxLabel : 'VAT');
+    final effMention =
+        (report.taxMention != null && report.taxMention!.trim().isNotEmpty)
+            ? report.taxMention!
+            : (taxMention ?? '');
+    final tva = subtotal * effRate / 100;
     final total = subtotal + tva;
 
     final doc = pw.Document();
@@ -1036,7 +1063,7 @@ class PdfService {
                     pw.Text(companyEmail,
                         style: const pw.TextStyle(fontSize: 10)),
                   if (companySiret != null)
-                    pw.Text('SIRET : $companySiret',
+                    pw.Text('pdf_siret_caps'.tr(args: [companySiret]),
                         style: const pw.TextStyle(fontSize: 9,
                             color: PdfColor(0.4, 0.4, 0.4))),
                 ],
@@ -1051,17 +1078,17 @@ class PdfService {
                       color: _blue,
                       borderRadius: pw.BorderRadius.circular(6),
                     ),
-                    child: pw.Text('FACTURE',
+                    child: pw.Text('pdf_invoice_title'.tr(),
                         style: pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 18,
                             fontWeight: pw.FontWeight.bold)),
                   ),
                   pw.SizedBox(height: 8),
-                  pw.Text('N° $invoiceNum',
+                  pw.Text('pdf_number_prefix'.tr(args: [invoiceNum]),
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold,
                           fontSize: 11)),
-                  pw.Text('Date : $today',
+                  pw.Text('pdf_date_prefix'.tr(args: [today]),
                       style: const pw.TextStyle(fontSize: 10)),
                 ],
               ),
@@ -1078,7 +1105,7 @@ class PdfService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('Facturé à :',
+                pw.Text('pdf_billed_to'.tr(),
                     style: pw.TextStyle(fontSize: 10, color: _grey)),
                 pw.SizedBox(height: 4),
                 pw.Text(report.clientName,
@@ -1096,8 +1123,11 @@ class PdfService {
           pw.SizedBox(height: 20),
           // Ref rapport
           pw.Text(
-              'Réf. rapport : #${report.reportNumber.toString().padLeft(3, '0')} '
-              '— ${fmt.format(report.date)} — ${report.interventionType}',
+              'pdf_report_ref'.tr(args: [
+                report.reportNumber.toString().padLeft(3, '0'),
+                fmt.format(report.date),
+                report.interventionType,
+              ]),
               style: const pw.TextStyle(fontSize: 10,
                   color: PdfColor(0.4, 0.4, 0.4))),
           pw.SizedBox(height: 16),
@@ -1108,24 +1138,24 @@ class PdfService {
             child: pw.Row(
               children: [
                 pw.Expanded(flex: 5,
-                    child: pw.Text('Désignation',
+                    child: pw.Text('pdf_col_designation'.tr(),
                         style: pw.TextStyle(color: PdfColors.white,
                             fontWeight: pw.FontWeight.bold, fontSize: 10))),
                 pw.SizedBox(
                     width: 60,
-                    child: pw.Text('Qté',
+                    child: pw.Text('pdf_col_qty'.tr(),
                         textAlign: pw.TextAlign.center,
                         style: pw.TextStyle(color: PdfColors.white,
                             fontWeight: pw.FontWeight.bold, fontSize: 10))),
                 pw.SizedBox(
                     width: 70,
-                    child: pw.Text('P.U. HT',
+                    child: pw.Text('pdf_col_unit_price'.tr(),
                         textAlign: pw.TextAlign.right,
                         style: pw.TextStyle(color: PdfColors.white,
                             fontWeight: pw.FontWeight.bold, fontSize: 10))),
                 pw.SizedBox(
                     width: 75,
-                    child: pw.Text('Total HT',
+                    child: pw.Text('pdf_col_total'.tr(),
                         textAlign: pw.TextAlign.right,
                         style: pw.TextStyle(color: PdfColors.white,
                             fontWeight: pw.FontWeight.bold, fontSize: 10))),
@@ -1135,14 +1165,14 @@ class PdfService {
           // Rows
           if (report.laborHours != null && report.laborHours! > 0)
             _invoiceRow(
-              'Main-d\'œuvre — ${report.technicianName ?? ''}',
+              'pdf_labor_with_tech'.tr(args: [report.technicianName ?? '']),
               '${report.laborHours!.toStringAsFixed(1)} h',
               report.laborRate ?? 0,
               laborTotal,
               even: false,
             ),
           ...report.materials.asMap().entries.map((e) => _invoiceRow(
-                '${e.value.label}${e.value.reference.isNotEmpty ? ' (réf. ${e.value.reference})' : ''}',
+                '${e.value.label}${e.value.reference.isNotEmpty ? 'pdf_ref_paren'.tr(args: [e.value.reference]) : ''}',
                 '${e.value.quantity}',
                 e.value.unitPrice,
                 e.value.total,
@@ -1156,18 +1186,27 @@ class PdfService {
               width: 200,
               child: pw.Column(
                 children: [
-                  _totalRow('Sous-total HT', subtotal),
-                  _totalRow('TVA (20 %)', tva),
+                  _totalRow('pdf_subtotal'.tr(), subtotal),
+                  _totalRow(
+                      '$effLabel (${formatTaxRate(effRate)} %)', tva),
                   pw.Divider(color: _divider),
-                  _totalRow('Total TTC', total, bold: true),
+                  _totalRow('pdf_total_ttc'.tr(), total, bold: true),
                 ],
               ),
             ),
           ),
+          // Mention légale de taxe (ex. franchise en base / Kleinunternehmer),
+          // affichée seulement si renseignée.
+          if (effMention.isNotEmpty) ...[
+            pw.SizedBox(height: 8),
+            pw.Text(effMention,
+                style: const pw.TextStyle(
+                    fontSize: 9, color: PdfColor(0.4, 0.4, 0.4))),
+          ],
           pw.Spacer(),
           pw.Divider(color: _divider),
           pw.Text(
-              'Merci pour votre confiance. Paiement à réception de facture.',
+              'pdf_invoice_footer'.tr(),
               style: const pw.TextStyle(fontSize: 9,
                   color: PdfColor(0.5, 0.5, 0.5))),
         ],
@@ -1192,12 +1231,12 @@ class PdfService {
                   style: const pw.TextStyle(fontSize: 10))),
           pw.SizedBox(
               width: 70,
-              child: pw.Text('${pu.toStringAsFixed(2)} €',
+              child: pw.Text(_money(pu),
                   textAlign: pw.TextAlign.right,
                   style: const pw.TextStyle(fontSize: 10))),
           pw.SizedBox(
               width: 75,
-              child: pw.Text('${total.toStringAsFixed(2)} €',
+              child: pw.Text(_money(total),
                   textAlign: pw.TextAlign.right,
                   style: const pw.TextStyle(fontSize: 10))),
         ],
@@ -1215,7 +1254,7 @@ class PdfService {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(label, style: style),
-          pw.Text('${amount.toStringAsFixed(2)} €', style: style),
+          pw.Text(_money(amount), style: style),
         ],
       ),
     );

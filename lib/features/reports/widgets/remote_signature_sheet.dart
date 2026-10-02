@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../shared/utils/share_origin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/services/local_db_service.dart';
@@ -80,6 +82,7 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
         techUid: uid,
         companyId: team?.companyId,
         clientName: widget.report.clientName,
+        lang: context.locale.languageCode, // localizes the remote signature page
       );
       _token = req.token;
       _code = req.code;
@@ -149,25 +152,19 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
   void _share() {
     final client = widget.report.clientName.isNotEmpty
         ? widget.report.clientName
-        : 'Madame, Monsieur';
+        : 'rs_dear_client'.tr();
     Share.share(
-      'Bonjour $client,\n\n'
-      'Voici le lien pour signer votre bon d\'intervention :\n'
-      '$_shareUrl\n\n'
-      'Sur cette page, dessinez votre signature puis entrez le code ci-dessous '
-      'lorsqu\'il vous est demandé :\n\n'
-      '     $_code\n\n'
-      'Ce lien est valable 48 heures.\n'
-      'Merci.',
+      'rs_share_text'.tr(args: [client, _shareUrl ?? '', _code ?? '']),
+      sharePositionOrigin: shareOrigin(context),
     );
   }
 
   void _copyLink() {
     Clipboard.setData(ClipboardData(
-      text: '$_shareUrl\nCode de validation : $_code',
+      text: 'rs_copy_text'.tr(args: [_shareUrl ?? '', _code ?? '']),
     ));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Lien et code copiés !')),
+      SnackBar(content: Text('rs_copied'.tr())),
     );
   }
 
@@ -193,8 +190,8 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
       const SizedBox(height: 24),
       const CircularProgressIndicator(),
       const SizedBox(height: 16),
-      const Text('Création du lien de signature…',
-          style: TextStyle(fontSize: 15)),
+      Text('rs_generating'.tr(),
+          style: const TextStyle(fontSize: 15)),
     ],
   );
 
@@ -204,14 +201,14 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
     children: [
       _handle(),
       const SizedBox(height: 8),
-      const Text(
-        'Signature distante',
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      Text(
+        'rs_title'.tr(),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         textAlign: TextAlign.center,
       ),
       const SizedBox(height: 4),
       Text(
-        'Envoyez ce lien à ${widget.report.clientName.isNotEmpty ? widget.report.clientName : "votre client"}',
+        'rs_send_to'.tr(args: [widget.report.clientName.isNotEmpty ? widget.report.clientName : 'rs_your_client'.tr()]),
         style: const TextStyle(fontSize: 13, color: Colors.black54),
         textAlign: TextAlign.center,
       ),
@@ -227,8 +224,8 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
         ),
         child: Column(
           children: [
-            const Text('Code de validation',
-                style: TextStyle(fontSize: 12, color: Colors.black54)),
+            Text('rs_validation_code'.tr(),
+                style: const TextStyle(fontSize: 12, color: Colors.black54)),
             const SizedBox(height: 6),
             Text(
               _code ?? '',
@@ -241,9 +238,9 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Le client doit entrer ce code après avoir signé',
-              style: TextStyle(fontSize: 11, color: Colors.black45),
+            Text(
+              'rs_enter_code_after'.tr(),
+              style: const TextStyle(fontSize: 11, color: Colors.black45),
               textAlign: TextAlign.center,
             ),
           ],
@@ -256,7 +253,7 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
           child: OutlinedButton.icon(
             onPressed: _copyLink,
             icon: const Icon(Icons.copy_outlined, size: 18),
-            label: const Text('Copier'),
+            label: Text('pw_copy'.tr()),
           ),
         ),
         const SizedBox(width: 10),
@@ -264,23 +261,23 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
           child: FilledButton.icon(
             onPressed: _share,
             icon: const Icon(Icons.share_outlined, size: 18),
-            label: const Text('Partager'),
+            label: Text('td_share_btn'.tr()),
           ),
         ),
       ]),
 
       const SizedBox(height: 20),
       // Waiting indicator
-      const Row(
+      Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
+          const SizedBox(
             width: 16, height: 16,
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
-          SizedBox(width: 10),
-          Text('En attente de la signature…',
-              style: TextStyle(fontSize: 13, color: Colors.black54)),
+          const SizedBox(width: 10),
+          Text('rs_awaiting_sig'.tr(),
+              style: const TextStyle(fontSize: 13, color: Colors.black54)),
         ],
       ),
 
@@ -288,7 +285,7 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
       FilledButton.icon(
         onPressed: _suspend,
         icon: const Icon(Icons.arrow_back_outlined, size: 18),
-        label: const Text('Fermer et continuer plus tard'),
+        label: Text('rs_close_later'.tr()),
         style: FilledButton.styleFrom(
           minimumSize: const Size.fromHeight(44),
         ),
@@ -296,8 +293,8 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
       const SizedBox(height: 6),
       TextButton(
         onPressed: _cancel,
-        child: const Text('Annuler la demande',
-            style: TextStyle(color: Colors.black38, fontSize: 13)),
+        child: Text('rs_cancel_request'.tr(),
+            style: const TextStyle(color: Colors.black38, fontSize: 13)),
       ),
     ],
   );
@@ -310,12 +307,12 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
       const Icon(Icons.check_circle_outline,
           color: Colors.green, size: 56),
       const SizedBox(height: 12),
-      const Text('Signature reçue !',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,
+      Text('rs_received'.tr(),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold,
               color: Colors.green)),
       const SizedBox(height: 6),
-      const Text('Le rapport est maintenant verrouillé.',
-          style: TextStyle(color: Colors.black54)),
+      Text('rs_locked'.tr(),
+          style: const TextStyle(color: Colors.black54)),
     ],
   );
 
@@ -328,13 +325,13 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
       const Icon(Icons.error_outline, color: Colors.red, size: 48),
       const SizedBox(height: 8),
       Text(
-        _error ?? 'Une erreur est survenue.',
+        _error ?? 'rs_error_generic'.tr(),
         textAlign: TextAlign.center,
         style: const TextStyle(color: Colors.red),
       ),
       const SizedBox(height: 16),
-      FilledButton(onPressed: _generate, child: const Text('Réessayer')),
-      TextButton(onPressed: _cancel, child: const Text('Annuler')),
+      FilledButton(onPressed: _generate, child: Text('rs_retry'.tr())),
+      TextButton(onPressed: _cancel, child: Text('common_cancel'.tr())),
     ],
   );
 

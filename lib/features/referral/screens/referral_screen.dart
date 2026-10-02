@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../shared/utils/share_origin.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/services/referral_service.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -30,7 +31,7 @@ class ReferralScreen extends ConsumerWidget {
               tooltip: 'Partager mon code',
               onPressed: () async {
                 final code = await ReferralService.getOrCreateCode(uid);
-                shareReferralCode(code);
+                shareReferralCode(code, context: context);
               },
             ),
         ],
@@ -44,7 +45,7 @@ class ReferralScreen extends ConsumerWidget {
 
 // (#11) Partage du code de parrainage — réutilisé par l'icône AppBar et la
 // tuile « Mon code de parrainage » (un seul texte, jamais désynchronisé).
-void shareReferralCode(String code) {
+void shareReferralCode(String code, {BuildContext? context}) {
   Share.share(
     'Rejoins-moi sur Compte Rendu Technique Pro !\n'
     'Avant de t\'abonner, entre mon code :\n\n'
@@ -52,6 +53,7 @@ void shareReferralCode(String code) {
     'Si nous restons tous les deux abonnés, nous aurons chacun une réduction '
     'tous les mois.\n\n'
     'Pour l\'ajouter : Paramètres → Parrainage → Entrer un code.',
+    sharePositionOrigin: context != null ? shareOrigin(context) : null,
   );
 }
 
@@ -286,7 +288,7 @@ class _ReferralBodyState extends ConsumerState<ReferralBody> {
   void _shareCode() {
     final code = _myCode;
     if (code == null) return;
-    shareReferralCode(code);
+    shareReferralCode(code, context: context);
   }
 }
 

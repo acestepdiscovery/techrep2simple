@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +23,7 @@ class ProfileScreen extends ConsumerWidget {
     final user = ref.watch(firebaseUserProvider).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mon profil')),
+      appBar: AppBar(title: Text('settings_my_profile'.tr())),
       body: user == null
           ? Center(
               child: Padding(
@@ -31,11 +32,11 @@ class ProfileScreen extends ConsumerWidget {
                   Icon(Icons.account_circle_outlined,
                       size: 48, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
-                  const Text('Connectez-vous pour gérer votre compte.'),
+                  Text('profile_login_to_manage'.tr()),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: () => context.push('/auth'),
-                    child: const Text('Se connecter'),
+                    child: Text('auth_sign_in'.tr()),
                   ),
                 ]),
               ),
@@ -100,10 +101,10 @@ class _ProfileBody extends ConsumerWidget {
           ),
         ),
 
-        const _Header('Compte'),
+        _Header('settings_section_account'.tr()),
         ListTile(
           leading: const Icon(Icons.email_outlined, color: AppColors.primary),
-          title: const Text('Changer d\'adresse email'),
+          title: Text('profile_change_email'.tr()),
           subtitle: Text(email, style: const TextStyle(fontSize: 12)),
           trailing: const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
           onTap: () => _changeEmail(context),
@@ -111,21 +112,21 @@ class _ProfileBody extends ConsumerWidget {
         if (_isPasswordUser)
           ListTile(
             leading: const Icon(Icons.lock_outline, color: AppColors.primary),
-            title: const Text('Changer mon mot de passe'),
+            title: Text('profile_change_password'.tr()),
             trailing: const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
             onTap: () => _changePassword(context),
           ),
 
-        const _Header('Session'),
+        _Header('profile_session'.tr()),
         ListTile(
           leading: const Icon(Icons.logout, color: Colors.orange),
-          title: const Text('Se déconnecter'),
+          title: Text('settings_disconnect'.tr()),
           onTap: () => _signOut(context, ref),
         ),
         ListTile(
           leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
-          title: const Text('Supprimer mon compte',
-              style: TextStyle(color: Colors.red)),
+          title: Text('profile_delete_account'.tr(),
+              style: const TextStyle(color: Colors.red)),
           onTap: () => _deleteAccount(context, ref),
         ),
         const SizedBox(height: 32),
@@ -139,27 +140,26 @@ class _ProfileBody extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: const Text('Changer d\'adresse email'),
+        title: Text('profile_change_email'.tr()),
         content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Email actuel : ${user.email ?? '—'}',
+          Text('profile_current_email'.tr(args: [user.email ?? '—']),
               style: const TextStyle(color: Colors.grey, fontSize: 13)),
           const SizedBox(height: 12),
           TextField(
             controller: ctrl,
             keyboardType: TextInputType.emailAddress,
             autofocus: true,
-            decoration: const InputDecoration(labelText: 'Nouvelle adresse email', isDense: true),
+            decoration: InputDecoration(labelText: 'profile_new_email'.tr(), isDense: true),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Un email de confirmation sera envoyé à la nouvelle adresse. '
-            'La mise à jour prendra effet après validation.',
-            style: TextStyle(fontSize: 11, color: Colors.grey),
+          Text(
+            'profile_email_confirm_info'.tr(),
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
           ),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogCtx, false), child: const Text('Annuler')),
-          ElevatedButton(onPressed: () => Navigator.pop(dialogCtx, true), child: const Text('Envoyer')),
+          TextButton(onPressed: () => Navigator.pop(dialogCtx, false), child: Text('common_cancel'.tr())),
+          ElevatedButton(onPressed: () => Navigator.pop(dialogCtx, true), child: Text('common_send'.tr())),
         ],
       ),
     );
@@ -173,15 +173,15 @@ class _ProfileBody extends ConsumerWidget {
         ]),
       }, SetOptions(merge: true));
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Email de confirmation envoyé. Vérifiez votre nouvelle boîte mail.'),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('profile_email_sent'.tr()),
           backgroundColor: Colors.green,
         ));
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Erreur : ${e.toString().replaceFirst('Exception: ', '')}'),
+          content: Text('common_error'.tr(args: [e.toString().replaceFirst('Exception: ', '')])),
           backgroundColor: Colors.red,
         ));
       }
@@ -200,30 +200,30 @@ class _ProfileBody extends ConsumerWidget {
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          title: const Text('Changer mon mot de passe'),
+          title: Text('profile_change_password'.tr()),
           content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             TextField(controller: currentCtrl, obscureText: true,
-                decoration: const InputDecoration(labelText: 'Mot de passe actuel', isDense: true)),
+                decoration: InputDecoration(labelText: 'profile_current_password'.tr(), isDense: true)),
             const SizedBox(height: 10),
             TextField(controller: newCtrl, obscureText: true,
-                decoration: const InputDecoration(labelText: 'Nouveau mot de passe', isDense: true)),
+                decoration: InputDecoration(labelText: 'profile_new_password'.tr(), isDense: true)),
             const SizedBox(height: 10),
             TextField(controller: confirmCtrl, obscureText: true,
-                decoration: const InputDecoration(labelText: 'Confirmer le nouveau', isDense: true)),
+                decoration: InputDecoration(labelText: 'profile_confirm_new'.tr(), isDense: true)),
             if (error != null) ...[
               const SizedBox(height: 10),
               Text(error!, style: const TextStyle(color: Colors.red, fontSize: 12)),
             ],
           ]),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text('common_cancel'.tr())),
             FilledButton(
               onPressed: loading ? null : () async {
                 final current = currentCtrl.text;
                 final next = newCtrl.text;
-                if (current.isEmpty || next.isEmpty) { setS(() => error = 'Remplissez tous les champs.'); return; }
-                if (next.length < 6) { setS(() => error = 'Min. 6 caractères.'); return; }
-                if (next != confirmCtrl.text) { setS(() => error = 'Les mots de passe ne correspondent pas.'); return; }
+                if (current.isEmpty || next.isEmpty) { setS(() => error = 'profile_fill_all'.tr()); return; }
+                if (next.length < 6) { setS(() => error = 'auth_password_min'.tr()); return; }
+                if (next != confirmCtrl.text) { setS(() => error = 'profile_passwords_mismatch'.tr()); return; }
                 setS(() { loading = true; error = null; });
                 try {
                   final cred = EmailAuthProvider.credential(email: user.email ?? '', password: current);
@@ -231,24 +231,24 @@ class _ProfileBody extends ConsumerWidget {
                   await user.updatePassword(next);
                   if (ctx.mounted) {
                     Navigator.pop(ctx);
-                    ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
-                      content: Text('Mot de passe mis à jour.'), backgroundColor: Colors.green));
+                    ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+                      content: Text('profile_password_updated'.tr()), backgroundColor: Colors.green));
                   }
                 } on FirebaseAuthException catch (e) {
                   final msg = switch (e.code) {
-                    'wrong-password' || 'invalid-credential' => 'Mot de passe actuel incorrect.',
-                    'weak-password' => 'Nouveau mot de passe trop faible.',
-                    'requires-recent-login' => 'Reconnectez-vous puis réessayez.',
-                    _ => 'Erreur : ${e.code}',
+                    'wrong-password' || 'invalid-credential' => 'profile_wrong_current'.tr(),
+                    'weak-password' => 'profile_new_weak'.tr(),
+                    'requires-recent-login' => 'profile_relogin'.tr(),
+                    _ => 'common_error'.tr(args: [e.code]),
                   };
                   setS(() { error = msg; loading = false; });
                 } catch (_) {
-                  setS(() { error = 'Erreur inattendue.'; loading = false; });
+                  setS(() { error = 'profile_unexpected_error'.tr(); loading = false; });
                 }
               },
               child: loading
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Mettre à jour'),
+                  : Text('update_now'.tr()),
             ),
           ],
         ),
@@ -261,11 +261,11 @@ class _ProfileBody extends ConsumerWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Se déconnecter ?'),
-        content: const Text('Vous retournerez en mode hors ligne.'),
+        title: Text('profile_signout_q'.tr()),
+        content: Text('profile_signout_offline'.tr()),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dlg, false), child: const Text('Annuler')),
-          FilledButton(onPressed: () => Navigator.pop(dlg, true), child: const Text('Se déconnecter')),
+          TextButton(onPressed: () => Navigator.pop(dlg, false), child: Text('common_cancel'.tr())),
+          FilledButton(onPressed: () => Navigator.pop(dlg, true), child: Text('settings_disconnect'.tr())),
         ],
       ),
     );
@@ -308,25 +308,22 @@ class _ProfileBody extends ConsumerWidget {
       await showDialog<void>(
         context: context,
         builder: (dlg) => AlertDialog(
-          title: const Row(children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange),
-            SizedBox(width: 8),
-            Expanded(child: Text('Abonnement actif')),
+          title: Row(children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            const SizedBox(width: 8),
+            Expanded(child: Text('profile_active_sub'.tr())),
           ]),
           content: Text(
             hasRecurringTeam
-                ? 'Votre équipe a un abonnement mensuel en cours. Annulez-le d\'abord '
-                  '(sinon la carte continue d\'être débitée), puis revenez supprimer votre compte.'
-                : 'Vous avez un abonnement en cours. Pour éviter d\'être encore débité, '
-                  'annulez-le d\'abord via « Gérer l\'abonnement », puis revenez supprimer '
-                  'votre compte.',
+                ? 'profile_team_recurring'.tr()
+                : 'profile_personal_recurring'.tr(),
             style: const TextStyle(fontSize: 13),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dlg), child: const Text('Plus tard')),
+            TextButton(onPressed: () => Navigator.pop(dlg), child: Text('common_later'.tr())),
             FilledButton.icon(
               icon: const Icon(Icons.manage_accounts_outlined, size: 18),
-              label: const Text('Gérer l\'abonnement'),
+              label: Text('profile_manage_sub'.tr()),
               onPressed: () async {
                 Navigator.pop(dlg);
                 try {
@@ -338,7 +335,7 @@ class _ProfileBody extends ConsumerWidget {
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('Erreur : ${e.toString().replaceFirst('Exception: ', '')}')));
+                      content: Text('common_error'.tr(args: [e.toString().replaceFirst('Exception: ', '')]))));
                   }
                 }
               },
@@ -363,19 +360,15 @@ class _ProfileBody extends ConsumerWidget {
           context: context,
           builder: (dlg) => AlertDialog(
             icon: Icon(Icons.groups_outlined, color: Colors.orange.shade700),
-            title: const Text('Retirez d\'abord votre équipe'),
+            title: Text('profile_remove_team_first'.tr()),
             content: Text(
-              'Vous êtes le responsable d\'une équipe ($others autre(s) membre(s)). '
-              'Supprimer votre compte les laisserait sans responsable.\n\n'
-              'Retirez d\'abord tous les membres (onglet Équipe → Gérer), puis '
-              'revenez supprimer votre compte. Ils pourront alors créer leur '
-              'propre équipe.',
+              'profile_admin_block_desc'.tr(args: ['$others']),
               style: const TextStyle(fontSize: 13),
             ),
             actions: [
               FilledButton(
                   onPressed: () => Navigator.pop(dlg),
-                  child: const Text('Compris')),
+                  child: Text('common_understood'.tr())),
             ],
           ),
         );
@@ -391,10 +384,10 @@ class _ProfileBody extends ConsumerWidget {
       barrierDismissible: false,
       builder: (dlg) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
-          title: const Text('Supprimer mon compte'),
+          title: Text('profile_delete_account'.tr()),
           content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Cette action est irréversible. Toutes vos données seront supprimées.',
-                style: TextStyle(fontSize: 13)),
+            Text('profile_delete_irreversible'.tr(),
+                style: const TextStyle(fontSize: 13)),
             if (hasPrepaid) ...[
               const SizedBox(height: 10),
               Container(
@@ -404,15 +397,14 @@ class _ProfileBody extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  '⚠️ Vous avez un accès prépayé (à vie ou plusieurs mois) encore valable. '
-                  'Il sera définitivement perdu, sans remboursement.',
+                  'profile_prepaid_warn'.tr(),
                   style: TextStyle(fontSize: 12, color: Colors.orange.shade900),
                 ),
               ),
             ],
             const SizedBox(height: 16),
-            const Text('Tapez DELETE pour confirmer :',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+            Text('profile_type_delete'.tr(),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             TextField(
               controller: confirmCtrl,
@@ -422,11 +414,11 @@ class _ProfileBody extends ConsumerWidget {
             ),
           ]),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('common_cancel'.tr())),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: Colors.red),
               onPressed: confirmCtrl.text == 'DELETE' ? () => Navigator.pop(ctx, true) : null,
-              child: const Text('Supprimer définitivement'),
+              child: Text('profile_delete_permanently'.tr()),
             ),
           ],
         ),
@@ -452,7 +444,7 @@ class _ProfileBody extends ConsumerWidget {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(e2.code == 'wrong-password' || e2.code == 'invalid-credential'
-                    ? 'Mot de passe incorrect.' : 'Erreur : ${e2.code}'),
+                    ? 'profile_wrong_password'.tr() : 'common_error'.tr(args: [e2.code])),
                 backgroundColor: Colors.red));
             }
           }
@@ -460,14 +452,14 @@ class _ProfileBody extends ConsumerWidget {
           await FirebaseAuth.instance.signOut();
           await ref.read(teamStateProvider.notifier).clearTeam();
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Session expirée. Reconnectez-vous et réessayez de supprimer votre compte.'),
-              duration: Duration(seconds: 5)));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('profile_session_expired'.tr()),
+              duration: const Duration(seconds: 5)));
             context.go('/auth?mode=login');
           }
         }
       } else if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur : ${e.message}')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('common_error'.tr(args: ['${e.message}']))));
       }
     }
   }
@@ -477,14 +469,14 @@ class _ProfileBody extends ConsumerWidget {
     return showDialog<String>(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Confirmez votre mot de passe'),
+        title: Text('profile_confirm_password'.tr()),
         content: TextField(
           controller: ctrl, obscureText: true, autofocus: true,
-          decoration: const InputDecoration(labelText: 'Mot de passe', isDense: true),
+          decoration: InputDecoration(labelText: 'auth_field_password'.tr(), isDense: true),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dlg), child: const Text('Annuler')),
-          FilledButton(onPressed: () => Navigator.pop(dlg, ctrl.text), child: const Text('Confirmer')),
+          TextButton(onPressed: () => Navigator.pop(dlg), child: Text('common_cancel'.tr())),
+          FilledButton(onPressed: () => Navigator.pop(dlg, ctrl.text), child: Text('common_confirm'.tr())),
         ],
       ),
     );

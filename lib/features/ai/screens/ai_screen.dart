@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -107,9 +108,9 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     ref.invalidate(reportsProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('✨ Rapport amélioré créé'),
+        content: Text('ai_report_improved'.tr()),
         action: SnackBarAction(
-          label: 'Voir',
+          label: 'ai_view'.tr(),
           onPressed: () => context.push('/report/${result.newReportId}'),
         ),
       ),
@@ -210,7 +211,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Assistant IA'),
+        title: Text('ai_title'.tr()),
         actions: [
           if (_usedThisMonth > 0)
             Padding(
@@ -247,16 +248,16 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Intelligence Artificielle',
-                          style: TextStyle(
+                      Text('ai_header'.tr(),
+                          style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 16)),
                       const SizedBox(height: 3),
                       Text(
                         isSubscribed
-                            ? 'Fonctionnalité en bêta · $_usedThisMonth/$_quota utilisations ce mois'
-                            : 'Réservé aux abonnés',
+                            ? 'ai_beta_usage'.tr(args: ['$_usedThisMonth', '$_quota'])
+                            : 'ai_subscribers_only'.tr(),
                         style: const TextStyle(
                             color: Colors.white70, fontSize: 12),
                       ),
@@ -270,7 +271,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
             child: Text(
-              'Fonctionnalité en bêta · Offerte aux abonnés · Non garantie au-delà de la période bêta',
+              'ai_beta_note'.tr(),
               style: TextStyle(
                   fontSize: 11,
                   color: Colors.grey.shade500,
@@ -282,9 +283,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           // Feature 1 — Vocal
           _FeatureTile(
             icon: Icons.mic_outlined,
-            title: 'Rapport vocal',
-            description:
-                'Dictez votre intervention à voix haute. L\'IA remplit automatiquement le formulaire.',
+            title: 'ai_voice_title'.tr(),
+            description: 'ai_voice_desc'.tr(),
             onTap: _openVoiceSheet,
             locked: !isSubscribed,
             onLocked: _showPaywall,
@@ -293,9 +293,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           // Feature 2 — Photo
           _FeatureTile(
             icon: Icons.camera_alt_outlined,
-            title: 'Rapport depuis photo',
-            description:
-                'Photographiez un rapport papier ou un écran — l\'IA extrait toutes les informations.',
+            title: 'ai_photo_title'.tr(),
+            description: 'ai_photo_desc'.tr(),
             onTap: _openImageSheet,
             locked: !isSubscribed,
             onLocked: _showPaywall,
@@ -304,9 +303,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           // Feature 3 — Improve
           _FeatureTile(
             icon: Icons.auto_fix_high_outlined,
-            title: 'Améliorer un rapport',
-            description:
-                'Sélectionnez un rapport existant — l\'IA crée un duplicata corrigé et professionnel.',
+            title: 'ai_improve_title'.tr(),
+            description: 'ai_improve_desc'.tr(),
             onTap: _openImproveSheet,
             locked: !isSubscribed,
             onLocked: _showPaywall,
@@ -315,9 +313,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           // Feature 4 — Document
           _FeatureTile(
             icon: Icons.description_outlined,
-            title: 'Rapport depuis document',
-            description:
-                'Importez un fichier TXT ou PDF — l\'IA extrait les informations du document.',
+            title: 'ai_doc_title'.tr(),
+            description: 'ai_doc_desc'.tr(),
             onTap: _openDocumentSheet,
             locked: !isSubscribed,
             onLocked: _showPaywall,
@@ -466,7 +463,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
       if (!hasPermission) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Permission microphone refusée')),
+            SnackBar(content: Text('ai_mic_denied'.tr())),
           );
         }
         return;
@@ -519,11 +516,11 @@ class _VoiceSheetState extends State<_VoiceSheet> {
           children: [
             const _SheetHandle(),
             const SizedBox(height: 16),
-            const Text('Rapport vocal',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text('ai_voice_title'.tr(),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 8),
             Text(
-              'Appuyez sur le micro et décrivez votre intervention : client, équipement, travaux réalisés.',
+              'ai_voice_sheet_desc'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
             ),
@@ -560,7 +557,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Enregistrement prêt · ${_fmt(_elapsed)}',
+                  Text('ai_recording_ready'.tr(args: [_fmt(_elapsed)]),
                       style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                   const SizedBox(width: 8),
                   GestureDetector(
@@ -574,7 +571,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
                 ],
               )
             else
-              Text('Appuyez pour enregistrer',
+              Text('ai_tap_to_record'.tr(),
                   style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
             const SizedBox(height: 20),
             TextField(
@@ -582,7 +579,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
               enabled: !_loading,
               maxLines: 2,
               decoration: InputDecoration(
-                hintText: 'Note complémentaire (optionnelle) — ex : "le client s\'appelle Dupont"',
+                hintText: 'ai_note_hint_voice'.tr(),
                 hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade400),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -601,7 +598,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
                         child: CircularProgressIndicator(
                             strokeWidth: 2, color: Colors.white))
                     : const Icon(Icons.auto_awesome, size: 18),
-                label: Text(_loading ? 'Analyse en cours…' : 'Analyser l\'enregistrement'),
+                label: Text(_loading ? 'ai_analyzing'.tr() : 'ai_analyze_recording'.tr()),
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
               ),
           ],
@@ -668,11 +665,11 @@ class _ImageSheetState extends State<_ImageSheet> {
         children: [
           const _SheetHandle(),
           const SizedBox(height: 16),
-          const Text('Rapport depuis photo',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text('ai_photo_title'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 8),
           Text(
-            'Photographiez un rapport papier ou un formulaire manuscrit — l\'IA extrait les informations.',
+            'ai_photo_sheet_desc'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
@@ -702,7 +699,7 @@ class _ImageSheetState extends State<_ImageSheet> {
                     Icon(Icons.add_photo_alternate_outlined,
                         size: 36, color: Colors.grey.shade400),
                     const SizedBox(height: 6),
-                    Text('Aucune image sélectionnée',
+                    Text('ai_no_image'.tr(),
                         style: TextStyle(
                             color: Colors.grey.shade400, fontSize: 12)),
                   ],
@@ -716,7 +713,7 @@ class _ImageSheetState extends State<_ImageSheet> {
                 child: OutlinedButton.icon(
                   onPressed: _loading ? null : () => _pick(ImageSource.camera),
                   icon: const Icon(Icons.camera_alt_outlined, size: 18),
-                  label: const Text('Appareil photo'),
+                  label: Text('ai_camera'.tr()),
                 ),
               ),
               const SizedBox(width: 10),
@@ -724,7 +721,7 @@ class _ImageSheetState extends State<_ImageSheet> {
                 child: OutlinedButton.icon(
                   onPressed: _loading ? null : () => _pick(ImageSource.gallery),
                   icon: const Icon(Icons.photo_library_outlined, size: 18),
-                  label: const Text('Galerie'),
+                  label: Text('ai_gallery'.tr()),
                 ),
               ),
             ],
@@ -736,7 +733,7 @@ class _ImageSheetState extends State<_ImageSheet> {
               enabled: !_loading,
               maxLines: 2,
               decoration: InputDecoration(
-                hintText: 'Note complémentaire (optionnelle) — ex : "le n° de série est illisible, c\'est 12345"',
+                hintText: 'ai_note_hint_image'.tr(),
                 hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade400),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -754,7 +751,7 @@ class _ImageSheetState extends State<_ImageSheet> {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.auto_awesome, size: 18),
-              label: Text(_loading ? 'Analyse en cours…' : 'Analyser l\'image'),
+              label: Text(_loading ? 'ai_analyzing'.tr() : 'ai_analyze_image'.tr()),
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             ),
           ],
@@ -925,11 +922,11 @@ class _ImproveSheetState extends State<_ImproveSheet> {
         children: [
           const _SheetHandle(),
           const SizedBox(height: 16),
-          const Text('Améliorer un rapport',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text('ai_improve_title'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 8),
           Text(
-            'Choisissez un rapport. L\'IA crée un duplicata avec le texte corrigé et professionnel.',
+            'ai_improve_sheet_desc'.tr(),
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
@@ -942,7 +939,7 @@ class _ImproveSheetState extends State<_ImproveSheet> {
           else if (_reports!.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Text('Aucun rapport disponible.',
+              child: Text('ai_no_reports'.tr(),
                   style: TextStyle(color: Colors.grey.shade500)),
             )
           else ...[
@@ -963,7 +960,7 @@ class _ImproveSheetState extends State<_ImproveSheet> {
                       color: isSelected ? AppColors.primary : Colors.grey,
                     ),
                     title: Text(
-                      r.clientName.isEmpty ? 'Client non renseigné' : r.clientName,
+                      r.clientName.isEmpty ? 'ai_client_unset'.tr() : r.clientName,
                       style: TextStyle(
                           fontSize: 14,
                           fontWeight: isSelected
@@ -973,7 +970,7 @@ class _ImproveSheetState extends State<_ImproveSheet> {
                     subtitle: Text(
                       r.interventionType.isNotEmpty
                           ? r.interventionType
-                          : 'Sans type',
+                          : 'ai_no_type'.tr(),
                       style: const TextStyle(fontSize: 12),
                     ),
                     onTap: () => setState(() => _selected = r),
@@ -991,7 +988,7 @@ class _ImproveSheetState extends State<_ImproveSheet> {
               enabled: !_loading,
               maxLines: 2,
               decoration: InputDecoration(
-                hintText: 'Instruction prioritaire (optionnelle) — ex : "ne touche pas la description de la panne"',
+                hintText: 'ai_note_hint_improve'.tr(),
                 hintStyle: TextStyle(fontSize: 12, color: Colors.grey.shade400),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -1034,8 +1031,8 @@ class _ImproveSheetState extends State<_ImproveSheet> {
                           _recordingNote
                               ? _fmt(_noteElapsed)
                               : _noteAudioPath != null
-                                  ? 'Note audio · ${_fmt(_noteElapsed)}'
-                                  : 'Note audio',
+                                  ? 'ai_audio_note_dur'.tr(args: [_fmt(_noteElapsed)])
+                                  : 'ai_audio_note'.tr(),
                           style: TextStyle(
                               fontSize: 12,
                               color: _recordingNote
@@ -1066,10 +1063,10 @@ class _ImproveSheetState extends State<_ImproveSheet> {
                           strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.auto_fix_high, size: 18),
               label: Text(_loading
-                  ? 'Amélioration en cours…'
+                  ? 'ai_improving'.tr()
                   : _selected == null
-                      ? 'Sélectionnez un rapport'
-                      : 'Améliorer ce rapport'),
+                      ? 'ai_select_report'.tr()
+                      : 'ai_improve_this'.tr()),
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             ),
           ],
@@ -1088,27 +1085,26 @@ class _FieldsPreviewSheet extends StatelessWidget {
   const _FieldsPreviewSheet(
       {required this.fields, required this.onCreateReport});
 
-  static const _labels = {
-    'client_name': 'Client',
-    'client_address': 'Adresse',
-    'client_phone': 'Téléphone',
-    'client_contact': 'Contact sur place',
-    'contract_number': 'N° de contrat / référence',
-    'intervention_type': 'Type d\'intervention',
-    'date': 'Date',
-    'description': 'Description',
-    'observations': 'Observations',
-    'equipment_type': 'Type d\'équipement',
-    'equipment_brand': 'Marque',
-    'equipment_model': 'Modèle',
-    'equipment_serial': 'N° de série',
-    'start_time': 'Heure de début',
-    'end_time': 'Heure de fin',
-    'labor_hours': 'Heures travaillées',
-  };
-
   @override
   Widget build(BuildContext context) {
+    final labels = {
+      'client_name': 'ai_lbl_client'.tr(),
+      'client_address': 'field_address'.tr(),
+      'client_phone': 'cr_phone'.tr(),
+      'client_contact': 'ai_lbl_contact'.tr(),
+      'contract_number': 'ai_lbl_contract'.tr(),
+      'intervention_type': 'ai_lbl_intervention'.tr(),
+      'date': 'td_f_date'.tr(),
+      'description': 'td_f_description'.tr(),
+      'observations': 'td_f_observations'.tr(),
+      'equipment_type': 'ai_lbl_equip_type'.tr(),
+      'equipment_brand': 'ai_lbl_brand'.tr(),
+      'equipment_model': 'ai_lbl_model'.tr(),
+      'equipment_serial': 'ai_lbl_serial'.tr(),
+      'start_time': 'ai_lbl_start'.tr(),
+      'end_time': 'ai_lbl_end'.tr(),
+      'labor_hours': 'ai_lbl_labor'.tr(),
+    };
     final filled = fields.entries
         .where((e) => e.value.trim().isNotEmpty)
         .toList();
@@ -1126,14 +1122,14 @@ class _FieldsPreviewSheet extends StatelessWidget {
             children: [
               Icon(Icons.auto_awesome, color: Colors.amber.shade600, size: 20),
               const SizedBox(width: 8),
-              const Text('Informations extraites',
+              Text('ai_extracted_info'.tr(),
                   style:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                      const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            '${filled.length} champ${filled.length > 1 ? 's' : ''} rempli${filled.length > 1 ? 's' : ''}',
+            'ai_fields_filled'.plural(filled.length),
             style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
           ),
           const SizedBox(height: 16),
@@ -1151,7 +1147,7 @@ class _FieldsPreviewSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_labels[e.key] ?? e.key,
+                      Text(labels[e.key] ?? e.key,
                           style: TextStyle(
                               fontSize: 11,
                               color: Colors.grey.shade500,
@@ -1169,14 +1165,14 @@ class _FieldsPreviewSheet extends StatelessWidget {
           FilledButton.icon(
             onPressed: onCreateReport,
             icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('Créer ce rapport'),
+            label: Text('ai_create_this_report'.tr()),
             style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(48)),
           ),
           const SizedBox(height: 8),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text('common_cancel'.tr()),
           ),
         ],
       ),
@@ -1247,14 +1243,14 @@ class _DocumentSheetState extends State<_DocumentSheet> {
           companyId: widget.companyId,
         );
       } else {
-        setState(() { _loading = false; _error = 'Format non supporté.'; });
+        setState(() { _loading = false; _error = 'ai_unsupported_format'.tr(); });
         return;
       }
 
       if (!mounted) return;
       Navigator.pop(context, aiResult);
     } catch (e) {
-      if (mounted) setState(() { _loading = false; _error = 'Erreur : $e'; });
+      if (mounted) setState(() { _loading = false; _error = 'common_error'.tr(args: ['$e']); });
     }
   }
 
@@ -1267,19 +1263,19 @@ class _DocumentSheetState extends State<_DocumentSheet> {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         const _SheetHandle(),
         const SizedBox(height: 16),
-        const Text('Rapport depuis document',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        Text('ai_doc_title'.tr(),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         const SizedBox(height: 8),
-        const Text(
-          'Importez un fichier TXT ou PDF décrivant l\'intervention. L\'IA ne doit pas inventer — seul le contenu du document est utilisé.',
-          style: TextStyle(fontSize: 13, color: Colors.black54),
+        Text(
+          'ai_doc_sheet_desc'.tr(),
+          style: const TextStyle(fontSize: 13, color: Colors.black54),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 20),
         if (_loading) ...[
           const CircularProgressIndicator(),
           const SizedBox(height: 10),
-          Text('Analyse de "$_fileName" en cours…',
+          Text('ai_analyzing_file'.tr(args: ['$_fileName']),
               style: const TextStyle(fontSize: 13, color: Colors.black54)),
         ] else ...[
           if (_fileName != null) ...[
@@ -1298,13 +1294,13 @@ class _DocumentSheetState extends State<_DocumentSheet> {
           FilledButton.icon(
             onPressed: _pickAndSend,
             icon: const Icon(Icons.upload_file_outlined, size: 18),
-            label: const Text('Sélectionner un fichier (TXT, PDF)'),
+            label: Text('ai_select_file'.tr()),
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Formats supportés : .txt, .pdf\nFichier max recommandé : 10 pages / 50 Ko',
-            style: TextStyle(fontSize: 11, color: Colors.grey),
+          Text(
+            'ai_formats_note'.tr(),
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
         ],

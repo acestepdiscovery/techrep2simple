@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../subscription/subscription_provider.dart';
 import '../../subscription/paywall_bottom_sheet.dart';
@@ -19,12 +19,12 @@ class ArchiveScreen extends ConsumerWidget {
     final isPro = ref.watch(effectiveSubscriptionProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Archive')),
+      appBar: AppBar(title: Text('ar_title'.tr())),
       body: !isPro
           ? _ProGate()
           : ref.watch(reportsProvider).when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Erreur : $e')),
+                error: (e, _) => Center(child: Text('common_error'.tr(args: ['$e']))),
                 data: (allReports) {
                   final archivedIds = ref.watch(archivedReportsProvider);
                   final archived = allReports
@@ -35,9 +35,9 @@ class ArchiveScreen extends ConsumerWidget {
                       const _LocalStorageWarning(),
                       Expanded(
                         child: archived.isEmpty
-                            ? const Center(
-                                child: Text('Aucun rapport archivé.',
-                                    style: TextStyle(color: Colors.black54)))
+                            ? Center(
+                                child: Text('ar_no_archived'.tr(),
+                                    style: const TextStyle(color: Colors.black54)))
                             : ListView.separated(
                                 padding: const EdgeInsets.all(16),
                                 itemCount: archived.length,
@@ -66,22 +66,21 @@ class _ProGate extends StatelessWidget {
           children: [
             Icon(Icons.inventory_2_outlined, size: 56, color: Colors.grey.shade400),
             const SizedBox(height: 16),
-            const Text('L\'archive est réservée au Pro',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+            Text('ar_pro_only'.tr(),
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              'Passez Pro pour retrouver, restaurer et supprimer définitivement '
-              'vos rapports supprimés.',
+              'ar_pro_desc'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 20),
             FilledButton.icon(
               onPressed: () => PaywallBottomSheet.show(context,
-                  reason: 'L\'archive des rapports est une fonctionnalité Pro.'),
+                  reason: 'ar_pro_reason'.tr()),
               icon: const Icon(Icons.workspace_premium_outlined),
-              label: const Text('Voir Pro'),
+              label: Text('ar_see_pro'.tr()),
             ),
           ],
         ),
@@ -103,11 +102,7 @@ class _LocalStorageWarning extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            'Vos rapports sont stockés UNIQUEMENT sur cet appareil (l\'appli / le '
-            'téléphone) — ils ne sont PAS sauvegardés dans le cloud du développeur '
-            'ni liés à votre compte. Une suppression définitive est irréversible. '
-            'Pour un rapport d\'ÉQUIPE, la suppression ne retire que VOTRE copie : '
-            'la copie de l\'équipe reste visible par le responsable.',
+            'ar_local_warning'.tr(),
             style: TextStyle(fontSize: 11.5, color: Colors.amber.shade900),
           ),
         ),
@@ -125,19 +120,18 @@ class _ArchivedTile extends ConsumerWidget {
       context: context,
       builder: (dlg) => AlertDialog(
         icon: const Icon(Icons.delete_forever_outlined, color: Colors.red),
-        title: const Text('Supprimer définitivement ?'),
-        content: const Text(
-          'Ce rapport sera effacé pour de bon de cet appareil. '
-          'Cette action est IRRÉVERSIBLE.',
+        title: Text('ar_delete_forever_q'.tr()),
+        content: Text(
+          'ar_delete_forever_desc'.tr(),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dlg, false),
-              child: const Text('Annuler')),
+              child: Text('common_cancel'.tr())),
           FilledButton(
             onPressed: () => Navigator.pop(dlg, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Supprimer'),
+            child: Text('ar_delete'.tr()),
           ),
         ],
       ),
@@ -149,7 +143,7 @@ class _ArchivedTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dateStr = DateFormat('dd/MM/yyyy').format(report.date);
+    final dateStr = DateFormat.yMd().format(report.date);
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -165,7 +159,7 @@ class _ArchivedTile extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    report.clientName.isEmpty ? '(Sans client)' : report.clientName,
+                    report.clientName.isEmpty ? 'ar_no_client'.tr() : report.clientName,
                     style: const TextStyle(
                         fontWeight: FontWeight.w600, fontSize: 14),
                     overflow: TextOverflow.ellipsis,
@@ -183,13 +177,13 @@ class _ArchivedTile extends ConsumerWidget {
             ),
             IconButton(
               icon: const Icon(Icons.restore, color: AppColors.primary),
-              tooltip: 'Restaurer',
+              tooltip: 'ar_restore'.tr(),
               onPressed: () =>
                   ref.read(archivedReportsProvider.notifier).restore(report.id),
             ),
             IconButton(
               icon: const Icon(Icons.delete_forever_outlined, color: Colors.red),
-              tooltip: 'Supprimer définitivement',
+              tooltip: 'ar_delete_forever'.tr(),
               onPressed: () => _confirmDeleteForever(context, ref),
             ),
           ],
