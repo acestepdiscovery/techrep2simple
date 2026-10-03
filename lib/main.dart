@@ -40,7 +40,11 @@ void main() async {
     EasyLocalization(
       // Langues prises en charge. Ajouter une langue = ajouter sa Locale ici
       // ET déposer assets/translations/<code>.json. Rien d'autre.
-      supportedLocales: const [Locale('fr'), Locale('en'), Locale('de'), Locale('es')],
+      supportedLocales: const [
+        Locale('fr'), Locale('en'), Locale('de'), Locale('es'),
+        // 2026-10-03 (v1.2.0) : italien, néerlandais, polonais, portugais (Portugal).
+        Locale('it'), Locale('nl'), Locale('pl'), Locale('pt'),
+      ],
       path: 'assets/translations',
       // Langue de secours : si la langue du téléphone n'est pas prise en charge,
       // ou si une clé manque dans une traduction → on retombe sur le français.

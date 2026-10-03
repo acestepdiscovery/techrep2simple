@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../features/reports/models/sector_options.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+import 'pdf_fonts.dart';
 
 /// Generates a "validation PDF" from a frozen report snapshot.
 /// No image pixels — only placeholder rectangles with labels.
@@ -13,8 +13,9 @@ class ValidationPdfService {
   static Future<Uint8List> generate(Map<String, dynamic> snap) async {
     final doc = pw.Document();
 
-    final techFont = await PdfGoogleFonts.notoSansRegular();
-    final boldFont = await PdfGoogleFonts.notoSansBold();
+    // (2026-10-03) Polices embarquées dans l'app (avant : téléchargées → échouait hors connexion).
+    final techFont = await PdfFonts.regular();
+    final boldFont = await PdfFonts.bold();
 
     // ── Parse snapshot fields ─────────────────────────────────────────────────
     String s(String k) => (snap[k] as String? ?? '').trim();

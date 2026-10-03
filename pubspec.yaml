@@ -1,7 +1,7 @@
 name: reportnew1cld
 description: "Tech Report - Application de rapports d'intervention"
 publish_to: 'none'
-version: 1.1.0+15
+version: 1.2.0+16
 
 environment:
   sdk: ^3.9.2
@@ -120,3 +120,5 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/translations/
+    # Polices des PDF (Noto Sans, licence OFL — voir assets/fonts/OFL.txt)
+    - assets/fonts/

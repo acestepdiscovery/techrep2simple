@@ -13,6 +13,10 @@
 		<string>en</string>
 		<string>de</string>
 		<string>es</string>
+		<string>it</string>
+		<string>nl</string>
+		<string>pl</string>
+		<string>pt</string>
 	</array>
 	<key>CFBundleDisplayName</key>
 	<string>Compte Rendu Technique IA</string>

@@ -9,6 +9,7 @@ import '../../features/reports/models/report_model.dart';
 import '../../features/reports/models/sector_options.dart';
 import '../../features/reports/models/tax_options.dart';
 import '../../features/reports/models/currency_options.dart';
+import 'pdf_fonts.dart';
 
 class PdfService {
   static const _blue = PdfColor.fromInt(0xFF1565C0);
@@ -106,6 +107,7 @@ class PdfService {
     final doc = pw.Document(
       title: 'pdf_doc_title'.tr(args: [report.clientName]),
       author: companyName ?? 'Tech Report',
+      theme: await PdfFonts.theme(),
     );
 
     final baseStyle = pw.TextStyle(fontSize: 9);
@@ -189,6 +191,7 @@ class PdfService {
     final doc = pw.Document(
       title: 'pdf_doc_title'.tr(args: [report.clientName]),
       author: companyName ?? '',
+      theme: await PdfFonts.theme(),
     );
 
     doc.addPage(pw.MultiPage(
@@ -1032,7 +1035,7 @@ class PdfService {
     final tva = subtotal * effRate / 100;
     final total = subtotal + tva;
 
-    final doc = pw.Document();
+    final doc = pw.Document(theme: await PdfFonts.theme());
     doc.addPage(pw.Page(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.all(40),

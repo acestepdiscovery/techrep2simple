@@ -2257,6 +2257,10 @@ class _LanguageTileState extends State<_LanguageTile> {
     'en': 'English',
     'de': 'Deutsch',
     'es': 'Español',
+    'it': 'Italiano',
+    'nl': 'Nederlands',
+    'pl': 'Polski',
+    'pt': 'Português',
   };
 
   @override
@@ -2448,7 +2452,7 @@ class _VersionTileState extends State<_VersionTile> {
     return ListTile(
       leading: const Icon(Icons.info_outline),
       title: const Text('Version'),
-      trailing: const Text('1.1.0', style: TextStyle(color: Colors.grey)),
+      trailing: const Text('1.2.0', style: TextStyle(color: Colors.grey)),
       onTap: _onTap,
     );
   }
@@ -2492,7 +2496,7 @@ class _Stage2DialogState extends State<_Stage2Dialog> {
               child: Icon(Icons.memory, size: 48, color: Colors.grey),
             ),
           ),
-          const Text('Build 1.1.0 · raptech1',
+          const Text('Build 1.2.0 · raptech1',
               style: TextStyle(fontSize: 12, color: Colors.grey)),
         ],
       ),

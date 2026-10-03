@@ -191,6 +191,8 @@ String _languageToCountry(String? language) {
       return 'NL';
     case 'pt':
       return 'PT';
+    case 'pl':
+      return 'PL';
     default:
       return 'FR';
   }

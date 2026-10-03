@@ -49,6 +49,8 @@ String _languageCurrency(String? language) {
   switch (language) {
     case 'en':
       return 'GBP';
+    case 'pl':
+      return 'PLN';
     default:
       return 'EUR'; // fr/de/es/it/nl/pt… = zone euro par défaut
   }
