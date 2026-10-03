@@ -738,7 +738,7 @@ class PdfService {
     for (final m in report.materials) {
       rows.add(_tableRow(
         m.label,
-        '${m.quantity} × ${_money(m.unitPrice)} = '
+        '${formatQuantity(m.quantity)} × ${_money(m.unitPrice)} = '
             '${_money(m.total)}',
         baseStyle,
         boldStyle,
@@ -1176,7 +1176,7 @@ class PdfService {
             ),
           ...report.materials.asMap().entries.map((e) => _invoiceRow(
                 '${e.value.label}${e.value.reference.isNotEmpty ? 'pdf_ref_paren'.tr(args: [e.value.reference]) : ''}',
-                '${e.value.quantity}',
+                formatQuantity(e.value.quantity),
                 e.value.unitPrice,
                 e.value.total,
                 even: e.key.isEven,

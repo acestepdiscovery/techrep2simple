@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 /// Remote kill switch + version gating via Firestore REST API (no Firebase SDK needed).
 ///
@@ -9,6 +11,11 @@ import 'package:http/http.dart' as http;
 ///   min_build           (integer) = build number below this → force update (can't proceed)
 ///   latest_build        (integer) = build number below this → soft nudge (dismissable)
 ///   update_message      (string)  = shown in update dialogs
+///   CHAMP_xx            (string)  = (2026-10-03) version traduite d'un message, ex.
+///                                   update_message_de, message_it, broadcast_message_en.
+///                                   Sans traduction : message / update_message (rédigés en
+///                                   français) ne sont montrés qu'aux francophones, les autres
+///                                   voient le texte par défaut traduit de l'app.
 ///   update_url_android  (string)  = Play Store URL
 ///   update_url_ios      (string)  = App Store URL
 ///   broadcast_id        (string)  = unique ID per broadcast message (changes to re-show)
@@ -43,7 +50,7 @@ class KillSwitchResult {
     this.message = '',
     this.forceUpdate = false,
     this.softUpdate = false,
-    this.updateMessage = 'Une nouvelle version est disponible.',
+    this.updateMessage = '',
     this.updateUrlAndroid,
     this.updateUrlIos,
     this.broadcastId,
@@ -55,7 +62,7 @@ class KillSwitchResult {
   factory KillSwitchResult.allowed({
     bool softUpdate = false,
     bool forceUpdate = false,
-    String updateMessage = 'Une nouvelle version est disponible.',
+    String updateMessage = '',
     String? updateUrlAndroid,
     String? updateUrlIos,
     String? broadcastId,
@@ -86,8 +93,7 @@ class KillSwitchService {
   static const _document = 'app_control';
   static const _activeValue = 'ACTIVE';
   static const _cacheDuration = Duration(minutes: 2);
-  static const _defaultBlockedMessage =
-      'Application temporairement indisponible.\nVeuillez contacter votre administrateur.';
+  static String get _defaultBlockedMessage => 'ks_blocked_default'.tr();
 
   static KillSwitchResult? _cache;
   static DateTime? _cacheTime;
@@ -132,19 +138,28 @@ class KillSwitchService {
         return null;
       }
 
+      // (2026-10-03) Messages par langue : champ « <clé>_<langue> » prioritaire.
+      // [genericIsFrench] : le champ générique est rédigé en français → réservé aux
+      // francophones ; les autres langues retombent sur le texte par défaut traduit.
+      final lang = (Intl.defaultLocale ?? 'fr').split(RegExp('[_-]')).first;
+      String? localized(String key, {bool genericIsFrench = false}) =>
+          _str('${key}_$lang') ??
+          ((genericIsFrench && lang != 'fr') ? null : _str(key));
+
       final status = _str('status');
 
       // Kill switch: app blocked entirely
       if (status != _activeValue) {
         return _cacheAndReturn(KillSwitchResult.blocked(
-          _str('message') ?? _defaultBlockedMessage,
+          localized('message', genericIsFrench: true) ?? _defaultBlockedMessage,
         ));
       }
 
       // Version gating
       final minBuild = _int('min_build');
       final latestBuild = _int('latest_build');
-      final updateMsg = _str('update_message') ?? 'Une nouvelle version est disponible.';
+      final updateMsg = localized('update_message', genericIsFrench: true) ??
+          'ks_update_default'.tr();
       final urlAndroid = _str('update_url_android');
       final urlIos = _str('update_url_ios');
 
@@ -154,14 +169,14 @@ class KillSwitchService {
 
       // Broadcast message
       final broadcastId = _str('broadcast_id');
-      final broadcastMsg = _str('broadcast_message');
+      final broadcastMsg = localized('broadcast_message');
       final broadcastMaxBuild = _int('broadcast_max_build');
       final broadcastActive = broadcastId != null && broadcastMsg != null &&
           (broadcastMaxBuild == null || currentBuild <= broadcastMaxBuild);
 
       // Banner (persistent top message on reports list)
       final bannerId = _str('banner_id');
-      final bannerMsg = _str('banner_message');
+      final bannerMsg = localized('banner_message');
       final bannerActive = bannerId != null && bannerId.isNotEmpty &&
           bannerMsg != null && bannerMsg.isNotEmpty;
 

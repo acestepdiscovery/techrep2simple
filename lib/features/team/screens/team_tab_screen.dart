@@ -39,7 +39,7 @@ class _EmptyTeamState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Équipe')),
+      appBar: AppBar(title: Text('nav_team'.tr())),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(28),

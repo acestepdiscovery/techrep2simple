@@ -504,7 +504,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
           .replaceAll(' ', '_')
           .replaceAll(RegExp(r'[^\w]'), '');
       final filename =
-          'rapport_${clientSlug}_${widget.report.id.substring(0, 8)}.pdf';
+          '${'file_report_prefix'.tr()}_${clientSlug}_${widget.report.id.substring(0, 8)}.pdf';
       await Printing.sharePdf(
           bytes: bytes, filename: filename, bounds: shareOrigin(context));
 
@@ -570,7 +570,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       );
       final dir = await getTemporaryDirectory();
       final invoiceNum =
-          'FAC-${report.reportNumber.toString().padLeft(3, '0')}-${DateTime.now().year}';
+          '${'pdf_invoice_prefix'.tr()}-${report.reportNumber.toString().padLeft(3, '0')}-${DateTime.now().year}';
       final file = File('${dir.path}/$invoiceNum.pdf');
       await file.writeAsBytes(bytes);
       await Share.shareXFiles(
@@ -682,7 +682,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
           .replaceAll(' ', '_')
           .replaceAll(RegExp(r'[^\w]'), '');
       final filename =
-          'rapport_${clientSlug}_${widget.report.id.substring(0, 8)}.pdf';
+          '${'file_report_prefix'.tr()}_${clientSlug}_${widget.report.id.substring(0, 8)}.pdf';
       final file = File('${dir.path}/$filename');
       await file.writeAsBytes(bytes);
       if (mounted) {
@@ -761,10 +761,10 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       buf.writeln('── ${'pdf_sec_billing'.tr()} ──');
       if (r.laborHours != null) {
         final labor = r.laborHours! * (r.laborRate ?? 0);
-        buf.writeln('${'pdf_lbl_labor'.tr()} : ${r.laborHours!.toStringAsFixed(1)} h × ${(r.laborRate ?? 0).toStringAsFixed(2)} €/h = ${labor.toStringAsFixed(2)} €');
+        buf.writeln('${'pdf_lbl_labor'.tr()} : ${formatQuantity(r.laborHours!)} h × ${_money(r.laborRate ?? 0)}/h = ${_money(labor)}');
       }
       for (final m in r.materials) {
-        buf.writeln('• ${m.label} × ${m.quantity} = ${m.total.toStringAsFixed(2)} €');
+        buf.writeln('• ${m.label} × ${formatQuantity(m.quantity)} = ${_money(m.total)}');
       }
       buf.writeln('${'pdf_total_ht'.tr()}${_totalStr(r)}');
     }
@@ -841,10 +841,10 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     if (r.laborHours != null) {
       final labor = r.laborHours! * (r.laborRate ?? 0);
       billingRows.write(row('pdf_lbl_labor'.tr(),
-          '${r.laborHours!.toStringAsFixed(1)} h × ${(r.laborRate ?? 0).toStringAsFixed(2)} €/h = ${labor.toStringAsFixed(2)} €'));
+          '${formatQuantity(r.laborHours!)} h × ${_money(r.laborRate ?? 0)}/h = ${_money(labor)}'));
     }
     for (final m in r.materials) {
-      billingRows.write(row(m.label, '${m.quantity} × ${m.unitPrice.toStringAsFixed(2)} € = ${m.total.toStringAsFixed(2)} €'));
+      billingRows.write(row(m.label, '${formatQuantity(m.quantity)} × ${_money(m.unitPrice)} = ${_money(m.total)}'));
     }
     if (billingRows.isNotEmpty) {
       billingRows.write(row('pdf_col_total'.tr(), _totalStr(r)));
@@ -905,7 +905,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
     try {
       final dir = await getTemporaryDirectory();
       final slug = r.clientName.replaceAll(RegExp(r'[^\w]'), '_');
-      final file = File('${dir.path}/rapport_${slug}_${r.id.substring(0, 8)}.html');
+      final file = File('${dir.path}/${'file_report_prefix'.tr()}_${slug}_${r.id.substring(0, 8)}.html');
       await file.writeAsString(html);
       await Share.shareXFiles([XFile(file.path, mimeType: 'text/html')],
           subject: 'tx_html_title'.tr(args: [r.reportNumber.toString().padLeft(3, '0')]),
@@ -955,7 +955,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
                   Navigator.pop(ctx);
                   Share.share(
                     _buildJsonReport(),
-                    subject: 'Rapport #${widget.report.reportNumber.toString().padLeft(3, '0')}.json',
+                    subject: '${'tx_html_title'.tr(args: [widget.report.reportNumber.toString().padLeft(3, '0')])}.json',
                     sharePositionOrigin: shareOrigin(context),
                   );
                 },
@@ -1015,7 +1015,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
           .replaceAll(' ', '_')
           .replaceAll(RegExp(r'[^\w]'), '');
       final filename =
-          'rapport_${slug}_${widget.report.id.substring(0, 8)}.pdf';
+          '${'file_report_prefix'.tr()}_${slug}_${widget.report.id.substring(0, 8)}.pdf';
 
       final link = await GoogleDriveService.uploadPdf(
         bytes,
@@ -1194,7 +1194,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
             .replaceAll(' ', '_')
             .replaceAll(RegExp(r'[^\w]'), '');
         final filename =
-            'rapport_${slug}_${widget.report.id.substring(0, 8)}.pdf';
+            '${'file_report_prefix'.tr()}_${slug}_${widget.report.id.substring(0, 8)}.pdf';
         return OneDriveService.uploadPdf(
           bytes,
           filename,
@@ -1218,7 +1218,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
             .replaceAll(' ', '_')
             .replaceAll(RegExp(r'[^\w]'), '');
         final filename =
-            'rapport_${slug}_${widget.report.id.substring(0, 8)}.pdf';
+            '${'file_report_prefix'.tr()}_${slug}_${widget.report.id.substring(0, 8)}.pdf';
         return DropboxService.uploadPdf(
           bytes,
           filename,
@@ -1647,7 +1647,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
         onShareJson: () => Share.share(
           _buildJsonReport(),
           subject:
-              'Rapport #${widget.report.reportNumber.toString().padLeft(3, '0')}.json',
+              '${'tx_html_title'.tr(args: [widget.report.reportNumber.toString().padLeft(3, '0')])}.json',
           sharePositionOrigin: shareOrigin(context),
         ),
         onShareHtml: _shareAsHtml,
@@ -1698,7 +1698,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Modifier',
+            tooltip: 'cr_modify'.tr(),
             onPressed: () => _onEditPressed(context, report),
           ),
           PopupMenuButton<String>(
@@ -1956,14 +1956,14 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
               children: [
                 if (report.laborHours != null) ...[
                   _InfoRow('cr_labor'.tr(),
-                      '${report.laborHours!.toStringAsFixed(1)} h × '
-                      '${(report.laborRate ?? 0).toStringAsFixed(2)} €/h = '
-                      '${(report.laborHours! * (report.laborRate ?? 0)).toStringAsFixed(2)} €'),
+                      '${formatQuantity(report.laborHours!)} h × '
+                      '${_money(report.laborRate ?? 0)}/h = '
+                      '${_money(report.laborHours! * (report.laborRate ?? 0))}'),
                 ],
                 ...report.materials.map((m) => _InfoRow(
                     m.label,
-                    '${m.quantity} × ${m.unitPrice.toStringAsFixed(2)} € = '
-                    '${m.total.toStringAsFixed(2)} €')),
+                    '${formatQuantity(m.quantity)} × ${_money(m.unitPrice)} = '
+                    '${_money(m.total)}')),
                 const Divider(height: 12),
                 _InfoRow(
                   'cr_total_ht'.tr(),
@@ -2449,8 +2449,16 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
   String _totalStr(ReportModel r) {
     final labor = (r.laborHours ?? 0) * (r.laborRate ?? 0);
     final mats = r.materials.fold<double>(0, (a, m) => a + m.total);
-    return '${(labor + mats).toStringAsFixed(2)} €';
+    return _money(labor + mats);
   }
+
+  /// (2026-10-03) Montant dans la devise réglée, au format de la langue — même
+  /// logique que le PDF (avant : « € » et point décimal écrits en dur ici, donc
+  /// faux dans l'écran, l'export texte et l'export HTML hors zone euro).
+  String _money(num v) => formatMoney(v,
+      code: resolveCurrencyCode(ref.read(settingsProvider).valueOrNull ?? {},
+          region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
+          language: Intl.defaultLocale));
 
   String _formatKey(String k) =>
       k.replaceAll('_', ' ').split(' ').map((w) {
@@ -2881,8 +2889,8 @@ class _ResubmitButtonState extends ConsumerState<_ResubmitButton> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Rapport resoumis ✓'),
+          SnackBar(
+            content: Text('rd_resubmitted'.tr()),
             backgroundColor: AppColors.statusSubmitted,
           ),
         );
@@ -2890,7 +2898,7 @@ class _ResubmitButtonState extends ConsumerState<_ResubmitButton> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur : $e')),
+          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
         );
       }
     } finally {
@@ -2909,6 +2917,6 @@ class _ResubmitButtonState extends ConsumerState<_ResubmitButton> {
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
               )
             : const Icon(Icons.send),
-        label: const Text('Resoumettre'),
+        label: Text('rd_resubmit'.tr()),
       );
 }

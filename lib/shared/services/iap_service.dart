@@ -9,6 +9,8 @@
 // We keep the SAME Cloud Function as Stripe (it just gains an /iap/verify-purchase
 // endpoint). Entitlement detection stays Firestore-based and source-agnostic.
 
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
+import 'package:intl/intl.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
@@ -105,16 +107,46 @@ class IapService {
     return productById(productId)?.fallbackPrice ?? '';
   }
 
+  /// (2026-10-03) Prix du store tel quel (devise locale), ou null si pas encore chargé.
+  String? storePrice(String productId) => _products[productId]?.price;
+
+  /// Formate un montant dans la devise du produit du store (ex. 2,40 € / £2.40 / 9,60 zł).
+  String? _fmtAmount(ProductDetails pd, double amount) {
+    try {
+      return NumberFormat.simpleCurrency(
+              name: pd.currencyCode, locale: Intl.defaultLocale)
+          .format(amount);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Prix PAR SIÈGE d'un palier équipe, calculé depuis le prix réel du store
+  /// (donc dans la devise de l'utilisateur) ; null si le prix n'est pas chargé.
+  String? perSeatPrice(IapProduct product) {
+    final pd = _products[product.id];
+    if (pd == null || product.seats <= 0) return null;
+    return _fmtAmount(pd, pd.rawPrice / product.seats);
+  }
+
+  /// Équivalent mensuel d'un abonnement de [months] mois (ex. annuel / 12) ;
+  /// null si le prix n'est pas chargé.
+  String? monthlyEquivalent(String productId, int months) {
+    final pd = _products[productId];
+    if (pd == null || months <= 0) return null;
+    return _fmtAmount(pd, pd.rawPrice / months);
+  }
+
   /// Starts a purchase. [companyId] is required for team brackets.
   /// Returns false immediately if it can't start (not logged in / no product).
   Future<bool> buy(IapProduct product, {String? companyId}) async {
     lastError.value = null;
     if (FirebaseAuth.instance.currentUser == null) {
-      lastError.value = 'Connectez-vous pour vous abonner.';
+      lastError.value = 'iap_err_login'.tr();
       return false;
     }
     if (product.isTeam && (companyId == null || companyId.isEmpty)) {
-      lastError.value = 'Aucune équipe sélectionnée.';
+      lastError.value = 'iap_err_no_team'.tr();
       return false;
     }
 
@@ -123,7 +155,7 @@ class IapService {
     final pd = _products[product.id];
     if (pd == null) {
       lastError.value =
-          'Produit indisponible (${product.id}). Réessayez plus tard.';
+          'iap_err_unavailable'.tr(args: [product.id]);
       return false;
     }
 
@@ -137,7 +169,7 @@ class IapService {
       final started = await _iap.buyNonConsumable(purchaseParam: param);
       if (!started) {
         busy.value = false;
-        lastError.value = 'Achat non démarré. Réessayez.';
+        lastError.value = 'iap_err_not_started'.tr();
       }
       return started;
     } catch (e) {
@@ -210,7 +242,7 @@ class IapService {
           break;
         case PurchaseStatus.error:
           busy.value = false;
-          lastError.value = p.error?.message ?? 'Erreur d\'achat.';
+          lastError.value = p.error?.message ?? 'iap_err_purchase'.tr();
           if (p.pendingCompletePurchase) await _iap.completePurchase(p);
           break;
         case PurchaseStatus.canceled:
@@ -275,8 +307,7 @@ class IapService {
         // 424 = receipt stored, validation pending (no live entitlement yet).
         if (resp.statusCode != 424 && showErrors) {
           lastError.value =
-              'Validation de l\'achat en cours. Si l\'accès ne s\'active pas, '
-              'utilisez « Restaurer mes achats ».';
+              'iap_validating'.tr();
         }
       } else if (showErrors) {
         // Achat FRAIS validé (200) → signale le succès pour que le paywall se ferme
@@ -290,7 +321,7 @@ class IapService {
       debugPrint('[IAP] verify error: $e');
       if (showErrors) {
         lastError.value =
-            'Réseau indisponible pour valider l\'achat. Réessayez « Restaurer ».';
+            'iap_err_network'.tr();
       }
     }
   }

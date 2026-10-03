@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
@@ -8,11 +9,11 @@ import 'package:printing/printing.dart';
 /// natif ne zoomait pas de façon fiable (surtout sur émulateur).
 class ZoomablePdfView extends StatefulWidget {
   final Uint8List bytes;
-  final String title;
+  final String? title; // null → « Aperçu PDF » traduit
   const ZoomablePdfView({
     super.key,
     required this.bytes,
-    this.title = 'Aperçu PDF',
+    this.title,
   });
 
   @override
@@ -60,20 +61,20 @@ class _ZoomablePdfViewState extends State<ZoomablePdfView> {
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(widget.title ?? 'cr_pdf_preview'.tr()),
         actions: [
           IconButton(
-            tooltip: 'Dézoomer',
+            tooltip: 'pdfv_zoom_out'.tr(),
             icon: const Icon(Icons.zoom_out),
             onPressed: _pages.isEmpty ? null : () => _zoom(1 / 1.3),
           ),
           IconButton(
-            tooltip: 'Zoomer',
+            tooltip: 'pdfv_zoom_in'.tr(),
             icon: const Icon(Icons.zoom_in),
             onPressed: _pages.isEmpty ? null : () => _zoom(1.3),
           ),
           IconButton(
-            tooltip: 'Réinitialiser le zoom',
+            tooltip: 'pdfv_zoom_reset'.tr(),
             icon: const Icon(Icons.center_focus_strong_outlined),
             onPressed:
                 _pages.isEmpty ? null : () => _tc.value = Matrix4.identity(),
@@ -84,7 +85,7 @@ class _ZoomablePdfViewState extends State<ZoomablePdfView> {
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text('Erreur d\'aperçu : $_error',
+                child: Text('pdfv_error'.tr(args: ['$_error']),
                     textAlign: TextAlign.center),
               ),
             )

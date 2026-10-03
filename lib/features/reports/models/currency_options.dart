@@ -89,3 +89,8 @@ String formatMoney(num amount, {String? code, String? locale}) {
   );
   return f.format(amount);
 }
+
+/// (2026-10-03) Quantité lisible : « 1 » au lieu de « 1.0 », séparateur décimal
+/// de la langue (« 1,5 » en français, « 1.5 » en anglais).
+String formatQuantity(num q, {String? locale}) =>
+    NumberFormat.decimalPattern(locale ?? Intl.defaultLocale).format(q);

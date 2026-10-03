@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../shared/services/iap_service.dart';
 import '../../shared/services/subscription_service.dart';
 import '../../shared/services/referral_service.dart';
 import '../../shared/services/team_service.dart';
@@ -497,7 +498,11 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
               const SizedBox(height: 2),
               Text(
                 canSubscribeTeam
-                    ? 'ss_unlimited_from'.tr()
+                    ? (!isTeam &&
+                            IapService.instance.monthlyEquivalent('pro_annual', 12) != null
+                        ? 'ss_unlimited_from'.tr(args: [
+                            IapService.instance.monthlyEquivalent('pro_annual', 12)!])
+                        : 'ss_unlimited_pro'.tr())
                     : 'ss_only_admin_subscribe'.tr(),
                 style: const TextStyle(
                   fontSize: 11,

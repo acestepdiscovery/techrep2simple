@@ -41,7 +41,7 @@ final settingsExpandCompanyProvider = StateProvider<int?>((ref) => null);
 Future<void> _openLegal(BuildContext context, String url) async {
   if (url.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Page bientôt disponible.')),
+      SnackBar(content: Text('pw_page_soon'.tr())),
     );
     return;
   }
@@ -289,20 +289,18 @@ class _TeamSettingsPointer extends ConsumerWidget {
             child: Row(children: [
               Icon(Icons.groups_outlined, color: AppColors.primary, size: 22),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Réglages de l\'équipe',
-                        style: TextStyle(
+                    Text('settings_team_settings_title'.tr(),
+                        style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary)),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Le nom et les infos de l\'ÉQUIPE (affichés sur les rapports '
-                      'd\'équipe et synchronisés avec tous vos techniciens) se '
-                      'modifient là-bas. Les réglages ci-dessous sont vos infos SOLO.',
-                      style: TextStyle(fontSize: 11),
+                      'settings_team_settings_desc'.tr(),
+                      style: const TextStyle(fontSize: 11),
                     ),
                   ],
                 ),
@@ -1192,22 +1190,24 @@ class _FolderPatternTile extends StatelessWidget {
   final Future<void> Function(String) onSave;
   const _FolderPatternTile({required this.current, required this.onSave});
 
+  // Jetons techniques (lus par les services cloud) → restent tels quels ;
+  // seuls les libellés affichés (clés de traduction) changent de langue.
   static const _tokens = [
-    ('{société}', 'Société'),
-    ('{technicien}', 'Technicien'),
-    ('{année}', 'Année'),
-    ('{mois}', 'Mois'),
+    ('{société}', 'fmt_token_company'),
+    ('{technicien}', 'field_technician'),
+    ('{année}', 'fmt_token_year'),
+    ('{mois}', 'fmt_token_month'),
     // (1.5) Séparateur de sous-dossier. Toujours « / » (chemin logique cloud,
     // pas d'antislash « \ » → aucun souci selon les versions de téléphone).
-    ('/', '/ (sous-dossier)'),
+    ('/', 'folder_tok_subfolder'),
   ];
 
-  static const _presets = [
-    ('Rapports techniques/{société}', 'Par société'),
-    ('Rapports techniques/{année}/{mois}', 'Par date'),
-    ('Rapports techniques/{société}/{année}', 'Société + année'),
-    ('{société}/Rapports/{technicien}', 'Société → technicien'),
-  ];
+  static List<(String, String)> get _presets => [
+        ('${'folder_root'.tr()}/{société}', 'folder_preset_by_company'.tr()),
+        ('${'folder_root'.tr()}/{année}/{mois}', 'folder_preset_by_date'.tr()),
+        ('${'folder_root'.tr()}/{société}/{année}', 'folder_preset_company_year'.tr()),
+        ('{société}/${'folder_reports'.tr()}/{technicien}', 'folder_preset_company_tech'.tr()),
+      ];
 
   void _insert(TextEditingController ctrl, String token, void Function(void Function()) setS) {
     final sel = ctrl.selection;
@@ -1239,8 +1239,8 @@ class _FolderPatternTile extends StatelessWidget {
                 const SizedBox(height: 10),
                 TextField(
                   controller: ctrl,
-                  decoration: const InputDecoration(
-                    hintText: 'Rapports techniques/{société}',
+                  decoration: InputDecoration(
+                    hintText: '${'folder_root'.tr()}/{société}',
                     isDense: true,
                   ),
                   onChanged: (_) => setS(() {}),
@@ -1254,7 +1254,7 @@ class _FolderPatternTile extends StatelessWidget {
                   children: [
                     for (final (token, label) in _tokens)
                       ActionChip(
-                        label: Text(label, style: const TextStyle(fontSize: 11)),
+                        label: Text(label.tr(), style: const TextStyle(fontSize: 11)),
                         avatar: const Icon(Icons.add, size: 14),
                         visualDensity: VisualDensity.compact,
                         onPressed: () => _insert(ctrl, token, setS),
@@ -1311,7 +1311,7 @@ class _FolderPatternTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.folder_special_outlined, color: AppColors.primary),
-      title: const Text('Dossier de destination des PDF'),
+      title: Text('settings_pdf_folder_dest'.tr()),
       subtitle: Text(
         current.isEmpty
             ? 'settings_cloud_path_default'.tr()
@@ -2451,7 +2451,7 @@ class _VersionTileState extends State<_VersionTile> {
   Widget build(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.info_outline),
-      title: const Text('Version'),
+      title: Text('settings_version'.tr()),
       trailing: const Text('1.2.0', style: TextStyle(color: Colors.grey)),
       onTap: _onTap,
     );
@@ -2484,7 +2484,7 @@ class _Stage2DialogState extends State<_Stage2Dialog> {
   Widget build(BuildContext context) {
     // Fenêtre volontairement anodine — rien n'indique la 2e manip.
     return AlertDialog(
-      title: const Text('Informations système'),
+      title: Text('special_sys_info'.tr()),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -2501,7 +2501,7 @@ class _Stage2DialogState extends State<_Stage2Dialog> {
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fermer')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text('common_close'.tr())),
       ],
     );
   }
@@ -2521,15 +2521,15 @@ class _SpecialCodeDialogState extends State<_SpecialCodeDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Row(children: [
-        Icon(Icons.vpn_key_outlined, color: AppColors.primary),
-        SizedBox(width: 8),
-        Text('Code spécial'),
+      title: Row(children: [
+        const Icon(Icons.vpn_key_outlined, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text('special_code_title'.tr()),
       ]),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text(
-          'Entrez un code spécial (cadeau ou réduction).',
-          style: TextStyle(fontSize: 13, color: Colors.black54),
+        Text(
+          'special_code_desc'.tr(),
+          style: const TextStyle(fontSize: 13, color: Colors.black54),
         ),
         const SizedBox(height: 12),
         TextField(
@@ -2537,7 +2537,7 @@ class _SpecialCodeDialogState extends State<_SpecialCodeDialog> {
           autofocus: true,
           textCapitalization: TextCapitalization.characters,
           decoration: InputDecoration(
-            labelText: 'Code',
+            labelText: 'special_code_label'.tr(),
             border: const OutlineInputBorder(),
             isDense: true,
             errorText: _error,
@@ -2546,13 +2546,13 @@ class _SpecialCodeDialogState extends State<_SpecialCodeDialog> {
         ),
       ]),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text('common_cancel'.tr())),
         FilledButton(
           onPressed: _loading ? null : _apply,
           child: _loading
               ? const SizedBox(width: 16, height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Valider'),
+              : Text('special_code_apply'.tr()),
         ),
       ],
     );

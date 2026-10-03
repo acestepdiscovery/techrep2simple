@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'dart:convert';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -101,8 +102,7 @@ class TeamService {
             .where((d) => d.data()['active'] as bool? ?? true)
             .length;
         if (activeCount >= seatLimit) {
-          throw Exception('Équipe complète ($activeCount/$seatLimit sièges). '
-              'Demandez à l\'administrateur d\'ajouter des sièges.');
+          throw Exception('team_err_full'.tr(args: ['$activeCount', '$seatLimit']));
         }
       } on FirebaseException {
         // Lecture refusée avant d'être membre → on laisse passer ; l'admin
@@ -182,10 +182,7 @@ class TeamService {
   Future<String?> checkRenameAllowed(String companyId) async {
     final count = await countCompanyReports(companyId);
     if (count >= kNameLockReports) {
-      return 'Le nom de l\'équipe est verrouillé : votre équipe a déjà produit '
-          '$count rapports sous ce nom.\n'
-          'Pour un changement justifié, contactez le support — la modification '
-          'n\'est pas garantie (mesure anti-fraude).';
+      return 'team_rename_locked'.tr(args: ['$count']);
     }
     return null;
   }
@@ -231,8 +228,13 @@ class TeamService {
     );
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
-      throw Exception(
-          body['message'] ?? body['error'] ?? 'Échec de l\'activation du membre');
+      // (2026-10-03) Le serveur renvoie un CODE + un message en français : on
+      // affiche la traduction du code (le message serveur n'est pas traduit).
+      throw Exception(switch (body['error']) {
+        'no_subscription' => 'td_no_seat_no_sub'.tr(),
+        'no_seat' => 'td_no_seat_title'.tr(),
+        _ => 'team_err_activate'.tr(),
+      });
     }
   }
 

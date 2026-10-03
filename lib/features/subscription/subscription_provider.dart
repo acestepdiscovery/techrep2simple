@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -172,26 +173,26 @@ extension SubscriptionX on Map<String, dynamic>? {
 
   String get planLabel {
     final sub = this;
-    if (sub == null) return 'Gratuit';
+    if (sub == null) return 'plan_free'.tr();
     final plan = sub['plan'] as String?;
     final status = sub['status'] as String?;
-    if (status == null || status == 'canceled') return 'Gratuit';
+    if (status == null || status == 'canceled') return 'plan_free'.tr();
     switch (plan) {
       case 'monthly':
-        return 'Mensuel';
+        return 'plan_monthly'.tr();
       case 'team_monthly':
-        return 'Mensuel (équipe)';
+        return 'plan_team_monthly'.tr();
       case 'annual':
-        return 'Annuel';
+        return 'plan_annual'.tr();
       case 'lifetime':
-        return 'À vie';
+        return 'plan_lifetime'.tr();
       case 'team_lifetime':
-        return 'À vie (équipe)';
+        return 'plan_team_lifetime'.tr();
       case 'custom_months':
         final months = sub['months_count'];
-        return months != null ? '$months mois' : 'Multi-mois';
+        return months is num ? 'plan_months'.plural(months) : 'plan_multi_months'.tr();
       default:
-        return 'Actif';
+        return 'plan_active'.tr();
     }
   }
 

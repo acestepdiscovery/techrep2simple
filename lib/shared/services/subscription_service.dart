@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -76,7 +77,7 @@ class SubscriptionService {
     String? companyId,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('Non connecté');
+    if (user == null) throw Exception('settings_not_logged_in'.tr());
     final idToken = await user.getIdToken();
 
     final body = <String, dynamic>{
@@ -99,7 +100,7 @@ class SubscriptionService {
     if (response.statusCode != 200) {
       final err =
           (jsonDecode(response.body) as Map<String, dynamic>)['error'] ??
-              'Erreur inconnue';
+              'common_unknown_error'.tr();
       throw Exception(err);
     }
 
@@ -109,7 +110,7 @@ class SubscriptionService {
 
   static Future<void> modifyTeamSeats(String companyId, int newSeats) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('Non connecté');
+    if (user == null) throw Exception('settings_not_logged_in'.tr());
     final idToken = await user.getIdToken();
 
     final response = await http.post(
@@ -124,7 +125,7 @@ class SubscriptionService {
     if (response.statusCode != 200) {
       final err =
           (jsonDecode(response.body) as Map<String, dynamic>)['error'] ??
-              'Erreur inconnue';
+              'common_unknown_error'.tr();
       throw Exception(err);
     }
   }
@@ -133,7 +134,7 @@ class SubscriptionService {
   /// type = 'grant' (appliqué immédiatement) | 'promo' (enregistré pour le checkout).
   static Future<(String, String)> redeemCode(String code) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('Non connecté');
+    if (user == null) throw Exception('settings_not_logged_in'.tr());
     final idToken = await user.getIdToken();
 
     final response = await http.post(
@@ -147,17 +148,17 @@ class SubscriptionService {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     if (response.statusCode != 200) {
-      throw Exception(data['error'] ?? 'Code invalide');
+      throw Exception(data['error'] ?? 'special_code_invalid'.tr());
     }
     return (data['type'] as String? ?? 'grant',
-        data['message'] as String? ?? 'Code appliqué !');
+        data['message'] as String? ?? 'special_code_applied'.tr());
   }
 
   /// [target] : 'personal' ou 'company' pour gérer indépendamment l'un OU
   /// l'autre abonnement quand l'utilisateur a les deux. null = défaut (perso).
   static Future<String> createPortalSession({String? target}) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('Non connecté');
+    if (user == null) throw Exception('settings_not_logged_in'.tr());
     final idToken = await user.getIdToken();
 
     final response = await http.post(
@@ -172,7 +173,7 @@ class SubscriptionService {
     if (response.statusCode != 200) {
       final err =
           (jsonDecode(response.body) as Map<String, dynamic>)['error'] ??
-              'Erreur inconnue';
+              'common_unknown_error'.tr();
       throw Exception(err);
     }
 

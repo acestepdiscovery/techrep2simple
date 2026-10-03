@@ -9,12 +9,17 @@
 // [PAUSED-REFERRAL] The referral/points system is commented out app-wide.
 // Flip kBillingChannel back to stripe (and uncomment the paused code) to revive it.
 
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
+
 enum BillingChannel { iap, stripe }
 
 /// The app bills through the stores. Keep IAP unless reviving the paused Stripe flow.
 const BillingChannel kBillingChannel = BillingChannel.iap;
 
 /// A purchasable store product.
+/// (2026-10-03) [label] / [subtitle] = CLÉS de traduction (solo) ; pour une équipe,
+/// [label] = clé « Jusqu'à {} membres » et [subtitle] = prix par siège de secours
+/// (euros) si le prix réel du store n'est pas chargé. Afficher via [displayLabel].
 class IapProduct {
   /// Store product identifier (must match App Store Connect + Google Play Console).
   final String id;
@@ -48,22 +53,22 @@ class IapProduct {
 // ── Solo products ───────────────────────────────────────────────────────────
 const IapProduct kProMonthly = IapProduct(
   id: 'pro_monthly',
-  label: 'Mensuel',
-  subtitle: 'Résiliable à tout moment',
+  label: 'plan_monthly',
+  subtitle: 'iap_pro_monthly_sub',
   fallbackPrice: '2,99 €/mois',
 );
 
 const IapProduct kProAnnual = IapProduct(
   id: 'pro_annual',
-  label: 'Annuel',
-  subtitle: 'Le plus avantageux — économisez ~30 %',
+  label: 'plan_annual',
+  subtitle: 'iap_pro_annual_sub',
   fallbackPrice: '24,99 €/an',
 );
 
 const IapProduct kProLifetime = IapProduct(
   id: 'pro_lifetime',
-  label: 'À vie',
-  subtitle: 'Accès permanent — payez une fois',
+  label: 'plan_lifetime',
+  subtitle: 'iap_pro_lifetime_sub',
   fallbackPrice: '149,99 €',
   isLifetime: true,
 );
@@ -74,32 +79,32 @@ const List<IapProduct> kSoloProducts = [kProMonthly, kProAnnual, kProLifetime];
 const List<IapProduct> kTeamProducts = [
   IapProduct(
     id: 'team_upto_2',
-    label: 'Jusqu\'à 2 membres',
-    subtitle: '3,00 €/siège',
+    label: 'iap_team_upto',
+    subtitle: '3,00 €',
     fallbackPrice: '5,99 €/mois',
     isTeam: true,
     seats: 2,
   ),
   IapProduct(
     id: 'team_upto_5',
-    label: 'Jusqu\'à 5 membres',
-    subtitle: '2,40 €/siège',
+    label: 'iap_team_upto',
+    subtitle: '2,40 €',
     fallbackPrice: '11,99 €/mois',
     isTeam: true,
     seats: 5,
   ),
   IapProduct(
     id: 'team_upto_10',
-    label: 'Jusqu\'à 10 membres',
-    subtitle: '2,00 €/siège',
+    label: 'iap_team_upto',
+    subtitle: '2,00 €',
     fallbackPrice: '19,99 €/mois',
     isTeam: true,
     seats: 10,
   ),
   IapProduct(
     id: 'team_upto_20',
-    label: 'Jusqu\'à 20 membres',
-    subtitle: '1,50 €/siège',
+    label: 'iap_team_upto',
+    subtitle: '1,50 €',
     fallbackPrice: '29,99 €/mois',
     isTeam: true,
     seats: 20,
@@ -125,4 +130,10 @@ IapProduct bracketForSeats(int memberCount) {
     if (memberCount <= p.seats) return p;
   }
   return kTeamProducts.last;
+}
+
+/// Libellés traduits d'une offre (2026-10-03).
+extension IapProductDisplay on IapProduct {
+  /// « Mensuel », « Jusqu'à 5 membres »… dans la langue de l'app.
+  String get displayLabel => isTeam ? label.tr(args: ['$seats']) : label.tr();
 }

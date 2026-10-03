@@ -50,6 +50,10 @@ void main() async {
       // ou si une clé manque dans une traduction → on retombe sur le français.
       fallbackLocale: const Locale('fr'),
       useFallbackTranslations: true,
+      // (2026-10-03) Vraies règles de pluriel de chaque langue (CLDR) : indispensable
+      // pour le polonais (1 / 2-4 / 5+ : « eksport / eksporty / eksportów »). Le
+      // défaut (true) ne connaissait que 0/1/2/autre → « 5 eksportu » faux.
+      ignorePluralRules: false,
       // Pas de startLocale → au 1er lancement, easy_localization suit la langue
       // du téléphone (puis mémorise le choix manuel fait dans Réglages).
       child: const ProviderScope(child: TechReportApp()),

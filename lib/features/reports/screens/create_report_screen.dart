@@ -419,7 +419,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Heure ${isStart ? 'de début' : 'de fin'} effacée'),
+        content: Text((isStart ? 'cr_time_start_cleared' : 'cr_time_end_cleared').tr()),
         duration: const Duration(seconds: 4),
         action: SnackBarAction(
           label: 'common_cancel'.tr(),
@@ -461,22 +461,15 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       builder: (dlg) => AlertDialog(
         icon: const Icon(Icons.send_to_mobile_outlined,
             color: AppColors.primary),
-        title: const Text('Signature à distance (Pro)'),
-        content: const Text(
-          'Pas besoin que le client soit présent : envoyez-lui un lien, il '
-          'signe depuis son téléphone, et la signature s\'ajoute toute seule '
-          'au rapport.\n\n'
-          '👉 Disponible une fois le rapport SOUMIS (bouton « Soumettre » en '
-          'bas) : ouvrez-le ensuite dans « Mes rapports » puis « Signature à '
-          'distance ».\n\n'
-          'Continuez votre rédaction tranquillement — le rapport est '
-          'enregistré en brouillon en temps réel, vous ne perdez rien.',
-          style: TextStyle(fontSize: 13, height: 1.4),
+        title: Text('cr_remote_info_title'.tr()),
+        content: Text(
+          'cr_remote_info_body'.tr(),
+          style: const TextStyle(fontSize: 13, height: 1.4),
         ),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(dlg),
-            child: const Text('Compris'),
+            child: Text('common_understood'.tr()),
           ),
         ],
       ),
@@ -485,10 +478,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
   Future<void> _openSignature(String slot) async {
     final titles = {
-      'clientStart': 'Client — Début d\'intervention',
-      'techStart': 'Technicien — Début d\'intervention',
-      'clientEnd': 'Client — Fin d\'intervention',
-      'techEnd': 'Technicien — Fin d\'intervention',
+      'clientStart': 'cr_sig_title_client_start'.tr(),
+      'techStart': 'cr_sig_title_tech_start'.tr(),
+      'clientEnd': 'cr_sig_title_client_end'.tr(),
+      'techEnd': 'cr_sig_title_tech_end'.tr(),
     };
     final existing = {
       'clientStart': _sigClientStartData,
@@ -545,9 +538,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     final clients = ref.read(clientsProvider).valueOrNull ?? [];
     if (clients.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Aucun client dans l\'annuaire. Ajoutez-en un d\'abord.'),
+        SnackBar(
+          content: Text('cr_no_client_in_directory'.tr()),
         ),
       );
       return;
@@ -589,8 +581,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           dense: true,
-          title: const Text('SOUS CONTRAT ?',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          title: Text('cr_under_contract_q'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
           value: _sousContrat,
           onChanged: (v) => setState(() {
             _sousContrat = v;
@@ -601,15 +593,14 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         Row(children: [
           Icon(Icons.tune, size: 16, color: AppColors.primary),
           const SizedBox(width: 6),
-          const Text('Champs personnalisés',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          Text('cr_custom_fields'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         ]),
-        const Padding(
-          padding: EdgeInsets.only(top: 2, bottom: 6),
+        Padding(
+          padding: const EdgeInsets.only(top: 2, bottom: 6),
           child: Text(
-            'Ajoutez les lignes que vous voulez (intitulé + valeur) — elles '
-            'apparaissent dans le PDF.',
-            style: TextStyle(fontSize: 11.5, color: Colors.grey),
+            'cr_custom_fields_hint'.tr(),
+            style: const TextStyle(fontSize: 11.5, color: Colors.grey),
           ),
         ),
         ..._customRows.asMap().entries.map((e) {
@@ -624,10 +615,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                   flex: 2,
                   child: TextField(
                     controller: row.label,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isDense: true,
-                      labelText: 'Intitulé',
-                      border: OutlineInputBorder(),
+                      labelText: 'cr_custom_label'.tr(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -636,16 +627,16 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                   flex: 3,
                   child: TextField(
                     controller: row.value,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isDense: true,
-                      labelText: 'Valeur',
-                      border: OutlineInputBorder(),
+                      labelText: 'cr_custom_value'.tr(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 18),
-                  tooltip: 'Retirer',
+                  tooltip: 'cr_custom_remove'.tr(),
                   onPressed: () => setState(() {
                     _customRows.removeAt(i).dispose();
                     _scheduleAutoSave();
@@ -665,7 +656,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               _customRows.add(r);
             }),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Ajouter un champ'),
+            label: Text('cr_custom_add'.tr()),
           ),
         ),
       ],
@@ -1013,7 +1004,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   Future<void> _saveAsClient() async {
     if (_clientName.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Saisissez d\'abord un nom de client')),
+        SnackBar(content: Text('cr_enter_client_first'.tr())),
       );
       return;
     }
@@ -1032,7 +1023,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${client.name} ajouté à l\'annuaire ✓'),
+          content: Text('cr_client_added'.tr(args: [client.name])),
           backgroundColor: AppColors.success,
         ),
       );
@@ -1099,20 +1090,17 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         icon: const Icon(Icons.workspace_premium_outlined,
             color: AppColors.primary),
         title: Text(feature),
-        content: const Text(
-          'Les modèles de rapport sont réservés à la version Pro. Passez Pro '
-          'pour réutiliser vos rapports types et gagner du temps.',
-        ),
+        content: Text('cr_templates_pro_body'.tr()),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(dlg),
-              child: const Text('Plus tard')),
+              child: Text('common_later'.tr())),
           FilledButton(
             onPressed: () {
               Navigator.pop(dlg);
               PaywallBottomSheet.show(context, reason: feature);
             },
-            child: const Text('Voir Pro'),
+            child: Text('ar_see_pro'.tr()),
           ),
         ],
       ),
@@ -1124,18 +1112,18 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (dlg) => AlertDialog(
-        title: const Text('Sauvegarder comme modèle'),
+        title: Text('cr_save_template'.tr()),
         content: TextField(
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Nom du modèle',
-            hintText: 'Ex: Maintenance chaudière',
+          decoration: InputDecoration(
+            labelText: 'rd_template_name'.tr(),
+            hintText: 'cr_template_name_hint'.tr(),
           ),
           onChanged: (v) => name = v,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dlg, false), child: const Text('Annuler')),
-          TextButton(onPressed: () => Navigator.pop(dlg, true), child: const Text('Sauvegarder')),
+          TextButton(onPressed: () => Navigator.pop(dlg, false), child: Text('common_cancel'.tr())),
+          TextButton(onPressed: () => Navigator.pop(dlg, true), child: Text('common_save'.tr())),
         ],
       ),
     );
@@ -1149,7 +1137,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     await LocalDbService().savePreset(preset);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Modèle "${preset.name}" sauvegardé ✓'), backgroundColor: AppColors.success),
+        SnackBar(content: Text('rd_template_saved'.tr(args: [preset.name])), backgroundColor: AppColors.success),
       );
     }
   }
@@ -1159,14 +1147,14 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     if (!mounted) return;
     if (presets.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Aucun modèle sauvegardé')),
+        SnackBar(content: Text('cr_no_templates_saved'.tr())),
       );
       return;
     }
     final chosen = await showDialog<ReportPreset>(
       context: context,
       builder: (_) => SimpleDialog(
-        title: const Text('Charger un modèle'),
+        title: Text('cr_load_template'.tr()),
         children: [
           for (final p in presets)
             SimpleDialogOption(

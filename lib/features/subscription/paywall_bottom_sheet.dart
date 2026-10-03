@@ -363,8 +363,11 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                         ],
                         ...kTeamProducts.map((p) => _ProductTile(
                               icon: Icons.group_outlined,
-                              label: p.label,
-                              subtitle: p.subtitle,
+                              label: p.displayLabel,
+                              // Prix par siège calculé depuis le prix RÉEL du store
+                              // (devise de l'utilisateur) ; repli euros sinon.
+                              subtitle: 'iap_per_seat'.tr(
+                                  args: [_iap.perSeatPrice(p) ?? p.subtitle]),
                               price: _iap.priceLabel(p.id),
                               selected: _selectedTeamId == p.id,
                               onTap: () =>
@@ -425,13 +428,13 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                           child: Text(
                             () {
                               final label =
-                                  productById(currentSoloId)?.label ?? '';
+                                  productById(currentSoloId)?.displayLabel ?? '';
                               // (résilié) Abo en cours mais renouvellement coupé →
                               // on dit qu'il reste ACTIF jusqu'à la date, puis fin.
                               if (userSub?['cancel_at_period_end'] == true) {
                                 final e = userSub.periodEnd;
                                 final until = e != null
-                                    ? 'pw_until'.tr(args: ['${e.day}/${e.month}/${e.year}'])
+                                    ? 'pw_until'.tr(args: [DateFormat.yMd().format(e)])
                                     : '';
                                 return 'pw_sub_canceled'.tr(args: [label, until]);
                               }
@@ -448,8 +451,8 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                             icon: p.isLifetime
                                 ? Icons.all_inclusive
                                 : Icons.calendar_today_outlined,
-                            label: p.label,
-                            subtitle: p.subtitle,
+                            label: p.displayLabel,
+                            subtitle: p.subtitle.tr(),
                             price: _iap.priceLabel(p.id),
                             selected: _selectedSoloId == p.id,
                             active: p.id == currentSoloId,
@@ -980,7 +983,8 @@ class _NoTeamInfoCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 4),
-          Text('pw_team_from_price'.tr(),
+          Text('pw_team_from_price'.tr(args: [
+                  IapService.instance.storePrice('team_upto_2') ?? '5,99 €']),
               style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
           const SizedBox(height: 10),
           Text(

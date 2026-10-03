@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,9 +13,7 @@ class InstanceTokenGuard {
   static const _lastCheckKey = 'instance_token_last_check_ms';
   static final _cacheMs = Duration(minutes: kInstanceTokenCacheMinutes).inMilliseconds;
 
-  static const _defaultMessage =
-      'Cette version de démonstration n\'est plus active.\n'
-      'Merci de nous contacter pour accéder à l\'application.';
+  static String get _defaultMessage => 'itg_default_message'.tr();
 
   /// Returns (isBlocked, message). Fails open on network error.
   static Future<(bool, String)> check() async {
@@ -66,7 +65,7 @@ class InstanceTokenGuard {
       context: context,
       barrierDismissible: false,
       builder: (dlg) => AlertDialog(
-        title: const Text('Version non disponible'),
+        title: Text('itg_title'.tr()),
         content: Text(message, style: const TextStyle(height: 1.5)),
         actions: [
           FilledButton(

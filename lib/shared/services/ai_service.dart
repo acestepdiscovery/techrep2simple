@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
@@ -23,10 +24,10 @@ class AiActionResult {
   bool get isNetworkError => error != null && error!.startsWith('network_error');
 
   String get errorMessage {
-    if (isQuotaExceeded) return 'Quota mensuel atteint ($used/$quota utilisations).';
-    if (needsSubscription) return 'Cette fonctionnalité est réservée aux abonnés.';
-    if (isNetworkError) return 'Impossible de joindre le serveur. Vérifiez votre connexion.';
-    return 'Erreur inattendue. Réessayez dans quelques instants.';
+    if (isQuotaExceeded) return 'ai_err_quota'.tr(args: ['$used', '$quota']);
+    if (needsSubscription) return 'ai_err_subscription'.tr();
+    if (isNetworkError) return 'ai_err_network'.tr();
+    return 'ai_err_unexpected'.tr();
   }
 }
 

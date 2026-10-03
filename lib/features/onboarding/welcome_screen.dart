@@ -59,7 +59,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                AppStrings.appTagline,
+                'welcome_tagline'.tr(),
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme
