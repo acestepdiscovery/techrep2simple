@@ -9,7 +9,11 @@
 // const int kAppBuildNumber = 11;
 // const int kAppBuildNumber = 12;
 // const int kAppBuildNumber = 13;
-const int kAppBuildNumber = 14;
+// const int kAppBuildNumber = 14;
+// (2026-10-14) Resté à 14 depuis juin alors que pubspec était passé à +15/+16/+20 :
+// avec min_build/latest_build réglés à 20 dans config/app_control, la 1.2.0 se serait
+// crue périmée. Désormais vérifié par test/app_build_number_test.dart.
+const int kAppBuildNumber = 20;
 
 // Unique token baked into this specific build.
 // Change this value for each distinct distribution (demo, beta, prod release, etc.)
