@@ -243,7 +243,12 @@ class IapService {
           break;
         case PurchaseStatus.error:
           busy.value = false;
-          lastError.value = p.error?.message ?? 'iap_err_purchase'.tr();
+          // (2026-10-14) Message du store = anglais technique → texte traduit.
+          // « Déjà possédé » (Android) → inviter à « Restaurer mes achats ».
+          final raw = '${p.error?.code} ${p.error?.message} ${p.error?.details}'.toLowerCase();
+          lastError.value = raw.contains('alreadyowned') || raw.contains('already owned')
+              ? 'iap_err_already_owned'.tr(args: ['pw_restore'.tr()])
+              : 'iap_err_purchase'.tr();
           if (p.pendingCompletePurchase) await _iap.completePurchase(p);
           break;
         case PurchaseStatus.canceled:
@@ -302,7 +307,12 @@ class IapService {
           'Content-Type': 'application/json',
         },
         body: jsonEncode(body),
-      );
+      )
+          // (2026-10-14) Sans délai, un réseau qui pend empêchait de TERMINER la
+          // transaction (completePurchase, appelé après) ; Google rembourse un
+          // achat non confirmé sous 3 jours. Le serveur reçoit de toute façon les
+          // notifications du store (RTDN / App Store) et active l'accès.
+          .timeout(const Duration(seconds: 30));
       if (resp.statusCode != 200) {
         debugPrint('[IAP] verify failed ${resp.statusCode}: ${resp.body}');
         // 424 = receipt stored, validation pending (no live entitlement yet).

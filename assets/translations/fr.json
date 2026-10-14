@@ -554,7 +554,7 @@
   "pw_copy": "Copier",
 
   "tt_work_together_q": "Vous travaillez à plusieurs ?",
-  "tt_team_desc": "Une équipe permet à plusieurs techniciens d'une même entreprise d'utiliser l'app ensemble : identité d'entreprise commune sur les PDF, validation des rapports, et un abonnement mutualisé où le parrainage de chacun fait baisser la facture commune.",
+  "tt_team_desc": "Une équipe permet à plusieurs techniciens d'une même entreprise d'utiliser l'app ensemble : identité d'entreprise commune sur les PDF, validation des rapports et un abonnement unique pour toute l'équipe.",
   "tt_not_mandatory": "Ce n'est pas obligatoire — si vous travaillez seul, tout se passe dans Réglages.",
   "tt_create_join": "Créer ou rejoindre une équipe",
   "tc_saved": "Infos entreprise de l'équipe enregistrées ✓",
@@ -1259,5 +1259,6 @@
   "inv_insurance_hint": "Assureur, n° de contrat, zone couverte (ex. décennale)",
   "pdf_insurance": "Assurance professionnelle : {}",
   "cr_client_business_id": "N° SIREN / TVA du client (si entreprise)",
-  "pdf_client_business_id": "SIREN / N° TVA : {}"
+  "pdf_client_business_id": "SIREN / N° TVA : {}",
+  "iap_err_already_owned": "Vous possédez déjà cet achat : touchez « {} »."
 }

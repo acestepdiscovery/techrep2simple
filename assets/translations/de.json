@@ -554,7 +554,7 @@
   "pw_copy": "Kopieren",
 
   "tt_work_together_q": "Arbeiten Sie zu mehreren?",
-  "tt_team_desc": "Ein Team ermöglicht es mehreren Technikern desselben Unternehmens, die App gemeinsam zu nutzen: gemeinsame Firmenidentität auf den PDFs, Validierung der Berichte und ein gemeinsames Abonnement, bei dem die Empfehlung jedes Einzelnen die gemeinsame Rechnung senkt.",
+  "tt_team_desc": "Ein Team ermöglicht es mehreren Technikern desselben Unternehmens, die App gemeinsam zu nutzen: gemeinsame Firmenidentität auf den PDFs, Freigabe der Berichte und ein einziges Abo für das ganze Team.",
   "tt_not_mandatory": "Das ist nicht verpflichtend — wenn Sie allein arbeiten, läuft alles über die Einstellungen.",
   "tt_create_join": "Ein Team erstellen oder beitreten",
   "tc_saved": "Firmeninfos des Teams gespeichert ✓",
@@ -1259,5 +1259,6 @@
   "inv_insurance_hint": "Versicherer, Policennummer, Geltungsbereich",
   "pdf_insurance": "Berufshaftpflichtversicherung: {}",
   "cr_client_business_id": "USt-IdNr. / Steuernr. des Kunden (bei Firmen)",
-  "pdf_client_business_id": "USt-IdNr./Steuernr.: {}"
+  "pdf_client_business_id": "USt-IdNr./Steuernr.: {}",
+  "iap_err_already_owned": "Sie besitzen diesen Kauf bereits: Tippen Sie auf „{}“."
 }

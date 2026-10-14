@@ -554,7 +554,7 @@
   "pw_copy": "Kopiuj",
 
   "tt_work_together_q": "Pracujecie w kilka osób?",
-  "tt_team_desc": "Zespół pozwala kilku technikom z jednej firmy korzystać z aplikacji razem: wspólne dane firmy na PDF-ach, zatwierdzanie raportów i wspólna subskrypcja, w której polecenia każdego obniżają wspólny rachunek.",
+  "tt_team_desc": "Zespół pozwala kilku technikom z jednej firmy korzystać z aplikacji razem: wspólne dane firmy na PDF-ach, zatwierdzanie raportów i jedna subskrypcja dla całego zespołu.",
   "tt_not_mandatory": "To nie jest obowiązkowe — jeśli pracujesz w pojedynkę, wszystko ustawisz w Ustawieniach.",
   "tt_create_join": "Utwórz zespół lub dołącz do zespołu",
   "tc_saved": "Zapisano dane firmy zespołu ✓",
@@ -1265,5 +1265,6 @@
   "inv_insurance_hint": "Ubezpieczyciel, nr polisy, zakres terytorialny",
   "pdf_insurance": "Ubezpieczenie OC: {}",
   "cr_client_business_id": "NIP klienta (jeśli firma)",
-  "pdf_client_business_id": "NIP: {}"
+  "pdf_client_business_id": "NIP: {}",
+  "iap_err_already_owned": "Masz już ten zakup: dotknij „{}”."
 }

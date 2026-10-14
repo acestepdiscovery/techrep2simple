@@ -554,7 +554,7 @@
   "pw_copy": "Copy",
 
   "tt_work_together_q": "Working as a team?",
-  "tt_team_desc": "A team lets several technicians from the same company use the app together: a shared company identity on PDFs, report validation, and a pooled subscription where everyone's referrals lower the shared bill.",
+  "tt_team_desc": "A team lets several technicians from the same company use the app together: a shared company identity on PDFs, report validation and a single subscription for the whole team.",
   "tt_not_mandatory": "It's not mandatory — if you work alone, everything happens in Settings.",
   "tt_create_join": "Create or join a team",
   "tc_saved": "Team company info saved ✓",
@@ -1259,5 +1259,6 @@
   "inv_insurance_hint": "Insurer, policy number, area covered",
   "pdf_insurance": "Professional insurance: {}",
   "cr_client_business_id": "Customer company / VAT no. (if a business)",
-  "pdf_client_business_id": "Company / VAT no.: {}"
+  "pdf_client_business_id": "Company / VAT no.: {}",
+  "iap_err_already_owned": "You already own this purchase: tap “{}”."
 }

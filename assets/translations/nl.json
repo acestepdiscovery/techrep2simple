@@ -554,7 +554,7 @@
   "pw_copy": "Kopiëren",
 
   "tt_work_together_q": "Werken jullie met meerdere mensen?",
-  "tt_team_desc": "Met een team kunnen meerdere monteurs van hetzelfde bedrijf de app samen gebruiken: gemeenschappelijke bedrijfsgegevens op de pdf's, goedkeuring van werkbonnen en een gedeeld abonnement waarbij ieders verwijzingen de gezamenlijke rekening verlagen.",
+  "tt_team_desc": "Met een team kunnen meerdere monteurs van hetzelfde bedrijf de app samen gebruiken: gemeenschappelijke bedrijfsgegevens op de pdf's, goedkeuring van werkbonnen en één abonnement voor het hele team.",
   "tt_not_mandatory": "Het is niet verplicht — als je alleen werkt, regel je alles in Instellingen.",
   "tt_create_join": "Team aanmaken of lid worden",
   "tc_saved": "Bedrijfsgegevens van het team opgeslagen ✓",
@@ -1259,5 +1259,6 @@
   "inv_insurance_hint": "Verzekeraar, polisnummer, dekkingsgebied",
   "pdf_insurance": "Beroepsaansprakelijkheidsverzekering: {}",
   "cr_client_business_id": "KvK- / btw-nr. van de klant (bij een bedrijf)",
-  "pdf_client_business_id": "KvK / btw-nr.: {}"
+  "pdf_client_business_id": "KvK / btw-nr.: {}",
+  "iap_err_already_owned": "Je hebt deze aankoop al: tik op „{}”."
 }

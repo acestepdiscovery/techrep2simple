@@ -554,7 +554,7 @@
   "pw_copy": "Copiar",
 
   "tt_work_together_q": "¿Trabajáis varias personas?",
-  "tt_team_desc": "Un equipo permite que varios técnicos de una misma empresa usen la app juntos: identidad de empresa común en los PDF, validación de informes y una suscripción compartida donde la recomendación de cada uno reduce la factura común.",
+  "tt_team_desc": "Un equipo permite que varios técnicos de una misma empresa usen la app juntos: identidad de empresa común en los PDF, validación de informes y una única suscripción para todo el equipo.",
   "tt_not_mandatory": "No es obligatorio: si trabajas solo, todo se gestiona en Ajustes.",
   "tt_create_join": "Crear o unirse a un equipo",
   "tc_saved": "Datos de empresa del equipo guardados ✓",
@@ -1259,5 +1259,6 @@
   "inv_insurance_hint": "Aseguradora, n.º de póliza, ámbito cubierto",
   "pdf_insurance": "Seguro profesional: {}",
   "cr_client_business_id": "NIF del cliente (si es empresa)",
-  "pdf_client_business_id": "NIF: {}"
+  "pdf_client_business_id": "NIF: {}",
+  "iap_err_already_owned": "Ya tienes esta compra: toca «{}»."
 }

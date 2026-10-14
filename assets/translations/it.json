@@ -554,7 +554,7 @@
   "pw_copy": "Copia",
 
   "tt_work_together_q": "Lavorate in più persone?",
-  "tt_team_desc": "Un team permette a più tecnici della stessa azienda di usare l'app insieme: dati aziendali comuni sui PDF, approvazione dei rapporti e un abbonamento condiviso in cui le segnalazioni di ciascuno fanno scendere il costo comune.",
+  "tt_team_desc": "Un team permette a più tecnici della stessa azienda di usare l'app insieme: dati aziendali comuni sui PDF, approvazione dei rapporti e un unico abbonamento per tutto il team.",
   "tt_not_mandatory": "Non è obbligatorio — se lavori da solo, tutto si gestisce in Impostazioni.",
   "tt_create_join": "Crea o entra in un team",
   "tc_saved": "Dati aziendali del team salvati ✓",
@@ -1259,5 +1259,6 @@
   "inv_insurance_hint": "Assicuratore, n. di polizza, area coperta",
   "pdf_insurance": "Assicurazione professionale: {}",
   "cr_client_business_id": "P. IVA / C.F. del cliente (se azienda)",
-  "pdf_client_business_id": "P. IVA / C.F.: {}"
+  "pdf_client_business_id": "P. IVA / C.F.: {}",
+  "iap_err_already_owned": "Possiedi già questo acquisto: tocca «{}»."
 }
