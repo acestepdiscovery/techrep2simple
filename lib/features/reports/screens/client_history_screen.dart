@@ -86,7 +86,7 @@ class _HistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateStr =
-        '${report.date.day.toString().padLeft(2, '0')}/${report.date.month.toString().padLeft(2, '0')}/${report.date.year}';
+        DateFormat.yMd().format(report.date);
 
     Color statusColor;
     String statusLabel;

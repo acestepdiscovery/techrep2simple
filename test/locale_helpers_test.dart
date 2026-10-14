@@ -14,6 +14,7 @@ import 'package:reportnew1cld/features/reports/models/currency_options.dart';
 import 'package:reportnew1cld/features/reports/models/report_model.dart';
 import 'package:reportnew1cld/features/reports/models/sector_options.dart';
 import 'package:reportnew1cld/shared/services/pdf_service.dart';
+import 'package:reportnew1cld/shared/utils/file_slug.dart';
 
 void _useLanguage(String lang) {
   final m = json.decode(File('assets/translations/$lang.json').readAsStringSync())
@@ -80,5 +81,15 @@ void main() {
         id: 'y', reportNumber: 8, clientName: 'C', date: DateTime(2026, 12, 30),
         createdAt: DateTime(2026), updatedAt: DateTime(2026));
     expect(PdfService.invoiceNumber(single), endsWith('-008-2026'));
+  });
+
+  test('fileSlug : accents retirés, pas de lettres perdues', () {
+    expect(fileSlug('Müller GmbH'), 'Muller_GmbH');
+    expect(fileSlug('Société Générale'), 'Societe_Generale');
+    expect(fileSlug('Łukasz Żółć'), 'Lukasz_Zolc');
+    expect(fileSlug("l’Hôtel « Côte » & Fils"), 'l_Hotel_Cote_Fils');
+    expect(fileSlug('Dupont/Fils:SA'), 'Dupont_Fils_SA');
+    expect(fileSlug(''), '');
+    expect(fileSlug('a' * 100).length, lessThanOrEqualTo(40));
   });
 }

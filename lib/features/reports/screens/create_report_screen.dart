@@ -855,7 +855,22 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               ElevatedButton(
                 onPressed: () {
                   final v = int.tryParse(numCtrl.text.trim());
-                  if (v != null && v > 0) setState(() => _reportNumber = v);
+                  if (v != null && v > 0) {
+                    setState(() => _reportNumber = v);
+                    // (2026-10-14) Avertir si un autre rapport porte déjà ce n°.
+                    final messenger = ScaffoldMessenger.of(context);
+                    LocalDbService()
+                        .isReportNumberTaken(v, exceptId: _reportId)
+                        .then((taken) {
+                      if (taken) {
+                        messenger.showSnackBar(SnackBar(
+                          content: Text('cr_number_taken'.tr(args: ['$v'])),
+                          backgroundColor: Colors.orange.shade800,
+                          duration: const Duration(seconds: 6),
+                        ));
+                      }
+                    });
+                  }
                   final fmt = showCustom
                       ? (customCtrl.text.trim().isEmpty ? null : customCtrl.text.trim())
                       : fmtSelected;
@@ -1533,7 +1548,13 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _Field(controller: _interventionType, label: 'cr_intervention_type'.tr()),
-                  _DateTile(date: _date, onChanged: (d) => setState(() => _date = d)),
+                  // (2026-10-14) Si le début passe après la fin, la fin suit.
+                  _DateTile(
+                      date: _date,
+                      onChanged: (d) => setState(() {
+                            _date = d;
+                            if (_endDate != null && _endDate!.isBefore(d)) _endDate = d;
+                          })),
                   Row(
                     children: [
                       Expanded(
@@ -1541,6 +1562,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                             ? _DateTile(
                                 label: 'cr_end_date'.tr(),
                                 date: _endDate!,
+                                // fin jamais avant le début
+                                firstDate: _date,
                                 onChanged: (d) => setState(() => _endDate = d),
                               )
                             : TextButton.icon(
@@ -2291,23 +2314,28 @@ class _DateTile extends StatelessWidget {
   final DateTime date;
   final void Function(DateTime) onChanged;
   final String? label;
+  final DateTime? firstDate;
 
-  const _DateTile({required this.date, required this.onChanged, this.label});
+  const _DateTile(
+      {required this.date, required this.onChanged, this.label, this.firstDate});
 
   @override
   Widget build(BuildContext context) => ListTile(
         contentPadding: EdgeInsets.zero,
         leading: const Icon(Icons.calendar_today, color: AppColors.primary),
         title: Text(label ?? 'field_date'.tr()),
+        // (2026-10-14) Format de la langue (avant : « jj/mm/aaaa » pour tous,
+        // alors que le PDF d'un Américain affiche « 10/14/2026 »).
         subtitle: Text(
-          '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
+          DateFormat.yMd().format(date),
           style: const TextStyle(fontWeight: FontWeight.w500),
         ),
         onTap: () async {
+          final first = firstDate ?? DateTime(2020);
           final picked = await showDatePicker(
             context: context,
-            initialDate: date,
-            firstDate: DateTime(2020),
+            initialDate: date.isBefore(first) ? first : date,
+            firstDate: first,
             lastDate: DateTime(2035),
           );
           if (picked != null) onChanged(picked);

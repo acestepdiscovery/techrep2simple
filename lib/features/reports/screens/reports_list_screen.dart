@@ -536,7 +536,7 @@ class _NewReportSheetState extends State<_NewReportSheet> {
                       leading: const Icon(Icons.description_outlined),
                       title: Text(t.name),
                       subtitle: Text(
-                          'nr_created_on'.tr(args: ['${t.createdAt.day.toString().padLeft(2, '0')}/${t.createdAt.month.toString().padLeft(2, '0')}/${t.createdAt.year}']),
+                          'nr_created_on'.tr(args: [DateFormat.yMd().format(t.createdAt)]),
                           style: const TextStyle(fontSize: 12)),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {

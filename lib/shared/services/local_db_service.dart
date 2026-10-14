@@ -221,6 +221,17 @@ class LocalDbService {
     return (result.first['max_num'] as int?) ?? 0;
   }
 
+  /// (2026-10-14) Le n° [number] est-il déjà porté par un AUTRE rapport ? (le n°
+  /// de facture en dépend → deux factures au même numéro sinon).
+  Future<bool> isReportNumberTaken(int number, {required String exceptId}) async {
+    if (kIsWeb) return false;
+    final database = await db;
+    final r = await database.rawQuery(
+        'SELECT COUNT(*) AS n FROM reports WHERE report_number = ? AND id <> ?',
+        [number, exceptId]);
+    return ((r.first['n'] as int?) ?? 0) > 0;
+  }
+
   Future<int> getNextReportNumber() async {
     if (kIsWeb) return _webReports.length + 1;
     final database = await db;

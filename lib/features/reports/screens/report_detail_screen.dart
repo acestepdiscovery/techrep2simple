@@ -14,6 +14,7 @@ import 'package:printing/printing.dart';
 import '../../../shared/widgets/zoomable_pdf_view.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../shared/utils/share_origin.dart';
+import '../../../shared/utils/file_slug.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_colors.dart';
@@ -500,9 +501,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     setState(() => _isGeneratingPdf = true);
     try {
       final bytes = await _generatePdfBytes();
-      final clientSlug = widget.report.clientName
-          .replaceAll(' ', '_')
-          .replaceAll(RegExp(r'[^\w]'), '');
+      final clientSlug = fileSlug(widget.report.clientName);
       final filename =
           '${'file_report_prefix'.tr()}_${clientSlug}_${widget.report.id.substring(0, 8)}.pdf';
       await Printing.sharePdf(
@@ -559,6 +558,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
         companyPhone: s['company_phone'],
         companyEmail: s['company_email'],
         companySiret: s['company_siret'],
+        companyTva: s['company_tva'],
         logoBytes: logoBytes,
         taxRate: globalTax.rate,
         taxLabel: globalTax.label,
@@ -674,9 +674,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     try {
       final bytes = await _generatePdfBytes();
       final dir = await getApplicationDocumentsDirectory();
-      final clientSlug = widget.report.clientName
-          .replaceAll(' ', '_')
-          .replaceAll(RegExp(r'[^\w]'), '');
+      final clientSlug = fileSlug(widget.report.clientName);
       final filename =
           '${'file_report_prefix'.tr()}_${clientSlug}_${widget.report.id.substring(0, 8)}.pdf';
       final file = File('${dir.path}/$filename');
@@ -904,7 +902,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
 
     try {
       final dir = await getTemporaryDirectory();
-      final slug = r.clientName.replaceAll(RegExp(r'[^\w]'), '_');
+      final slug = fileSlug(r.clientName);
       final file = File('${dir.path}/${'file_report_prefix'.tr()}_${slug}_${r.id.substring(0, 8)}.html');
       await file.writeAsString(html);
       await Share.shareXFiles([XFile(file.path, mimeType: 'text/html')],
@@ -1011,9 +1009,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
     try {
       final settings = _pdfSettings();
       final bytes = await _generatePdfBytes();
-      final slug = widget.report.clientName
-          .replaceAll(' ', '_')
-          .replaceAll(RegExp(r'[^\w]'), '');
+      final slug = fileSlug(widget.report.clientName);
       final filename =
           '${'file_report_prefix'.tr()}_${slug}_${widget.report.id.substring(0, 8)}.pdf';
 
@@ -1190,9 +1186,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
       'rd_sent_to_onedrive'.tr(),
       (settings) async {
         final bytes = await _generatePdfBytes();
-        final slug = widget.report.clientName
-            .replaceAll(' ', '_')
-            .replaceAll(RegExp(r'[^\w]'), '');
+        final slug = fileSlug(widget.report.clientName);
         final filename =
             '${'file_report_prefix'.tr()}_${slug}_${widget.report.id.substring(0, 8)}.pdf';
         return OneDriveService.uploadPdf(
@@ -1214,9 +1208,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
       'rd_sent_to_dropbox'.tr(),
       (settings) async {
         final bytes = await _generatePdfBytes();
-        final slug = widget.report.clientName
-            .replaceAll(' ', '_')
-            .replaceAll(RegExp(r'[^\w]'), '');
+        final slug = fileSlug(widget.report.clientName);
         final filename =
             '${'file_report_prefix'.tr()}_${slug}_${widget.report.id.substring(0, 8)}.pdf';
         return DropboxService.uploadPdf(

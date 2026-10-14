@@ -1245,5 +1245,6 @@
   "special_code_err_inactive": "Dieser Code ist nicht mehr aktiv.",
   "special_code_err_not_yet_active": "Dieser Code ist noch nicht aktiv.",
   "special_code_err_team_admin_only": "Nur ein Team-Administrator kann diesen Code verwenden.",
-  "special_code_err_too_many": "Zu viele Versuche. Bitte versuchen Sie es in einer Minute erneut."
+  "special_code_err_too_many": "Zu viele Versuche. Bitte versuchen Sie es in einer Minute erneut.",
+  "cr_number_taken": "Nr. {} wird bereits von einem anderen Bericht verwendet: Die Rechnungen hätten dieselbe Nummer."
 }

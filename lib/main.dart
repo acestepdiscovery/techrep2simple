@@ -47,8 +47,10 @@ void main() async {
       ],
       path: 'assets/translations',
       // Langue de secours : si la langue du téléphone n'est pas prise en charge,
-      // ou si une clé manque dans une traduction → on retombe sur le français.
-      fallbackLocale: const Locale('fr'),
+      // ou si une clé manque dans une traduction → on retombe sur l'ANGLAIS.
+      // (2026-10-14 : était le français → un téléphone en tchèque, suédois,
+      // roumain… voyait l'app en français ; l'anglais est bien plus compris.)
+      fallbackLocale: const Locale('en'),
       useFallbackTranslations: true,
       // (2026-10-03) Vraies règles de pluriel de chaque langue (CLDR) : indispensable
       // pour le polonais (1 / 2-4 / 5+ : « eksport / eksporty / eksportów »). Le

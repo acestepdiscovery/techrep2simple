@@ -1245,5 +1245,6 @@
   "special_code_err_inactive": "This code is no longer active.",
   "special_code_err_not_yet_active": "This code is not active yet.",
   "special_code_err_team_admin_only": "Only a team administrator can use this code.",
-  "special_code_err_too_many": "Too many attempts. Try again in a minute."
+  "special_code_err_too_many": "Too many attempts. Try again in a minute.",
+  "cr_number_taken": "No. {} is already used by another report: their invoices would have the same number."
 }

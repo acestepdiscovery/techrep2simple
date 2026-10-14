@@ -1245,5 +1245,6 @@
   "special_code_err_inactive": "Este código ya no está activo.",
   "special_code_err_not_yet_active": "Este código aún no está activo.",
   "special_code_err_team_admin_only": "Solo el administrador de un equipo puede usar este código.",
-  "special_code_err_too_many": "Demasiados intentos. Vuelve a intentarlo en un minuto."
+  "special_code_err_too_many": "Demasiados intentos. Vuelve a intentarlo en un minuto.",
+  "cr_number_taken": "El n.º {} ya lo usa otro informe: sus facturas tendrían el mismo número."
 }

@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -292,10 +293,12 @@ class SubscriptionService {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
     try {
+      // (2026-10-14) Délai max : hors ligne, l'export ne doit pas attendre.
       final snap = await FirebaseFirestore.instance
           .collection('quota_raptech1')
           .doc(user.uid)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 4));
       final v = snap.data()?[_monthKey()];
       return (v as num?)?.toInt() ?? 0;
     } catch (_) {
@@ -309,10 +312,15 @@ class SubscriptionService {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     try {
-      await FirebaseFirestore.instance
+      // (2026-10-14) NE PAS attendre : hors ligne, le Future d'une écriture
+      // Firestore ne se termine qu'au RETOUR DU RÉSEAU → l'export PDF d'un
+      // utilisateur gratuit restait bloqué. L'écriture est mise en file locale
+      // et partira toute seule à la reconnexion.
+      unawaited(FirebaseFirestore.instance
           .collection('quota_raptech1')
           .doc(user.uid)
-          .set({_monthKey(): FieldValue.increment(1)}, SetOptions(merge: true));
+          .set({_monthKey(): FieldValue.increment(1)}, SetOptions(merge: true))
+          .catchError((_) {}));
     } catch (_) {}
   }
 }

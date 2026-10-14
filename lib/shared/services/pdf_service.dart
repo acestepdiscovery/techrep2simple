@@ -1053,6 +1053,9 @@ class PdfService {
     String? companyPhone,
     String? companyEmail,
     String? companySiret,
+    // (2026-10-14) N° de TVA du vendeur : figurait sur le rapport mais PAS sur la
+    // facture, où il est obligatoire (FR : n° TVA intracom. ; DE : USt-IdNr.).
+    String? companyTva,
     Uint8List? logoBytes,
     // Taxe : valeurs EFFECTIVES (override du rapport sinon défaut global), en
     // pourcent. Fournies par l'appelant. Repli ultime = 20 % / « VAT ».
@@ -1135,21 +1138,25 @@ class PdfService {
                 children: [
                   if (logo != null)
                     pw.Image(logo, width: 80, height: 50, fit: pw.BoxFit.contain),
-                  if (companyName != null)
+                  if (companyName != null && companyName.trim().isNotEmpty)
                     pw.Text(companyName,
                         style: pw.TextStyle(
                             fontSize: 16, fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst)),
-                  if (companyAddress != null)
+                  if (companyAddress != null && companyAddress.trim().isNotEmpty)
                     pw.Text(companyAddress,
                         style: const pw.TextStyle(fontSize: 10)),
-                  if (companyPhone != null)
+                  if (companyPhone != null && companyPhone.trim().isNotEmpty)
                     pw.Text(companyPhone,
                         style: const pw.TextStyle(fontSize: 10)),
-                  if (companyEmail != null)
+                  if (companyEmail != null && companyEmail.trim().isNotEmpty)
                     pw.Text(companyEmail,
                         style: const pw.TextStyle(fontSize: 10)),
-                  if (companySiret != null)
+                  if (companySiret != null && companySiret.trim().isNotEmpty)
                     pw.Text('pdf_siret_caps'.tr(args: [companySiret]),
+                        style: const pw.TextStyle(fontSize: 9,
+                            color: PdfColor(0.4, 0.4, 0.4))),
+                  if (companyTva != null && companyTva.trim().isNotEmpty)
+                    pw.Text('pdf_tva_caps'.tr(args: [companyTva]),
                         style: const pw.TextStyle(fontSize: 9,
                             color: PdfColor(0.4, 0.4, 0.4))),
                 ],

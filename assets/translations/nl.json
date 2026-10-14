@@ -1245,5 +1245,6 @@
   "special_code_err_inactive": "Deze code is niet meer actief.",
   "special_code_err_not_yet_active": "Deze code is nog niet actief.",
   "special_code_err_team_admin_only": "Alleen een teambeheerder kan deze code gebruiken.",
-  "special_code_err_too_many": "Te veel pogingen. Probeer het over een minuut opnieuw."
+  "special_code_err_too_many": "Te veel pogingen. Probeer het over een minuut opnieuw.",
+  "cr_number_taken": "Nr. {} wordt al door een andere werkbon gebruikt: de facturen zouden hetzelfde nummer krijgen."
 }

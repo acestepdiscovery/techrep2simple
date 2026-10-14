@@ -100,12 +100,11 @@ class IapService {
     return _products;
   }
 
-  /// Localized store price for [productId], or the config fallback.
-  String priceLabel(String productId) {
-    final pd = _products[productId];
-    if (pd != null) return pd.price;
-    return productById(productId)?.fallbackPrice ?? '';
-  }
+  /// Localized store price for [productId] — « — » tant que le store n'a pas
+  /// répondu. (2026-10-14) Avant : repli sur des prix écrits en dur
+  /// (« 2,99 €/mois », en euros et en français) affichés à un Polonais hors
+  /// ligne ; l'achat est de toute façon impossible sans réponse du store.
+  String priceLabel(String productId) => _products[productId]?.price ?? '—';
 
   /// (2026-10-03) Prix du store tel quel (devise locale), ou null si pas encore chargé.
   String? storePrice(String productId) => _products[productId]?.price;

@@ -1245,5 +1245,6 @@
   "special_code_err_inactive": "Ce code n'est plus actif.",
   "special_code_err_not_yet_active": "Ce code n'est pas encore actif.",
   "special_code_err_team_admin_only": "Seul l'administrateur d'une équipe peut utiliser ce code.",
-  "special_code_err_too_many": "Trop de tentatives. Réessayez dans une minute."
+  "special_code_err_too_many": "Trop de tentatives. Réessayez dans une minute.",
+  "cr_number_taken": "Le n° {} est déjà utilisé par un autre rapport : leurs factures auraient le même numéro."
 }
