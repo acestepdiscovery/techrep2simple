@@ -30,6 +30,7 @@ import '../../reports/models/currency_options.dart';
 import '../widgets/tax_editor.dart';
 import '../providers/settings_provider.dart';
 import '../../../shared/utils/error_text.dart';
+import '../../../shared/services/photo_storage.dart';
 
 // (K) Demande de déroulé de la tuile « Mon entreprise » des Réglages (depuis le
 // toggle d'identité d'un rapport). Le nonce force le déroulé même si l'écran
@@ -1414,7 +1415,9 @@ class _LogoTileState extends State<_LogoTile> {
         maxHeight: 512,
       );
       if (picked == null) return;
-      await widget.onSave(picked.path);
+      // (2026-10-14) Logo recopié hors du cache (sinon il disparaissait des PDF).
+      await widget.onSave(
+          await PhotoStorage.persist(picked.path, sub: PhotoStorage.branding));
     } finally {
       if (mounted) setState(() => _isPicking = false);
     }

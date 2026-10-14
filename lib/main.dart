@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'app.dart';
 import 'shared/services/iap_service.dart';
 import 'shared/services/subscription_service.dart';
+import 'shared/services/local_db_service.dart';
 
 // Set to true after adding google-services.json (Android) and GoogleService-Info.plist (iOS)
 const bool kFirebaseEnabled = true;
@@ -36,6 +38,9 @@ void main() async {
   } catch (_) {
     // Store not available (e.g. desktop/web) → IAP simply inert.
   }
+  // (2026-10-14) Recopie hors du cache les photos / logos des anciens rapports
+  // (une seule fois, en arrière-plan : ne retarde pas l'ouverture).
+  unawaited(LocalDbService().rescueTemporaryPhotos());
   runApp(
     EasyLocalization(
       // Langues prises en charge. Ajouter une langue = ajouter sa Locale ici

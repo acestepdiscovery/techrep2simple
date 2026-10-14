@@ -44,6 +44,10 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
+  // Dossier de base propre à CE test (les fichiers de test tournent en parallèle).
+  setUp(() async => databaseFactory.setDatabasesPath(
+      Directory.systemTemp.createTempSync('techreport_mig_').path));
+
   test('base 1.0.0 (v9) → 1.2.0 (v11) : rien n’est perdu', () async {
     final path = p.join(await getDatabasesPath(), 'techreport.db');
     if (File(path).existsSync()) File(path).deleteSync();

@@ -33,6 +33,7 @@ import '../../subscription/paywall_bottom_sheet.dart';
 import '../../team/screens/team_dashboard_screen.dart' show teamTabRequestProvider, TeamTabRequest;
 import '../../settings/screens/settings_screen.dart' show settingsExpandCompanyProvider;
 import 'signature_screen.dart';
+import '../../../shared/services/photo_storage.dart';
 
 class CreateReportScreen extends ConsumerStatefulWidget {
   final String? reportId;
@@ -1680,10 +1681,16 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               onToggle: () => _toggleSection(6),
               child: PhotoPickerWidget(
                 photos: _photos,
-                onAdd: (xFile) => setState(() {
-                  _photos.add(xFile);
-                  _sectionExpanded[6] = true;
-                }),
+                // (2026-10-14) Copie en stockage PERMANENT : le sélecteur dépose
+                // la photo dans le cache, que le système vide → photos perdues.
+                onAdd: (xFile) async {
+                  final kept = await PhotoStorage.persist(xFile.path);
+                  if (!mounted) return;
+                  setState(() {
+                    _photos.add(XFile(kept));
+                    _sectionExpanded[6] = true;
+                  });
+                },
                 onRemove: (i) => setState(() => _photos.removeAt(i)),
               ),
             ),

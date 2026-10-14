@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:math' show max;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../../features/reports/models/report_model.dart';
 import '../../features/reports/models/sector_options.dart';
 import '../../features/clients/models/client_model.dart';
+import 'photo_storage.dart';
 
 class LocalDbService {
   static final LocalDbService _instance = LocalDbService._internal();
@@ -267,7 +268,44 @@ class LocalDbService {
   Future<void> deleteReport(String id) async {
     if (kIsWeb) { _webReports.removeWhere((r) => r['id'] == id); return; }
     final database = await db;
+    final photos = (await getReport(id))?.photosPaths ?? const <String>[];
     await database.delete('reports', where: 'id = ?', whereArgs: [id]);
+    // (2026-10-14) Supprimer les photos de ce rapport… sauf si un autre rapport
+    // (ex. un duplicata) les utilise encore.
+    for (final path in photos) {
+      final r = await database.rawQuery(
+          "SELECT COUNT(*) AS n FROM reports WHERE photos LIKE ?", ['%${jsonEncode(path)}%']);
+      if (((r.first['n'] as int?) ?? 0) == 0) await PhotoStorage.deleteIfOwned(path);
+    }
+  }
+
+  /// (2026-10-14) Une seule fois après la mise à jour : recopie en stockage
+  /// permanent les photos et logos encore présents dans le CACHE (versions
+  /// ≤ 1.2.0 gardaient le chemin du cache → photos perdues au 1er vidage).
+  Future<void> rescueTemporaryPhotos() async {
+    if (kIsWeb) return;
+    try {
+      if (await getSetting('photos_rescued_v1') == '1') return;
+      for (final r in await getAllReports()) {
+        var changed = false;
+        final kept = <String>[];
+        for (final path in r.photosPaths) {
+          final k = await PhotoStorage.persist(path);
+          if (k != path) changed = true;
+          kept.add(k);
+        }
+        if (changed) await updateReport(r.copyWith(photosPaths: kept));
+      }
+      for (final key in ['logo_path', 'team_logo_path']) {
+        final v = await getSetting(key);
+        if (v == null || v.isEmpty) continue;
+        final k = await PhotoStorage.persist(v, sub: PhotoStorage.branding);
+        if (k != v) await setSetting(key, k);
+      }
+      await setSetting('photos_rescued_v1', '1');
+    } catch (e) {
+      debugPrint('[LocalDb] sauvetage photos : $e');
+    }
   }
 
   Future<ReportModel?> getReport(String id) async {
@@ -434,8 +472,10 @@ class LocalDbService {
     if (!keepReports) {
       await database.delete('reports');
       await database.delete('clients');
+      await PhotoStorage.deleteAll(PhotoStorage.reportPhotos);
     }
     await database.delete('settings');
     await database.delete('report_presets');
+    await PhotoStorage.deleteAll(PhotoStorage.branding);
   }
 }

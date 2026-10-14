@@ -26,6 +26,7 @@ import '../../../shared/services/validation_pdf_service.dart';
 import '../../../shared/widgets/zoomable_pdf_view.dart';
 import '../../../shared/widgets/status_badge.dart';
 import '../../../shared/utils/error_text.dart';
+import '../../../shared/services/photo_storage.dart';
 
 // (M/J) Demande d'ouverture d'un SOUS-ONGLET précis de la page Équipe (0=Gérer,
 // 1=Rapports, 2=Réglages équipe), avec déroulé optionnel de la carte « infos
@@ -945,9 +946,9 @@ class _TeammateIdentityCardState extends ConsumerState<_TeammateIdentityCard> {
           maxWidth: 512,
           maxHeight: 512);
       if (picked == null) return;
-      await ref
-          .read(settingsProvider.notifier)
-          .set('team_logo_path', picked.path);
+      final kept =
+          await PhotoStorage.persist(picked.path, sub: PhotoStorage.branding);
+      await ref.read(settingsProvider.notifier).set('team_logo_path', kept);
     } finally {
       if (mounted) setState(() => _picking = false);
     }
