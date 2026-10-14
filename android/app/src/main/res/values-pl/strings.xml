@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2026-10-14 : nom court sous l'icône (≤ 12 caractères), par langue. -->
+<resources>
+    <string name="app_name">Raport AI</string>
+</resources>

@@ -1063,6 +1063,9 @@ class PdfService {
     String? taxLabel,
     String? taxMention,
     String? currencyCode,
+    // (2026-10-14) Conditions de paiement / mentions légales + assurance pro.
+    String? invoiceTerms,
+    String? insuranceInfo,
   }) async {
     _currencyCode = currencyCode ?? 'EUR';
     final logo = logoBytes != null ? pw.MemoryImage(logoBytes) : null;
@@ -1210,6 +1213,9 @@ class PdfService {
                 if (report.clientContact.isNotEmpty)
                   pw.Text(report.clientContact,
                       style: const pw.TextStyle(fontSize: 10)),
+                if (report.clientBusinessId.trim().isNotEmpty)
+                  pw.Text('pdf_client_business_id'.tr(args: [report.clientBusinessId.trim()]),
+                      style: const pw.TextStyle(fontSize: 10)),
               ],
             ),
           ),
@@ -1297,6 +1303,17 @@ class PdfService {
             pw.Text(effMention,
                 style: const pw.TextStyle(
                     fontSize: 9, color: PdfColor(0.4, 0.4, 0.4))),
+          ],
+          if (invoiceTerms != null && invoiceTerms.trim().isNotEmpty) ...[
+            pw.SizedBox(height: 10),
+            pw.Text(invoiceTerms.trim(),
+                style: const pw.TextStyle(fontSize: 8.5, color: PdfColor(0.4, 0.4, 0.4)),
+                overflow: pw.TextOverflow.span),
+          ],
+          if (insuranceInfo != null && insuranceInfo.trim().isNotEmpty) ...[
+            pw.SizedBox(height: 6),
+            pw.Text('pdf_insurance'.tr(args: [insuranceInfo.trim()]),
+                style: const pw.TextStyle(fontSize: 8.5, color: PdfColor(0.4, 0.4, 0.4))),
           ],
       ],
     ));

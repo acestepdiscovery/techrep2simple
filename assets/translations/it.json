@@ -1251,5 +1251,13 @@
   "cloud_err_google_token": "Impossibile connettersi a Google. Riprova.",
   "team_err_create": "Impossibile creare il team. Controlla la connessione e riprova.",
   "ai_record_max": "Registrazione interrotta dopo {} min (durata massima).",
-  "ai_err_file_too_big": "File troppo grande: massimo {} MB."
+  "ai_err_file_too_big": "File troppo grande: massimo {} MB.",
+  "inv_terms_title": "Condizioni di pagamento e note (fattura)",
+  "inv_terms_hint": "Termini di pagamento, interessi di mora, sconto…",
+  "inv_terms_restore": "Testo predefinito",
+  "inv_insurance_title": "Assicurazione professionale",
+  "inv_insurance_hint": "Assicuratore, n. di polizza, area coperta",
+  "pdf_insurance": "Assicurazione professionale: {}",
+  "cr_client_business_id": "P. IVA / C.F. del cliente (se azienda)",
+  "pdf_client_business_id": "P. IVA / C.F.: {}"
 }

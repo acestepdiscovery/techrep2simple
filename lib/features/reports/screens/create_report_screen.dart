@@ -68,6 +68,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   final _clientPhone = TextEditingController();
   final _clientContact = TextEditingController();
   final _contractNumber = TextEditingController();
+  final _clientBusinessId = TextEditingController();
   // Controllers – intervention
   final _interventionType = TextEditingController();
   // Controllers – equipment
@@ -167,6 +168,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     _clientPhone.text = report.clientPhone;
     _clientContact.text = report.clientContact;
     _contractNumber.text = report.contractNumber;
+    _clientBusinessId.text = report.clientBusinessId;
     _interventionType.text = report.interventionType;
     _equipmentType.text = report.equipmentType;
     _equipmentBrand.text = report.equipmentBrand;
@@ -247,6 +249,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     _clientPhone.text = r.clientPhone;
     _clientContact.text = r.clientContact;
     _contractNumber.text = r.contractNumber;
+    _clientBusinessId.text = r.clientBusinessId;
     _interventionType.text = r.interventionType;
     _equipmentType.text = r.equipmentType;
     _equipmentBrand.text = r.equipmentBrand;
@@ -282,7 +285,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     _autoSaveTimer?.cancel();
     for (final c in [
       _clientName, _clientAddress, _clientPhone, _clientContact,
-      _contractNumber, _interventionType, _equipmentType, _equipmentBrand,
+      _contractNumber, _clientBusinessId, _interventionType, _equipmentType, _equipmentBrand,
       _equipmentModel, _equipmentSerial, _description, _observations,
       _laborHours, _laborRate,
     ]) {
@@ -302,7 +305,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   void _addDirtyListeners() {
     for (final c in [
       _clientName, _clientAddress, _clientPhone, _clientContact,
-      _contractNumber, _interventionType, _equipmentType, _equipmentBrand,
+      _contractNumber, _clientBusinessId, _interventionType, _equipmentType, _equipmentBrand,
       _equipmentModel, _equipmentSerial, _description, _observations,
       _laborHours, _laborRate,
     ]) {
@@ -324,7 +327,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   bool _hasAnyContent() {
     final hasAnyText = [
       _clientName, _clientAddress, _clientPhone, _clientContact,
-      _contractNumber, _interventionType, _equipmentType, _equipmentBrand,
+      _contractNumber, _clientBusinessId, _interventionType, _equipmentType, _equipmentBrand,
       _equipmentModel, _equipmentSerial, _description, _observations,
       _laborHours, _laborRate,
     ].any((c) => c.text.trim().isNotEmpty);
@@ -562,6 +565,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
             _clientPhone.text = c.phone;
             _clientContact.text = c.contactPerson;
             _contractNumber.text = c.contractNumber;
+            _clientBusinessId.text = c.businessId;
           });
         },
       ),
@@ -689,6 +693,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       clientPhone: _clientPhone.text.trim(),
       clientContact: _clientContact.text.trim(),
       contractNumber: _contractNumber.text.trim(),
+      clientBusinessId: _clientBusinessId.text.trim(),
       interventionType: _interventionType.text.trim(),
       sector: _sector,
       date: _date,
@@ -1045,6 +1050,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       phone: _clientPhone.text.trim(),
       contactPerson: _clientContact.text.trim(),
       contractNumber: _contractNumber.text.trim(),
+      businessId: _clientBusinessId.text.trim(),
       createdAt: now,
       updatedAt: now,
     );
@@ -1067,6 +1073,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         'clientPhone': _clientPhone.text.trim(),
         'clientContact': _clientContact.text.trim(),
         'contractNumber': _contractNumber.text.trim(),
+        'clientBusinessId': _clientBusinessId.text.trim(),
         'interventionType': _interventionType.text.trim(),
         'sector': _sector.name,
         'sectorFields': _sectorFields,
@@ -1214,6 +1221,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       _clientPhone.text = d['clientPhone'] ?? '';
       _clientContact.text = d['clientContact'] ?? '';
       _contractNumber.text = d['contractNumber'] ?? '';
+      _clientBusinessId.text = d['clientBusinessId'] ?? '';
       _interventionType.text = d['interventionType'] ?? '';
       _description.text = d['description'] ?? '';
       _observations.text = d['observations'] ?? '';
@@ -1539,6 +1547,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                   _Field(controller: _clientPhone, label: 'cr_phone'.tr(), keyboardType: TextInputType.phone),
                   _Field(controller: _clientContact, label: 'cr_contact_onsite'.tr()),
                   _Field(controller: _contractNumber, label: 'cr_contract_number'.tr()),
+                  _Field(controller: _clientBusinessId, label: 'cr_client_business_id'.tr()),
                   _extrasBlock(),
                   Align(
                     alignment: Alignment.centerRight,

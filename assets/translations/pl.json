@@ -1257,5 +1257,13 @@
   "cloud_err_google_token": "Nie udało się połączyć z Google. Spróbuj ponownie.",
   "team_err_create": "Nie udało się utworzyć zespołu. Sprawdź połączenie i spróbuj ponownie.",
   "ai_record_max": "Nagrywanie zatrzymane po {} min (maksymalny czas).",
-  "ai_err_file_too_big": "Plik jest za duży: maksymalnie {} MB."
+  "ai_err_file_too_big": "Plik jest za duży: maksymalnie {} MB.",
+  "inv_terms_title": "Warunki płatności i adnotacje (faktura)",
+  "inv_terms_hint": "Termin płatności, odsetki za zwłokę, rabat…",
+  "inv_terms_restore": "Tekst domyślny",
+  "inv_insurance_title": "Ubezpieczenie OC zawodowe",
+  "inv_insurance_hint": "Ubezpieczyciel, nr polisy, zakres terytorialny",
+  "pdf_insurance": "Ubezpieczenie OC: {}",
+  "cr_client_business_id": "NIP klienta (jeśli firma)",
+  "pdf_client_business_id": "NIP: {}"
 }

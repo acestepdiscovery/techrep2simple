@@ -41,6 +41,7 @@ import '../../../shared/widgets/status_badge.dart';
 import '../../subscription/paywall_bottom_sheet.dart';
 import '../../subscription/subscription_provider.dart';
 import '../../../shared/utils/error_text.dart';
+import '../models/invoice_terms.dart';
 
 class ReportDetailScreen extends ConsumerWidget {
   final String reportId;
@@ -568,6 +569,10 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
         taxLabel: globalTax.label,
         taxMention: globalTax.mention,
         currencyCode: resolveCurrencyCode(s, region: region, language: language),
+        // null = jamais réglé → texte par défaut du pays ; '' = vidé exprès.
+        invoiceTerms: s['invoice_terms'] ??
+            defaultInvoiceTerms(region: region, language: language),
+        insuranceInfo: s['insurance_info'],
       );
       final dir = await getTemporaryDirectory();
       final invoiceNum = PdfService.invoiceNumber(report);
@@ -1715,6 +1720,14 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
                   clientPhone: report.clientPhone,
                   clientContact: report.clientContact,
                   contractNumber: report.contractNumber,
+                  // (2026-10-14) Même client / même chantier → on garde aussi :
+                  clientBusinessId: report.clientBusinessId,
+                  customFields: Map.from(report.customFields),
+                  sousContrat: report.sousContrat,
+                  taxRate: report.taxRate,
+                  taxLabel: report.taxLabel,
+                  taxMention: report.taxMention,
+                  pdfTemplate: report.pdfTemplate,
                   interventionType: report.interventionType,
                   sector: report.sector,
                   date: now,

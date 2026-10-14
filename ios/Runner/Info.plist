@@ -19,7 +19,7 @@
 		<string>pt</string>
 	</array>
 	<key>CFBundleDisplayName</key>
-	<string>Compte Rendu Technique IA</string>
+	<string>Rapport IA</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

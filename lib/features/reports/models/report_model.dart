@@ -110,6 +110,9 @@ class ReportModel {
   final String clientPhone;
   final String clientContact;
   final String contractNumber;
+  /// (2026-10-14) SIREN / n° de TVA du client si c'est une entreprise (mention
+  /// obligatoire sur la facture depuis la réforme de la facturation électronique).
+  final String clientBusinessId;
   final String interventionType;
   final SectorTemplate sector;
   // date = start date; endDate = for multi-day interventions
@@ -178,6 +181,7 @@ class ReportModel {
     this.clientPhone = '',
     this.clientContact = '',
     this.contractNumber = '',
+    this.clientBusinessId = '',
     this.interventionType = '',
     this.sector = SectorTemplate.generic,
     required this.date,
@@ -228,6 +232,7 @@ class ReportModel {
     String? clientPhone,
     String? clientContact,
     String? contractNumber,
+    String? clientBusinessId,
     String? interventionType,
     SectorTemplate? sector,
     DateTime? date,
@@ -284,6 +289,7 @@ class ReportModel {
         clientPhone: clientPhone ?? this.clientPhone,
         clientContact: clientContact ?? this.clientContact,
         contractNumber: contractNumber ?? this.contractNumber,
+        clientBusinessId: clientBusinessId ?? this.clientBusinessId,
         interventionType: interventionType ?? this.interventionType,
         sector: sector ?? this.sector,
         date: date ?? this.date,
@@ -334,6 +340,7 @@ class ReportModel {
         'client_phone': clientPhone,
         'client_contact': clientContact,
         'contract_number': contractNumber,
+        'client_business_id': clientBusinessId,
         'intervention_type': interventionType,
         'sector': sector.name,
         'date': date.toIso8601String(),
@@ -384,6 +391,7 @@ class ReportModel {
         clientPhone: m['client_phone'] ?? '',
         clientContact: m['client_contact'] ?? '',
         contractNumber: m['contract_number'] ?? '',
+        clientBusinessId: m['client_business_id'] ?? '',
         interventionType: m['intervention_type'] ?? '',
         sector: SectorTemplate.values.firstWhere(
           (s) => s.name == m['sector'],

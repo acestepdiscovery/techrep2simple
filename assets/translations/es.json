@@ -1251,5 +1251,13 @@
   "cloud_err_google_token": "No se pudo conectar con Google. Vuelve a intentarlo.",
   "team_err_create": "No se pudo crear el equipo. Comprueba la conexión y vuelve a intentarlo.",
   "ai_record_max": "Grabación detenida a los {} min (duración máxima).",
-  "ai_err_file_too_big": "Archivo demasiado grande: {} MB como máximo."
+  "ai_err_file_too_big": "Archivo demasiado grande: {} MB como máximo.",
+  "inv_terms_title": "Condiciones de pago y menciones (factura)",
+  "inv_terms_hint": "Plazo de pago, recargos por demora, descuento…",
+  "inv_terms_restore": "Texto por defecto",
+  "inv_insurance_title": "Seguro profesional",
+  "inv_insurance_hint": "Aseguradora, n.º de póliza, ámbito cubierto",
+  "pdf_insurance": "Seguro profesional: {}",
+  "cr_client_business_id": "NIF del cliente (si es empresa)",
+  "pdf_client_business_id": "NIF: {}"
 }

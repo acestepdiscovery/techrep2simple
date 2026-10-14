@@ -23,6 +23,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:reportnew1cld/features/reports/models/invoice_terms.dart';
 import 'package:reportnew1cld/features/reports/models/report_model.dart';
 import 'package:reportnew1cld/shared/services/pdf_service.dart';
 import 'package:reportnew1cld/shared/services/validation_pdf_service.dart';
@@ -81,6 +82,7 @@ ReportModel _report({required bool extreme}) {
     clientPhone: '+33 6 12 34 56 78',
     clientContact: 'Mme Ünal',
     contractNumber: 'CTR-2026-000123',
+    clientBusinessId: '552 100 554',
     interventionType: 'Dépannage chauffe-eau',
     sector: SectorTemplate.plomberie,
     sectorFields: const {
@@ -187,7 +189,9 @@ void main() {
             taxRate: 20,
             taxLabel: 'TVA',
             taxMention: 'Mention — test « ok »',
-            currencyCode: currency));
+            currencyCode: currency,
+            invoiceTerms: lang == 'fr' ? kInvoiceTermsFR : null,
+            insuranceInfo: 'AXA, contrat n° 1234567 — France métropolitaine'));
       }
     }
 

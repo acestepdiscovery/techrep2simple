@@ -6,6 +6,8 @@ class ClientModel {
   final String email;
   final String contactPerson;
   final String contractNumber;
+  /// (2026-10-14) SIREN / n° de TVA (si le client est une entreprise).
+  final String businessId;
   final String notes;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -18,6 +20,7 @@ class ClientModel {
     this.email = '',
     this.contactPerson = '',
     this.contractNumber = '',
+    this.businessId = '',
     this.notes = '',
     required this.createdAt,
     required this.updatedAt,
@@ -30,6 +33,7 @@ class ClientModel {
     String? email,
     String? contactPerson,
     String? contractNumber,
+    String? businessId,
     String? notes,
   }) =>
       ClientModel(
@@ -40,6 +44,7 @@ class ClientModel {
         email: email ?? this.email,
         contactPerson: contactPerson ?? this.contactPerson,
         contractNumber: contractNumber ?? this.contractNumber,
+        businessId: businessId ?? this.businessId,
         notes: notes ?? this.notes,
         createdAt: createdAt,
         updatedAt: DateTime.now(),
@@ -53,6 +58,7 @@ class ClientModel {
         'email': email,
         'contact_person': contactPerson,
         'contract_number': contractNumber,
+        'business_id': businessId,
         'notes': notes,
         'created_at': createdAt.toIso8601String(),
         'updated_at': updatedAt.toIso8601String(),
@@ -66,6 +72,7 @@ class ClientModel {
         email: m['email'] ?? '',
         contactPerson: m['contact_person'] ?? '',
         contractNumber: m['contract_number'] ?? '',
+        businessId: m['business_id'] ?? '',
         notes: m['notes'] ?? '',
         createdAt: DateTime.parse(m['created_at']),
         updatedAt: DateTime.parse(m['updated_at']),

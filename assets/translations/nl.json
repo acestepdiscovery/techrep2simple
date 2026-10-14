@@ -1251,5 +1251,13 @@
   "cloud_err_google_token": "Verbinding met Google mislukt. Probeer het opnieuw.",
   "team_err_create": "Team aanmaken mislukt. Controleer je verbinding en probeer het opnieuw.",
   "ai_record_max": "Opname gestopt na {} min (maximale duur).",
-  "ai_err_file_too_big": "Bestand te groot: maximaal {} MB."
+  "ai_err_file_too_big": "Bestand te groot: maximaal {} MB.",
+  "inv_terms_title": "Betalingsvoorwaarden en vermeldingen (factuur)",
+  "inv_terms_hint": "Betaaltermijn, rente bij te late betaling, korting…",
+  "inv_terms_restore": "Standaardtekst",
+  "inv_insurance_title": "Beroepsaansprakelijkheidsverzekering",
+  "inv_insurance_hint": "Verzekeraar, polisnummer, dekkingsgebied",
+  "pdf_insurance": "Beroepsaansprakelijkheidsverzekering: {}",
+  "cr_client_business_id": "KvK- / btw-nr. van de klant (bij een bedrijf)",
+  "pdf_client_business_id": "KvK / btw-nr.: {}"
 }

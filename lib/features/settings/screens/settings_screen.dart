@@ -31,6 +31,7 @@ import '../widgets/tax_editor.dart';
 import '../providers/settings_provider.dart';
 import '../../../shared/utils/error_text.dart';
 import '../../../shared/services/photo_storage.dart';
+import '../../reports/models/invoice_terms.dart';
 
 // (K) Demande de déroulé de la tuile « Mon entreprise » des Réglages (depuis le
 // toggle d'identité d'un rapport). Le nonce force le déroulé même si l'écran
@@ -143,6 +144,27 @@ class SettingsScreen extends ConsumerWidget {
                   code: s['currency_code'],
                   onSave: (code) =>
                       ref.read(settingsProvider.notifier).set('currency_code', code),
+                ),
+                // (2026-10-14) Mentions obligatoires de la facture (FR pré-rempli).
+                Builder(builder: (context) {
+                  final def = defaultInvoiceTerms(
+                      region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
+                      language: context.locale.languageCode);
+                  return _MultilineSettingTile(
+                    icon: Icons.gavel_outlined,
+                    label: 'inv_terms_title'.tr(),
+                    hint: 'inv_terms_hint'.tr(),
+                    value: s['invoice_terms'] ?? def,
+                    defaultValue: def,
+                    onSave: (v) => ref.read(settingsProvider.notifier).set('invoice_terms', v),
+                  );
+                }),
+                _MultilineSettingTile(
+                  icon: Icons.verified_user_outlined,
+                  label: 'inv_insurance_title'.tr(),
+                  hint: 'inv_insurance_hint'.tr(),
+                  value: s['insurance_info'] ?? '',
+                  onSave: (v) => ref.read(settingsProvider.notifier).set('insurance_info', v),
                 ),
               ],
             ),
@@ -414,6 +436,77 @@ class _EditableTile extends StatelessWidget {
             color: value.isEmpty ? Colors.grey : Colors.black87,
             fontStyle:
                 value.isEmpty ? FontStyle.italic : FontStyle.normal,
+          ),
+        ),
+        trailing: const Icon(Icons.edit_outlined, size: 18, color: Colors.grey),
+        onTap: () => _edit(context),
+      );
+}
+
+// ─── Texte sur plusieurs lignes (mentions de facture, assurance) ─────────────
+
+class _MultilineSettingTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String hint;
+  final String value;
+  final String? defaultValue;
+  final Future<void> Function(String) onSave;
+
+  const _MultilineSettingTile({
+    required this.icon,
+    required this.label,
+    required this.hint,
+    required this.value,
+    required this.onSave,
+    this.defaultValue,
+  });
+
+  void _edit(BuildContext context) {
+    final ctrl = TextEditingController(text: value);
+    showDialog(
+      context: context,
+      builder: (dlg) => AlertDialog(
+        title: Text(label),
+        content: TextField(
+          controller: ctrl,
+          decoration: InputDecoration(hintText: hint),
+          minLines: 3,
+          maxLines: 8,
+          autofocus: true,
+        ),
+        actions: [
+          if (defaultValue != null && defaultValue!.isNotEmpty)
+            TextButton(
+                onPressed: () => ctrl.text = defaultValue!,
+                child: Text('inv_terms_restore'.tr())),
+          TextButton(
+              onPressed: () => Navigator.pop(dlg),
+              child: Text('common_cancel'.tr())),
+          ElevatedButton(
+            onPressed: () async {
+              await onSave(ctrl.text.trim());
+              if (dlg.mounted) Navigator.pop(dlg);
+            },
+            child: Text('common_save'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+        leading: Icon(icon, color: AppColors.primary),
+        title: Text(label),
+        subtitle: Text(
+          value.isEmpty ? 'settings_tap_to_set'.tr() : value,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: value.isEmpty ? Colors.grey : Colors.black87,
+            fontStyle: value.isEmpty ? FontStyle.italic : FontStyle.normal,
+            fontSize: 12,
           ),
         ),
         trailing: const Icon(Icons.edit_outlined, size: 18, color: Colors.grey),

@@ -1251,5 +1251,13 @@
   "cloud_err_google_token": "Connexion à Google impossible. Réessayez.",
   "team_err_create": "Impossible de créer l'équipe. Vérifiez la connexion et réessayez.",
   "ai_record_max": "Enregistrement arrêté au bout de {} min (durée maximale).",
-  "ai_err_file_too_big": "Fichier trop volumineux : {} Mo maximum."
+  "ai_err_file_too_big": "Fichier trop volumineux : {} Mo maximum.",
+  "inv_terms_title": "Conditions de paiement et mentions (facture)",
+  "inv_terms_hint": "Délai de paiement, pénalités de retard, escompte…",
+  "inv_terms_restore": "Texte par défaut",
+  "inv_insurance_title": "Assurance professionnelle",
+  "inv_insurance_hint": "Assureur, n° de contrat, zone couverte (ex. décennale)",
+  "pdf_insurance": "Assurance professionnelle : {}",
+  "cr_client_business_id": "N° SIREN / TVA du client (si entreprise)",
+  "pdf_client_business_id": "SIREN / N° TVA : {}"
 }

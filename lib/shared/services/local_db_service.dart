@@ -28,7 +28,7 @@ class LocalDbService {
 
   Future<Database> _initDb() async {
     final path = join(await getDatabasesPath(), 'techreport.db');
-    return openDatabase(path, version: 11, onCreate: _onCreate, onUpgrade: _onUpgrade);
+    return openDatabase(path, version: 12, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -135,6 +135,15 @@ class LocalDbService {
         try { await db.execute(col); } catch (_) {}
       }
     }
+    if (oldVersion < 12) {
+      // (2026-10-14) SIREN / n° TVA du client (facture). Vide pour les anciens.
+      for (final col in [
+        'ALTER TABLE reports ADD COLUMN client_business_id TEXT',
+        'ALTER TABLE clients ADD COLUMN business_id TEXT',
+      ]) {
+        try { await db.execute(col); } catch (_) {}
+      }
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -148,6 +157,7 @@ class LocalDbService {
         client_phone TEXT,
         client_contact TEXT,
         contract_number TEXT,
+        client_business_id TEXT,
         intervention_type TEXT,
         sector TEXT DEFAULT 'generic',
         date TEXT NOT NULL,
@@ -198,6 +208,7 @@ class LocalDbService {
         email TEXT,
         contact_person TEXT,
         contract_number TEXT,
+        business_id TEXT,
         notes TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL

@@ -1251,5 +1251,13 @@
   "cloud_err_google_token": "Verbindung zu Google nicht möglich. Bitte erneut versuchen.",
   "team_err_create": "Team konnte nicht erstellt werden. Bitte Verbindung prüfen und erneut versuchen.",
   "ai_record_max": "Aufnahme nach {} Min. beendet (maximale Dauer).",
-  "ai_err_file_too_big": "Datei zu groß: maximal {} MB."
+  "ai_err_file_too_big": "Datei zu groß: maximal {} MB.",
+  "inv_terms_title": "Zahlungsbedingungen & Hinweise (Rechnung)",
+  "inv_terms_hint": "Zahlungsfrist, Verzugszinsen, Skonto…",
+  "inv_terms_restore": "Standardtext",
+  "inv_insurance_title": "Berufshaftpflichtversicherung",
+  "inv_insurance_hint": "Versicherer, Policennummer, Geltungsbereich",
+  "pdf_insurance": "Berufshaftpflichtversicherung: {}",
+  "cr_client_business_id": "USt-IdNr. / Steuernr. des Kunden (bei Firmen)",
+  "pdf_client_business_id": "USt-IdNr./Steuernr.: {}"
 }

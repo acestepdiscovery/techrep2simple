@@ -48,7 +48,7 @@ void main() {
   setUp(() async => databaseFactory.setDatabasesPath(
       Directory.systemTemp.createTempSync('techreport_mig_').path));
 
-  test('base 1.0.0 (v9) → 1.2.0 (v11) : rien n’est perdu', () async {
+  test('base 1.0.0 (v9) → 1.2.0 (v12) : rien n’est perdu', () async {
     final path = p.join(await getDatabasesPath(), 'techreport.db');
     if (File(path).existsSync()) File(path).deleteSync();
 
@@ -113,5 +113,13 @@ void main() {
     expect(again!.taxRate, 10);
     expect(again.taxLabel, 'TVA');
     expect(again.sectorFields['type_tuyauterie'], 'copper');
+
+    // 4) v12 : SIREN / n° TVA du client (rapport + fiche client).
+    expect(again.clientBusinessId, '');
+    await dbs.updateReport(again.copyWith(clientBusinessId: '123 456 789'));
+    expect((await dbs.getReport('r-old-1'))!.clientBusinessId, '123 456 789');
+    final c = (await dbs.getAllClients()).single;
+    await dbs.updateClient(c.copyWith(businessId: 'FR12345678901'));
+    expect((await dbs.getAllClients()).single.businessId, 'FR12345678901');
   });
 }

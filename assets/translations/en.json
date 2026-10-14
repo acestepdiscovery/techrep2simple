@@ -1251,5 +1251,13 @@
   "cloud_err_google_token": "Could not connect to Google. Please try again.",
   "team_err_create": "Could not create the team. Check your connection and try again.",
   "ai_record_max": "Recording stopped after {} min (maximum length).",
-  "ai_err_file_too_big": "File too large: {} MB maximum."
+  "ai_err_file_too_big": "File too large: {} MB maximum.",
+  "inv_terms_title": "Payment terms & legal notes (invoice)",
+  "inv_terms_hint": "Payment deadline, late-payment terms, discount…",
+  "inv_terms_restore": "Default text",
+  "inv_insurance_title": "Professional insurance",
+  "inv_insurance_hint": "Insurer, policy number, area covered",
+  "pdf_insurance": "Professional insurance: {}",
+  "cr_client_business_id": "Customer company / VAT no. (if a business)",
+  "pdf_client_business_id": "Company / VAT no.: {}"
 }

@@ -491,6 +491,7 @@ class _ClientFormSheet extends StatefulWidget {
 class _ClientFormSheetState extends State<_ClientFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
+  late final TextEditingController _businessId;
   late final TextEditingController _address;
   late final TextEditingController _phone;
   late final TextEditingController _email;
@@ -509,6 +510,7 @@ class _ClientFormSheetState extends State<_ClientFormSheet> {
     _email = TextEditingController(text: c?.email ?? '');
     _contact = TextEditingController(text: c?.contactPerson ?? '');
     _contract = TextEditingController(text: c?.contractNumber ?? '');
+    _businessId = TextEditingController(text: c?.businessId ?? '');
     _notes = TextEditingController(text: c?.notes ?? '');
   }
 
@@ -521,6 +523,7 @@ class _ClientFormSheetState extends State<_ClientFormSheet> {
       _email,
       _contact,
       _contract,
+      _businessId,
       _notes
     ]) {
       c.dispose();
@@ -540,6 +543,7 @@ class _ClientFormSheetState extends State<_ClientFormSheet> {
       email: _email.text.trim(),
       contactPerson: _contact.text.trim(),
       contractNumber: _contract.text.trim(),
+      businessId: _businessId.text.trim(),
       notes: _notes.text.trim(),
       createdAt: widget.existing?.createdAt ?? now,
       updatedAt: now,
@@ -597,6 +601,7 @@ class _ClientFormSheetState extends State<_ClientFormSheet> {
             ),
             _sheetField(controller: _contact, label: 'ai_lbl_contact'.tr()),
             _sheetField(controller: _contract, label: 'cl_field_contract'.tr()),
+            _sheetField(controller: _businessId, label: 'cr_client_business_id'.tr()),
             _sheetField(
               controller: _notes,
               label: 'cl_field_notes'.tr(),
