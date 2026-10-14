@@ -29,6 +29,7 @@ import '../../reports/models/tax_options.dart';
 import '../../reports/models/currency_options.dart';
 import '../widgets/tax_editor.dart';
 import '../providers/settings_provider.dart';
+import '../../../shared/utils/error_text.dart';
 
 // (K) Demande de déroulé de la tuile « Mon entreprise » des Réglages (depuis le
 // toggle d'identité d'un rapport). Le nonce force le déroulé même si l'écran
@@ -65,7 +66,7 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(title: Text('settings_title'.tr())),
       body: settings.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('common_error'.tr(args: ['$e']))),
+        error: (e, _) => Center(child: Text('common_error'.tr(args: [errorText(e)]))),
         data: (s) => ListView(
           children: [
             const _AccountCard(),
@@ -1725,7 +1726,7 @@ class _AccountCard extends ConsumerWidget {
         : user.email ?? '';
     final email = user.email ?? '';
     final initials = displayName.isNotEmpty
-        ? displayName.trim().split(' ').map((w) => w[0]).take(2).join().toUpperCase()
+        ? displayName.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).map((w) => w[0]).take(2).join().toUpperCase()
         : '?';
 
     return Padding(
@@ -2118,7 +2119,7 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
+          SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))),
         );
       }
     } finally {
@@ -2574,7 +2575,7 @@ class _SpecialCodeDialogState extends State<_SpecialCodeDialog> {
       }
     } catch (e) {
       setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
+        _error = errorText(e);
         _loading = false;
       });
     }

@@ -1246,5 +1246,8 @@
   "special_code_err_not_yet_active": "Este código ainda não está ativo.",
   "special_code_err_team_admin_only": "Só o administrador de uma equipa pode usar este código.",
   "special_code_err_too_many": "Demasiadas tentativas. Tente novamente dentro de um minuto.",
-  "cr_number_taken": "O n.º {} já é usado por outro relatório: as faturas teriam o mesmo número."
+  "cr_number_taken": "O n.º {} já é usado por outro relatório: as faturas teriam o mesmo número.",
+  "cloud_err_upload": "Falha ao enviar para {} (código {}). Tente novamente.",
+  "cloud_err_google_token": "Não foi possível ligar ao Google. Tente novamente.",
+  "team_err_create": "Não foi possível criar a equipa. Verifique a ligação e tente novamente."
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/services/team_service.dart';
 import '../../../shared/services/identity_audit_service.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../shared/utils/error_text.dart';
 
 // ─── Team company info (identité d'équipe sur les PDF) ────────────────────────
 // Form admin : adresse / SIRET / tél / email / TVA de l'ÉQUIPE. Optionnel,
@@ -130,7 +131,7 @@ class _TeamCompanyInfoCardState extends ConsumerState<TeamCompanyInfoCard> {
       ));
     } catch (e) {
       messenger.showSnackBar(SnackBar(
-        content: Text('common_error'.tr(args: [e.toString().replaceFirst('Exception: ', '')])),
+        content: Text('common_error'.tr(args: [errorText(e)])),
         backgroundColor: Colors.red,
       ));
     } finally {

@@ -83,7 +83,7 @@ class SetupScreen extends ConsumerWidget {
                     child: Text(
                       (user.displayName?.isNotEmpty == true
                               ? user.displayName![0]
-                              : user.email?[0] ?? '?')
+                              : (user.email?.isNotEmpty == true ? user.email![0] : '?'))
                           .toUpperCase(),
                       style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                     ),

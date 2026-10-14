@@ -25,6 +25,7 @@ import '../../../shared/services/team_service.dart';
 import '../../../shared/services/validation_pdf_service.dart';
 import '../../../shared/widgets/zoomable_pdf_view.dart';
 import '../../../shared/widgets/status_badge.dart';
+import '../../../shared/utils/error_text.dart';
 
 // (M/J) Demande d'ouverture d'un SOUS-ONGLET précis de la page Équipe (0=Gérer,
 // 1=Rapports, 2=Réglages équipe), avec déroulé optionnel de la carte « infos
@@ -66,7 +67,7 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
       ),
       error: (e, _) => Scaffold(
         appBar: teamAppBar(),
-        body: Center(child: Text('common_error'.tr(args: ['$e']))),
+        body: Center(child: Text('common_error'.tr(args: [errorText(e)]))),
       ),
       data: (team) {
         if (!team.hasTeam) {
@@ -317,7 +318,7 @@ class _ReportTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateRaw = data['date'] as String?;
     final date = dateRaw != null
-        ? DateFormat.yMd().format(DateTime.parse(dateRaw))
+        ? (DateTime.tryParse(dateRaw) != null ? DateFormat.yMd().format(DateTime.parse(dateRaw)) : dateRaw)
         : '—';
     final clientName = data['client_name'] ?? '—';
     final techName = data['technician_name'] ?? '';
@@ -413,7 +414,7 @@ class _StatsBar extends StatelessWidget {
 
     for (final r in reports) {
       final status = r['status'] as String? ?? '';
-      final dateStr = (r['updated_at'] ?? r['created_at'] ?? '') as String;
+      final dateStr = (r['updated_at'] ?? r['created_at'] ?? '').toString();
       if (dateStr.isNotEmpty) {
         try {
           if (!DateTime.parse(dateStr).isBefore(weekStart)) thisWeek++;
@@ -519,7 +520,7 @@ class _ValidateButtonState extends State<_ValidateButton> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
+          SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))),
         );
       }
     } finally {
@@ -617,7 +618,7 @@ class _RejectButtonState extends State<_RejectButton> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
+          SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))),
         );
       }
     } finally {
@@ -1275,7 +1276,7 @@ class _PendingMemberTileState extends State<_PendingMemberTile> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
+          SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))),
         );
       }
     } finally {
@@ -1377,7 +1378,7 @@ class _MemberTileState extends State<_MemberTile> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
+          SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))),
         );
       }
     } finally {
@@ -1411,7 +1412,7 @@ class _MemberTileState extends State<_MemberTile> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
+          SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))),
         );
       }
     }
@@ -1580,7 +1581,7 @@ class _PermissionsSheetState extends State<_PermissionsSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
+          SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))),
         );
       }
     } finally {
@@ -1871,11 +1872,11 @@ class _ReportDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateRaw = data['date'] as String?;
     final date = dateRaw != null
-        ? DateFormat.yMMMMd().format(DateTime.parse(dateRaw))
+        ? (DateTime.tryParse(dateRaw) != null ? DateFormat.yMMMMd().format(DateTime.parse(dateRaw)) : dateRaw)
         : '—';
     final endDateRaw = data['end_date'] as String?;
     final endDate = endDateRaw != null
-        ? DateFormat.yMMMMd().format(DateTime.parse(endDateRaw))
+        ? (DateTime.tryParse(endDateRaw) != null ? DateFormat.yMMMMd().format(DateTime.parse(endDateRaw)) : endDateRaw)
         : null;
 
     Widget infoRow(String label, String? value) {
@@ -2059,7 +2060,7 @@ class _ValidationPdfButtonState extends State<_ValidationPdfButton> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('td_pdf_error'.tr(args: ['$e']))),
+          SnackBar(content: Text('td_pdf_error'.tr(args: [errorText(e)]))),
         );
       }
     } finally {

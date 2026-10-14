@@ -1246,5 +1246,8 @@
   "special_code_err_not_yet_active": "This code is not active yet.",
   "special_code_err_team_admin_only": "Only a team administrator can use this code.",
   "special_code_err_too_many": "Too many attempts. Try again in a minute.",
-  "cr_number_taken": "No. {} is already used by another report: their invoices would have the same number."
+  "cr_number_taken": "No. {} is already used by another report: their invoices would have the same number.",
+  "cloud_err_upload": "Upload to {} failed (code {}). Please try again.",
+  "cloud_err_google_token": "Could not connect to Google. Please try again.",
+  "team_err_create": "Could not create the team. Check your connection and try again."
 }

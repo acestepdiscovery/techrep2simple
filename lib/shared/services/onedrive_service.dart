@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 
 class OneDriveService {
   static const _clientId = '7fb64aa4-70d7-4f1f-9d9c-c77100e537a2';
@@ -99,7 +100,7 @@ class OneDriveService {
     }
 
     if (resp.statusCode != 200 && resp.statusCode != 201) {
-      throw Exception('Échec upload OneDrive (${resp.statusCode})');
+      throw Exception('cloud_err_upload'.tr(args: ['OneDrive', '${resp.statusCode}']));
     }
 
     final data = jsonDecode(resp.body) as Map<String, dynamic>;

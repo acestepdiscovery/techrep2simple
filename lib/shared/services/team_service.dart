@@ -37,7 +37,7 @@ class TeamService {
     required String adminDisplayName,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('Non authentifié');
+    if (user == null) throw Exception('settings_not_logged_in'.tr());
     final idToken = await user.getIdToken();
 
     final response = await http.post(
@@ -53,8 +53,11 @@ class TeamService {
     );
 
     if (response.statusCode != 200) {
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
-      throw Exception(body['error'] ?? 'Erreur création équipe');
+      // (2026-10-14) Le serveur répond en français → message traduit selon le
+      // statut (avant : texte serveur ou « Erreur création équipe » en dur).
+      throw Exception(response.statusCode == 429
+          ? 'special_code_err_too_many'.tr()
+          : 'team_err_create'.tr());
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -216,7 +219,7 @@ class TeamService {
   /// `active:true` directement. La CF vérifie les sièges côté serveur (anti-fraude).
   Future<void> approveMember(String companyId, String uid) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('Non authentifié');
+    if (user == null) throw Exception('settings_not_logged_in'.tr());
     final idToken = await user.getIdToken();
     final response = await http.post(
       Uri.parse('$_kCfUrl/approve-member'),
@@ -227,7 +230,12 @@ class TeamService {
       body: jsonEncode({'company_id': companyId, 'member_uid': uid}),
     );
     if (response.statusCode != 200) {
-      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      Map<String, dynamic> body;
+      try {
+        body = jsonDecode(response.body) as Map<String, dynamic>;
+      } catch (_) {
+        body = const {}; // page d'erreur HTML (serveur indisponible)
+      }
       // (2026-10-03) Le serveur renvoie un CODE + un message en français : on
       // affiche la traduction du code (le message serveur n'est pas traduit).
       throw Exception(switch (body['error']) {

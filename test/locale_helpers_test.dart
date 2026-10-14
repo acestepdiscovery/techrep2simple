@@ -92,4 +92,23 @@ void main() {
     expect(fileSlug(''), '');
     expect(fileSlug('a' * 100).length, lessThanOrEqualTo(40));
   });
+
+  test('facture : les montants affichés s’additionnent au centime près', () {
+    expect(roundMoney(1.005), 1.01);
+    expect(roundMoney(4.995), 5.0);
+    expect(roundMoney(-1.005), -1.01);
+    final r = ReportModel(
+      id: 'z', clientName: 'C', date: DateTime(2026),
+      materials: const [
+        MaterialItem(reference: '', label: 'a', quantity: 1.5, unitPrice: 3.33),
+        MaterialItem(reference: '', label: 'b', quantity: 1.5, unitPrice: 3.33),
+        MaterialItem(reference: '', label: 'c', quantity: 1.5, unitPrice: 3.33),
+      ],
+      createdAt: DateTime(2026), updatedAt: DateTime(2026));
+    final t = PdfService.invoiceTotals(r, 20);
+    expect(t.subtotal, 15.0); // 3 × 5,00 (lignes arrondies)
+    expect(t.tax, 3.0);
+    expect(t.total, 18.0);
+    expect(roundMoney(t.subtotal + t.tax), t.total);
+  });
 }

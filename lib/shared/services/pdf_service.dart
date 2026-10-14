@@ -736,10 +736,10 @@ class PdfService {
       ReportModel report,
       pw.TextStyle baseStyle,
       pw.TextStyle boldStyle) {
-    final labor = (report.laborHours ?? 0) * (report.laborRate ?? 0);
+    final labor = roundMoney((report.laborHours ?? 0) * (report.laborRate ?? 0));
     final matsTotal = report.materials
-        .fold<double>(0, (a, m) => a + m.total);
-    final total = labor + matsTotal;
+        .fold<double>(0, (a, m) => a + roundMoney(m.total));
+    final total = roundMoney(labor + matsTotal);
 
     final rows = <pw.TableRow>[];
 
@@ -758,7 +758,7 @@ class PdfService {
       rows.add(_tableRow(
         m.label,
         '${formatQuantity(m.quantity)} × ${_money(m.unitPrice)} = '
-            '${_money(m.total)}',
+            '${_money(roundMoney(m.total))}',
         baseStyle,
         boldStyle,
       ));
@@ -1073,10 +1073,9 @@ class PdfService {
     final issueDate = fmt.format(report.endDate ?? report.date);
     final invoiceNum = invoiceNumber(report);
 
-    final laborTotal = (report.laborHours ?? 0) * (report.laborRate ?? 0);
-    final matsTotal =
-        report.materials.fold<double>(0, (a, m) => a + m.total);
-    final subtotal = laborTotal + matsTotal;
+    final t = invoiceTotals(report, report.taxRate ?? taxRate ?? 20.0);
+    final laborTotal = t.labor;
+    final subtotal = t.subtotal;
     // Taxe effective : override du rapport > valeur passée par l'appelant
     // (défaut global) > repli 20 %. taxRate est en POURCENT.
     final effRate = report.taxRate ?? taxRate ?? 20.0;
@@ -1087,8 +1086,8 @@ class PdfService {
         (report.taxMention != null && report.taxMention!.trim().isNotEmpty)
             ? report.taxMention!
             : (taxMention ?? '');
-    final tva = subtotal * effRate / 100;
-    final total = subtotal + tva;
+    final tva = t.tax;
+    final total = t.total;
 
     final doc = pw.Document(theme: await PdfFonts.theme());
     // MultiPage (2026-10-14) : en pw.Page unique, tout ce qui dépassait une page
@@ -1271,7 +1270,7 @@ class PdfService {
                 '${e.value.label}${e.value.reference.isNotEmpty ? 'pdf_ref_paren'.tr(args: [e.value.reference]) : ''}',
                 formatQuantity(e.value.quantity),
                 e.value.unitPrice,
-                e.value.total,
+                roundMoney(e.value.total),
                 even: e.key.isEven,
               )),
           pw.SizedBox(height: 16),
@@ -1302,6 +1301,18 @@ class PdfService {
       ],
     ));
     return doc.save();
+  }
+
+  /// Totaux de facture, chaque ligne arrondie au centime AVANT addition
+  /// (2026-10-14) : les montants affichés s'additionnent toujours au centime près.
+  /// [taxRatePercent] en pourcent.
+  static ({double labor, double subtotal, double tax, double total}) invoiceTotals(
+      ReportModel r, double taxRatePercent) {
+    final labor = roundMoney((r.laborHours ?? 0) * (r.laborRate ?? 0));
+    final mats = r.materials.fold<double>(0, (a, m) => a + roundMoney(m.total));
+    final subtotal = roundMoney(labor + mats);
+    final tax = roundMoney(subtotal * taxRatePercent / 100);
+    return (labor: labor, subtotal: subtotal, tax: tax, total: roundMoney(subtotal + tax));
   }
 
   /// N° de facture (« FAC-042-2026 ») : année de la date de fin d'intervention,

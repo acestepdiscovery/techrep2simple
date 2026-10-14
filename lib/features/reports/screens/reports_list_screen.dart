@@ -21,6 +21,7 @@ import '../../../shared/services/team_service.dart';
 import '../providers/photo_request_provider.dart';
 import '../../../shared/widgets/clients_icon.dart';
 import '../../../shared/widgets/badged_icon.dart';
+import '../../../shared/utils/error_text.dart';
 
 class ReportsListScreen extends ConsumerStatefulWidget {
   const ReportsListScreen({super.key});
@@ -297,7 +298,7 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
                   child: reportsAsync.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(child: Text('common_error'.tr(args: ['$e']))),
+                    error: (e, _) => Center(child: Text('common_error'.tr(args: [errorText(e)]))),
                     data: (allReports) {
                       // (B/L) On masque les rapports archivés (supprimés) de la
                       // liste principale ; ils restent dans l'onglet Archive.
@@ -1115,7 +1116,7 @@ class _TeamMergedTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateRaw = data['date'] as String?;
     final date = dateRaw != null
-        ? DateFormat.yMd().format(DateTime.parse(dateRaw))
+        ? (DateTime.tryParse(dateRaw) != null ? DateFormat.yMd().format(DateTime.parse(dateRaw)) : dateRaw)
         : '—';
     final clientName = data['client_name'] as String? ?? '—';
     final techName = data['technician_name'] as String? ?? '';
@@ -1237,7 +1238,7 @@ class _MergedReportDetailSheet extends StatelessWidget {
 
     final dateRaw = (d['date'] as String?) ?? (data['date'] as String?);
     final date = dateRaw != null
-        ? DateFormat.yMMMMd().format(DateTime.parse(dateRaw))
+        ? (DateTime.tryParse(dateRaw) != null ? DateFormat.yMMMMd().format(DateTime.parse(dateRaw)) : dateRaw)
         : '—';
     final techName = d['technician_name'] as String? ?? '';
     final rejectionComment = data['rejection_comment'] as String? ?? '';
@@ -1437,7 +1438,7 @@ class _PhotoRequestButtonState extends State<_PhotoRequestButton> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('common_error'.tr(args: ['$e']))));
+            .showSnackBar(SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))));
       }
     } finally {
       if (mounted) setState(() => _loading = false);

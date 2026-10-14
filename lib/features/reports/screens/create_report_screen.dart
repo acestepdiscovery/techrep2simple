@@ -90,6 +90,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   bool _isSaving = false;
   bool _isLoading = false;
   DateTime? _existingCreatedAt;
+  // (2026-10-14) Rapport d'origine en modification : ses champs absents du
+  // formulaire (modèle PDF, lien cloud, « signé à distance », badge IA) étaient
+  // PERDUS à chaque enregistrement.
+  ReportModel? _existing;
   int _reportNumber = 0;
   String? _reportNumberFormat;
   // Override taxe (facture) de CE rapport ; null = défaut global des Réglages.
@@ -184,6 +188,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       _sigClientData = report.signatureClientData;
       _sigTechData = report.signatureTechData;
       _existingCreatedAt = report.createdAt;
+      _existing = report;
       _sousContrat = report.sousContrat;
       for (final r in _customRows) {
         r.dispose();
@@ -717,6 +722,14 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
           if (r.label.text.trim().isNotEmpty)
             r.label.text.trim(): r.value.text.trim(),
       },
+      pdfTemplate: _existing?.pdfTemplate,
+      pdfLocalPath: _existing?.pdfLocalPath,
+      cloudUrl: _existing?.cloudUrl,
+      // « Signé à distance » reste vrai tant que la signature client n'a pas été
+      // refaite sur place.
+      signedRemotely: (_existing?.signedRemotely ?? false) &&
+          _sigClientData == _existing?.signatureClientData,
+      aiEnhanced: _existing?.aiEnhanced ?? false,
       createdAt: _existingCreatedAt ?? now,
       updatedAt: now,
     );
@@ -1871,7 +1884,7 @@ class _ClientPickerSheet extends StatelessWidget {
               backgroundColor:
                   AppColors.primary.withValues(alpha: 0.12),
               child: Text(
-                c.name[0].toUpperCase(),
+                c.name.trim().isNotEmpty ? c.name.trim()[0].toUpperCase() : '?',
                 style: const TextStyle(color: AppColors.primary),
               ),
             ),

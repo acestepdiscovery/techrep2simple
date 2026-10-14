@@ -1252,5 +1252,8 @@
   "special_code_err_not_yet_active": "Ten kod nie jest jeszcze aktywny.",
   "special_code_err_team_admin_only": "Tylko administrator zespołu może użyć tego kodu.",
   "special_code_err_too_many": "Zbyt wiele prób. Spróbuj ponownie za minutę.",
-  "cr_number_taken": "Nr {} jest już używany przez inny raport: faktury miałyby ten sam numer."
+  "cr_number_taken": "Nr {} jest już używany przez inny raport: faktury miałyby ten sam numer.",
+  "cloud_err_upload": "Nie udało się wysłać do {} (kod {}). Spróbuj ponownie.",
+  "cloud_err_google_token": "Nie udało się połączyć z Google. Spróbuj ponownie.",
+  "team_err_create": "Nie udało się utworzyć zespołu. Sprawdź połączenie i spróbuj ponownie."
 }

@@ -46,7 +46,9 @@ class RemoteSignatureService {
       'client_name': clientName,
       'status': 'pending',
       'created_at': FieldValue.serverTimestamp(),
-    });
+    // (2026-10-14) Hors ligne, une écriture Firestore n'aboutit qu'au retour du
+    // réseau → chargement sans fin. Délai max → message « pas de connexion ».
+    }).timeout(const Duration(seconds: 10));
     final code2 = (lang ?? '').split('_').first.toLowerCase();
     final shareUrl = code2.isNotEmpty
         ? '$workerBaseUrl/$token?lang=$code2'
@@ -60,6 +62,9 @@ class RemoteSignatureService {
 
   /// Cancels/expires a pending request.
   static Future<void> cancelRequest(String token) async {
-    await _db.collection(_collection).doc(token).update({'status': 'cancelled'});
+    await _db
+        .collection(_collection)
+        .doc(token)
+        .update({'status': 'cancelled'}).timeout(const Duration(seconds: 10));
   }
 }

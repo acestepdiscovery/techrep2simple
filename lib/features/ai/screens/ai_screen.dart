@@ -20,6 +20,7 @@ import '../../reports/models/report_model.dart';
 import '../../reports/providers/reports_provider.dart';
 import '../../subscription/paywall_bottom_sheet.dart';
 import '../../subscription/subscription_provider.dart';
+import '../../../shared/utils/error_text.dart';
 
 class AiScreen extends ConsumerStatefulWidget {
   const AiScreen({super.key});
@@ -1251,7 +1252,7 @@ class _DocumentSheetState extends State<_DocumentSheet> {
       if (!mounted) return;
       Navigator.pop(context, aiResult);
     } catch (e) {
-      if (mounted) setState(() { _loading = false; _error = 'common_error'.tr(args: ['$e']); });
+      if (mounted) setState(() { _loading = false; _error = 'common_error'.tr(args: [errorText(e)]); });
     }
   }
 

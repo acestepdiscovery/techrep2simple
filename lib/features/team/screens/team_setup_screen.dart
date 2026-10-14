@@ -10,6 +10,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../shared/services/team_service.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../settings/providers/settings_provider.dart';
+import '../../../shared/utils/error_text.dart';
 
 class TeamSetupScreen extends ConsumerStatefulWidget {
   final String? initialInviteCode;
@@ -96,7 +97,7 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
         });
       }
     } catch (e) {
-      setState(() { _error = 'common_error'.tr(args: ['$e']); });
+      setState(() { _error = 'common_error'.tr(args: [errorText(e)]); });
     } finally {
       if (mounted) setState(() { _loading = false; });
     }
@@ -174,7 +175,7 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
           .set('company_name', company.name);
       if (mounted) context.go('/home');
     } catch (e) {
-      setState(() { _error = 'common_error'.tr(args: ['$e']); });
+      setState(() { _error = 'common_error'.tr(args: [errorText(e)]); });
     } finally {
       if (mounted) setState(() { _loading = false; });
     }

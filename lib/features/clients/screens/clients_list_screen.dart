@@ -9,6 +9,7 @@ import '../../../shared/services/shared_clients_service.dart';
 import '../models/client_model.dart';
 import '../providers/clients_provider.dart';
 import '../providers/shared_clients_provider.dart';
+import '../../../shared/utils/error_text.dart';
 
 class ClientsListScreen extends ConsumerStatefulWidget {
   const ClientsListScreen({super.key});
@@ -124,7 +125,7 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
       ),
       body: clientsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('common_error'.tr(args: ['$e']))),
+        error: (e, _) => Center(child: Text('common_error'.tr(args: [errorText(e)]))),
         data: (clients) {
           final filtered = _query.isEmpty
               ? clients

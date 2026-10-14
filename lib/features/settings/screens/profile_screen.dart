@@ -12,6 +12,7 @@ import '../../../shared/services/subscription_service.dart';
 import '../../../shared/services/notification_service.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../subscription/subscription_provider.dart';
+import '../../../shared/utils/error_text.dart';
 
 /// Page "Mon profil" — regroupe les actions de compte :
 /// changer email, changer mot de passe, se déconnecter, supprimer le compte.
@@ -60,7 +61,7 @@ class _ProfileBody extends ConsumerWidget {
         : user.email ?? '';
     final email = user.email ?? '';
     final initials = displayName.isNotEmpty
-        ? displayName.trim().split(' ').map((w) => w[0]).take(2).join().toUpperCase()
+        ? displayName.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).map((w) => w[0]).take(2).join().toUpperCase()
         : '?';
 
     return ListView(
@@ -181,7 +182,7 @@ class _ProfileBody extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('common_error'.tr(args: [e.toString().replaceFirst('Exception: ', '')])),
+          content: Text('common_error'.tr(args: [errorText(e)])),
           backgroundColor: Colors.red,
         ));
       }
@@ -270,6 +271,7 @@ class _ProfileBody extends ConsumerWidget {
       ),
     );
     if (ok != true) return;
+    if (!context.mounted) return;
     // Capturer le routeur AVANT les awaits : après signOut, ce widget est démonté
     // (firebaseUserProvider → null) donc context.mounted devient faux.
     final router = GoRouter.of(context);
@@ -335,7 +337,7 @@ class _ProfileBody extends ConsumerWidget {
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('common_error'.tr(args: [e.toString().replaceFirst('Exception: ', '')]))));
+                      content: Text('common_error'.tr(args: [errorText(e)]))));
                   }
                 }
               },
@@ -378,6 +380,7 @@ class _ProfileBody extends ConsumerWidget {
 
     // Prépayé (à vie / N mois) ou aucun abonnement : avertir s'il reste un accès prépayé.
     final hasPrepaid = (sub.isActive && !sub.isRecurring);
+    if (!context.mounted) return;
     final confirmCtrl = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
@@ -425,6 +428,7 @@ class _ProfileBody extends ConsumerWidget {
       ),
     );
     if (confirmed != true) return;
+    if (!context.mounted) return;
 
     final uid = user.uid;
     try {

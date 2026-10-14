@@ -40,6 +40,7 @@ import '../../../shared/services/subscription_service.dart';
 import '../../../shared/widgets/status_badge.dart';
 import '../../subscription/paywall_bottom_sheet.dart';
 import '../../subscription/subscription_provider.dart';
+import '../../../shared/utils/error_text.dart';
 
 class ReportDetailScreen extends ConsumerWidget {
   final String reportId;
@@ -53,7 +54,7 @@ class ReportDetailScreen extends ConsumerWidget {
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) =>
-          Scaffold(body: Center(child: Text('common_error'.tr(args: ['$e'])))),
+          Scaffold(body: Center(child: Text('common_error'.tr(args: [errorText(e)])))),
       data: (reports) {
         final report =
             reports.where((r) => r.id == reportId).firstOrNull;
@@ -405,7 +406,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('rd_pdf_error'.tr(args: ['$e'])), backgroundColor: Colors.red),
+          SnackBar(content: Text('rd_pdf_error'.tr(args: [errorText(e)])), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -504,6 +505,9 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       final clientSlug = fileSlug(widget.report.clientName);
       final filename =
           '${'file_report_prefix'.tr()}_${clientSlug}_${widget.report.id.substring(0, 8)}.pdf';
+      // (2026-10-14) Écran quitté pendant la génération → ne pas partager depuis
+      // un écran démonté (shareOrigin lit sa position à l'écran).
+      if (!mounted) return;
       await Printing.sharePdf(
           bytes: bytes, filename: filename, bounds: shareOrigin(context));
 
@@ -524,7 +528,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('rd_pdf_error'.tr(args: ['$e'])),
+              content: Text('rd_pdf_error'.tr(args: [errorText(e)])),
               backgroundColor: Colors.red),
         );
       }
@@ -569,6 +573,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       final invoiceNum = PdfService.invoiceNumber(report);
       final file = File('${dir.path}/$invoiceNum.pdf');
       await file.writeAsBytes(bytes);
+      if (!mounted) return;
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/pdf')],
         subject: invoiceNum,
@@ -578,7 +583,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('rd_invoice_error'.tr(args: ['$e'])),
+              content: Text('rd_invoice_error'.tr(args: [errorText(e)])),
               backgroundColor: Colors.red),
         );
       }
@@ -695,7 +700,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common_error'.tr(args: ['$e'])), backgroundColor: Colors.red),
+          SnackBar(content: Text('common_error'.tr(args: [errorText(e)])), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -905,13 +910,14 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
       final slug = fileSlug(r.clientName);
       final file = File('${dir.path}/${'file_report_prefix'.tr()}_${slug}_${r.id.substring(0, 8)}.html');
       await file.writeAsString(html);
+      if (!mounted) return;
       await Share.shareXFiles([XFile(file.path, mimeType: 'text/html')],
           subject: 'tx_html_title'.tr(args: [r.reportNumber.toString().padLeft(3, '0')]),
           sharePositionOrigin: shareOrigin(context));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('tx_html_error'.tr(args: ['$e'])), backgroundColor: Colors.red),
+          SnackBar(content: Text('tx_html_error'.tr(args: [errorText(e)])), backgroundColor: Colors.red),
         );
       }
     }
@@ -1075,7 +1081,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
         context: context,
         builder: (dlg) => AlertDialog(
           title: Text('rd_drive_error'.tr()),
-          content: Text(e.toString()),
+          content: Text(errorText(e)),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dlg),
@@ -1167,7 +1173,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
         context: context,
         builder: (dlg) => AlertDialog(
           title: Text('rd_cloud_error'.tr(args: [serviceName])),
-          content: Text(e.toString()),
+          content: Text(errorText(e)),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dlg),
@@ -2439,9 +2445,9 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
   }
 
   String _totalStr(ReportModel r) {
-    final labor = (r.laborHours ?? 0) * (r.laborRate ?? 0);
-    final mats = r.materials.fold<double>(0, (a, m) => a + m.total);
-    return _money(labor + mats);
+    final labor = roundMoney((r.laborHours ?? 0) * (r.laborRate ?? 0));
+    final mats = r.materials.fold<double>(0, (a, m) => a + roundMoney(m.total));
+    return _money(roundMoney(labor + mats));
   }
 
   /// (2026-10-03) Montant dans la devise réglée, au format de la langue — même
@@ -2885,7 +2891,7 @@ class _ResubmitButtonState extends ConsumerState<_ResubmitButton> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common_error'.tr(args: ['$e']))),
+          SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))),
         );
       }
     } finally {

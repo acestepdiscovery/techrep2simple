@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 
 class DropboxService {
   static const _appKey = '6je4pzzft5wimfo';
@@ -102,10 +103,10 @@ class DropboxService {
         body: bytes,
       );
       if (retry.statusCode != 200) {
-        throw Exception('Échec upload Dropbox (${retry.statusCode})');
+        throw Exception('cloud_err_upload'.tr(args: ['Dropbox', '${retry.statusCode}']));
       }
     } else if (uploadResp.statusCode != 200) {
-      throw Exception('Échec upload Dropbox (${uploadResp.statusCode})');
+      throw Exception('cloud_err_upload'.tr(args: ['Dropbox', '${uploadResp.statusCode}']));
     }
 
     // Create shared link

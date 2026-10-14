@@ -122,3 +122,9 @@ double? parseLocalNumber(String? input) {
   }
   return double.tryParse(s);
 }
+
+/// Arrondi au centime, « au plus proche » (2026-10-14). Le petit décalage
+/// évite que 1,005 (= 1,00499999… en binaire) soit arrondi à 1,00.
+/// Les factures additionnent des lignes DÉJÀ arrondies (comme les logiciels de
+/// facturation) : avant, 3 × (1,5 × 3,33) donnait « 14,99 + 3,00 = 17,98 ».
+double roundMoney(num v) => ((v * 100) + (v >= 0 ? 1e-7 : -1e-7)).round() / 100;

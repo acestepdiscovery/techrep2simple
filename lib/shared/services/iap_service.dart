@@ -25,6 +25,7 @@ import 'package:in_app_purchase_android/billing_client_wrappers.dart'
 
 import 'billing_config.dart';
 import '../../core/config/cf_config.dart';
+import '../utils/error_text.dart';
 
 class IapService {
   IapService._();
@@ -173,7 +174,8 @@ class IapService {
       return started;
     } catch (e) {
       busy.value = false;
-      lastError.value = e.toString();
+      // (2026-10-14) Erreur technique du store (en anglais) → message traduit.
+      lastError.value = 'iap_err_purchase'.tr();
       return false;
     }
   }
@@ -228,7 +230,7 @@ class IapService {
     try {
       await _iap.restorePurchases();
     } catch (e) {
-      lastError.value = e.toString();
+      lastError.value = errorText(e);
     }
   }
 

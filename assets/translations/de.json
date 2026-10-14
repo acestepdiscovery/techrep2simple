@@ -1246,5 +1246,8 @@
   "special_code_err_not_yet_active": "Dieser Code ist noch nicht aktiv.",
   "special_code_err_team_admin_only": "Nur ein Team-Administrator kann diesen Code verwenden.",
   "special_code_err_too_many": "Zu viele Versuche. Bitte versuchen Sie es in einer Minute erneut.",
-  "cr_number_taken": "Nr. {} wird bereits von einem anderen Bericht verwendet: Die Rechnungen hätten dieselbe Nummer."
+  "cr_number_taken": "Nr. {} wird bereits von einem anderen Bericht verwendet: Die Rechnungen hätten dieselbe Nummer.",
+  "cloud_err_upload": "Hochladen zu {} fehlgeschlagen (Code {}). Bitte erneut versuchen.",
+  "cloud_err_google_token": "Verbindung zu Google nicht möglich. Bitte erneut versuchen.",
+  "team_err_create": "Team konnte nicht erstellt werden. Bitte Verbindung prüfen und erneut versuchen."
 }

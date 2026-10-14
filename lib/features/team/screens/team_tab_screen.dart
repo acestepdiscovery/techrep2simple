@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../auth/providers/auth_provider.dart';
 import 'team_dashboard_screen.dart';
+import '../../../shared/utils/error_text.dart';
 
 /// Onglet « Équipe » dédié (nav tab).
 ///  • Si l'utilisateur A une équipe → on affiche le tableau de bord d'équipe
@@ -24,7 +25,7 @@ class TeamTabScreen extends ConsumerWidget {
       ),
       error: (e, _) => Scaffold(
         appBar: AppBar(title: Text('nav_team'.tr())),
-        body: Center(child: Text('common_error'.tr(args: ['$e']))),
+        body: Center(child: Text('common_error'.tr(args: [errorText(e)]))),
       ),
       data: (team) {
         if (team.hasTeam) return const TeamDashboardScreen();

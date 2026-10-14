@@ -1246,5 +1246,8 @@
   "special_code_err_not_yet_active": "Este código aún no está activo.",
   "special_code_err_team_admin_only": "Solo el administrador de un equipo puede usar este código.",
   "special_code_err_too_many": "Demasiados intentos. Vuelve a intentarlo en un minuto.",
-  "cr_number_taken": "El n.º {} ya lo usa otro informe: sus facturas tendrían el mismo número."
+  "cr_number_taken": "El n.º {} ya lo usa otro informe: sus facturas tendrían el mismo número.",
+  "cloud_err_upload": "Error al subir a {} (código {}). Vuelve a intentarlo.",
+  "cloud_err_google_token": "No se pudo conectar con Google. Vuelve a intentarlo.",
+  "team_err_create": "No se pudo crear el equipo. Comprueba la conexión y vuelve a intentarlo."
 }

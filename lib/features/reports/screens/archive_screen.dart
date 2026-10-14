@@ -8,6 +8,7 @@ import '../models/report_model.dart';
 import '../providers/reports_provider.dart';
 import '../providers/archive_provider.dart';
 import '../../../shared/widgets/status_badge.dart';
+import '../../../shared/utils/error_text.dart';
 
 /// (B/L) Onglet « Archive » : les rapports supprimés (archivés). On peut les
 /// restaurer ou les supprimer DÉFINITIVEMENT. Réservé au Pro.
@@ -24,7 +25,7 @@ class ArchiveScreen extends ConsumerWidget {
           ? _ProGate()
           : ref.watch(reportsProvider).when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('common_error'.tr(args: ['$e']))),
+                error: (e, _) => Center(child: Text('common_error'.tr(args: [errorText(e)]))),
                 data: (allReports) {
                   final archivedIds = ref.watch(archivedReportsProvider);
                   final archived = allReports

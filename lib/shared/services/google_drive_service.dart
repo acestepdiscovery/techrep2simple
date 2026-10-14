@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 
 class GoogleDriveService {
   static const _defaultFolderName = 'Rapport Technique';
@@ -60,7 +61,7 @@ class GoogleDriveService {
 
     final auth = await account.authentication;
     final token = auth.accessToken;
-    if (token == null) throw Exception('Impossible d\'obtenir le token Google');
+    if (token == null) throw Exception('cloud_err_google_token'.tr());
 
     final headers = {'Authorization': 'Bearer $token'};
     final folderId = await _getOrCreateFolder(
@@ -96,7 +97,7 @@ class GoogleDriveService {
     );
 
     if (uploadResp.statusCode != 200) {
-      throw Exception('Échec upload Drive (${uploadResp.statusCode})');
+      throw Exception('cloud_err_upload'.tr(args: ['Google Drive', '${uploadResp.statusCode}']));
     }
 
     final data = jsonDecode(uploadResp.body) as Map<String, dynamic>;

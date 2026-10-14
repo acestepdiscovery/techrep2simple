@@ -13,6 +13,7 @@ import '../../../shared/services/team_service.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/report_model.dart';
 import '../providers/reports_provider.dart';
+import '../../../shared/utils/error_text.dart';
 
 /// Bottom sheet that guides a tech through getting a remote client signature.
 ///
@@ -90,7 +91,7 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
       setState(() => _state = _SheetState.awaiting);
       _startListening();
     } catch (e) {
-      setState(() { _state = _SheetState.error; _error = e.toString(); });
+      setState(() { _state = _SheetState.error; _error = errorText(e); });
     }
   }
 
@@ -124,7 +125,7 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
         if (mounted) Navigator.pop(context, true);
       }
     } catch (e) {
-      if (mounted) setState(() { _state = _SheetState.error; _error = e.toString(); });
+      if (mounted) setState(() { _state = _SheetState.error; _error = errorText(e); });
     }
   }
 

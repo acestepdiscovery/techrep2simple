@@ -187,6 +187,7 @@ class _MainShellState extends ConsumerState<MainShell> {
         final remote = doc.data()?['milestone_${toShow}_message'] as String?;
         if (remote != null && remote.trim().isNotEmpty) body = remote.trim();
       } catch (_) {}
+      if (!mounted) return; // l'écran a pu être quitté pendant la lecture
       showDialog(
         context: context,
         builder: (dlg) => AlertDialog(

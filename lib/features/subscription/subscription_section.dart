@@ -15,6 +15,7 @@ import '../referral/providers/referral_provider.dart';
 import '../auth/providers/auth_provider.dart';
 import 'subscription_provider.dart';
 import 'paywall_bottom_sheet.dart';
+import '../../shared/utils/error_text.dart';
 
 // ─── Subscription section ─────────────────────────────────────────────────────
 
@@ -80,7 +81,7 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            content: Text(errorText(e)),
             backgroundColor: Colors.red,
           ),
         );
@@ -362,7 +363,7 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
                           debugPrint('[seats] modify error: $e');
                           setSt(() {
                             busy = false;
-                            err = e.toString().replaceFirst('Exception: ', '');
+                            err = errorText(e);
                           });
                         }
                       },
