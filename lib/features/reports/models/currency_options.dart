@@ -94,3 +94,8 @@ String formatMoney(num amount, {String? code, String? locale}) {
 /// de la langue (« 1,5 » en français, « 1.5 » en anglais).
 String formatQuantity(num q, {String? locale}) =>
     NumberFormat.decimalPattern(locale ?? Intl.defaultLocale).format(q);
+
+/// Séparateur « libellé : valeur » selon la langue : espace avant « : » en
+/// français uniquement (« Adresse : … »), « Address: … » ailleurs. (2026-10-14)
+String labelSep({String? locale}) =>
+    (locale ?? Intl.defaultLocale ?? 'fr').startsWith('fr') ? ' : ' : ': ';

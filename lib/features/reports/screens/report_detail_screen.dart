@@ -719,28 +719,28 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
 
     buf.writeln('${'pdf_report_title'.tr()}${r.reportNumber > 0 ? ' #${r.reportNumber.toString().padLeft(3, '0')}' : ''}');
     if (company.isNotEmpty) buf.writeln(company);
-    if (tech.isNotEmpty) buf.writeln('${'pdf_lbl_technician'.tr()} : $tech');
+    if (tech.isNotEmpty) buf.writeln('${'pdf_lbl_technician'.tr()}${labelSep()}$tech');
     buf.writeln('pdf_date_prefix'.tr(args: [date]));
     if (r.startTime != null || r.endTime != null) {
-      buf.writeln('${'tx_schedule'.tr()} : ${_horaireStr(r)}');
+      buf.writeln('${'tx_schedule'.tr()}${labelSep()}${_horaireStr(r)}');
     }
     buf.writeln();
 
     buf.writeln('── ${'pdf_sec_client'.tr()} ──');
-    buf.writeln('${'pdf_lbl_name'.tr()} : ${r.clientName.isEmpty ? "—" : r.clientName}');
-    if (r.clientAddress.isNotEmpty) buf.writeln('${'pdf_lbl_address'.tr()} : ${r.clientAddress}');
-    if (r.clientPhone.isNotEmpty) buf.writeln('${'pdf_lbl_phone'.tr()} : ${r.clientPhone}');
-    if (r.clientContact.isNotEmpty) buf.writeln('${'pdf_lbl_contact_short'.tr()} : ${r.clientContact}');
-    if (r.contractNumber.isNotEmpty) buf.writeln('${'pdf_lbl_contract'.tr()} : ${r.contractNumber}');
+    buf.writeln('${'pdf_lbl_name'.tr()}${labelSep()}${r.clientName.isEmpty ? "—" : r.clientName}');
+    if (r.clientAddress.isNotEmpty) buf.writeln('${'pdf_lbl_address'.tr()}${labelSep()}${r.clientAddress}');
+    if (r.clientPhone.isNotEmpty) buf.writeln('${'pdf_lbl_phone'.tr()}${labelSep()}${r.clientPhone}');
+    if (r.clientContact.isNotEmpty) buf.writeln('${'pdf_lbl_contact_short'.tr()}${labelSep()}${r.clientContact}');
+    if (r.contractNumber.isNotEmpty) buf.writeln('${'pdf_lbl_contract'.tr()}${labelSep()}${r.contractNumber}');
     buf.writeln();
 
     buf.writeln('── ${'pdf_sec_intervention'.tr()} ──');
-    if (r.sector != SectorTemplate.generic) buf.writeln('${'tx_sector'.tr()} : ${r.sector.label}');
-    if (r.interventionType.isNotEmpty) buf.writeln('${'pdf_lbl_type'.tr()} : ${r.interventionType}');
+    if (r.sector != SectorTemplate.generic) buf.writeln('${'tx_sector'.tr()}${labelSep()}${r.sector.label}');
+    if (r.interventionType.isNotEmpty) buf.writeln('${'pdf_lbl_type'.tr()}${labelSep()}${r.interventionType}');
     if (r.sectorFields.isNotEmpty) {
       for (final e in r.sectorFields.entries) {
         if (e.value != null && e.value.toString().isNotEmpty) {
-          buf.writeln('${_formatKey(e.key)} : ${sectorValueLabel(e.value.toString())}');
+          buf.writeln('${sectorFieldLabel(e.key)}${labelSep()}${sectorValueLabel(e.value.toString())}');
         }
       }
     }
@@ -761,7 +761,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       buf.writeln('── ${'pdf_sec_billing'.tr()} ──');
       if (r.laborHours != null) {
         final labor = r.laborHours! * (r.laborRate ?? 0);
-        buf.writeln('${'pdf_lbl_labor'.tr()} : ${formatQuantity(r.laborHours!)} h × ${_money(r.laborRate ?? 0)}/h = ${_money(labor)}');
+        buf.writeln('${'pdf_lbl_labor'.tr()}${labelSep()}${formatQuantity(r.laborHours!)} h × ${_money(r.laborRate ?? 0)}/h = ${_money(labor)}');
       }
       for (final m in r.materials) {
         buf.writeln('• ${m.label} × ${formatQuantity(m.quantity)} = ${_money(m.total)}');
@@ -831,8 +831,12 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     final tech = s['technician_name'] ?? '';
     final date = DateFormat.yMMMMd().format(r.date);
 
-    String row(String label, String value) =>
-        value.isEmpty ? '' : '<tr><td class="lbl">$label</td><td>$value</td></tr>';
+    // (2026-10-14) Échappement HTML : sans lui, un « < » dans une description
+    // (« température <ambiante… ») faisait disparaître du texte chez le client.
+    const esc = HtmlEscape();
+    String row(String label, String value) => value.isEmpty
+        ? ''
+        : '<tr><td class="lbl">${esc.convert(label)}</td><td>${esc.convert(value)}</td></tr>';
 
     String section(String title, String content) =>
         '<h2>$title</h2><table>$content</table>';
@@ -852,7 +856,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
 
     final sectorRows = r.sectorFields.entries
         .where((e) => e.value != null && e.value.toString().isNotEmpty)
-        .map((e) => row(_formatKey(e.key), sectorValueLabel(e.value.toString())))
+        .map((e) => row(sectorFieldLabel(e.key), sectorValueLabel(e.value.toString())))
         .join();
 
     final html = '''<!DOCTYPE html>
@@ -877,7 +881,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
 <body>
 <header>
   <h1>${'tx_report_heading'.tr()}${r.reportNumber > 0 ? ' #${r.reportNumber.toString().padLeft(3, '0')}' : ''}</h1>
-  <p>${company.isNotEmpty ? '$company${tech.isNotEmpty ? ' · ' : ''}' : ''}${tech.isNotEmpty ? 'pdf_tech_prefix'.tr(args: [tech]) : ''} · $date</p>
+  <p>${company.isNotEmpty ? '${esc.convert(company)}${tech.isNotEmpty ? ' · ' : ''}' : ''}${tech.isNotEmpty ? esc.convert('pdf_tech_prefix'.tr(args: [tech])) : ''} · $date</p>
 </header>
 
 ${section('pdf_sec_client'.tr(), [
@@ -895,8 +899,8 @@ ${section('pdf_sec_intervention'.tr(), [
       sectorRows,
     ].join())}
 
-${r.description.isNotEmpty ? '<h2>${'pdf_sec_work'.tr()}</h2><div class="desc">${r.description}</div>' : ''}
-${r.observations.isNotEmpty ? '<h2>${'pdf_observations'.tr()}</h2><div class="desc">${r.observations}</div>' : ''}
+${r.description.isNotEmpty ? '<h2>${'pdf_sec_work'.tr()}</h2><div class="desc">${esc.convert(r.description)}</div>' : ''}
+${r.observations.isNotEmpty ? '<h2>${'pdf_observations'.tr()}</h2><div class="desc">${esc.convert(r.observations)}</div>' : ''}
 ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString()) : ''}
 
 </body>
@@ -1902,7 +1906,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
                       e.value != null &&
                       e.value.toString().isNotEmpty)
                   .map((e) => _InfoRow(
-                      _formatKey(e.key), sectorValueLabel(e.value.toString())))
+                      sectorFieldLabel(e.key), sectorValueLabel(e.value.toString())))
                   .toList(),
             ),
           const SizedBox(height: 12),
@@ -2460,11 +2464,6 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
           region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
           language: Intl.defaultLocale));
 
-  String _formatKey(String k) =>
-      k.replaceAll('_', ' ').split(' ').map((w) {
-        if (w.isEmpty) return w;
-        return w[0].toUpperCase() + w.substring(1);
-      }).join(' ');
 }
 
 // ─── Remote signature button (PRO gate) ──────────────────────────────────────

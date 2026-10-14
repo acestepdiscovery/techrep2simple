@@ -1228,5 +1228,6 @@
   "ks_blocked_default": "App temporariamente indisponível.\nContacte o seu administrador.",
   "itg_title": "Versão indisponível",
   "itg_default_message": "Esta versão de demonstração já não está ativa.\nContacte-nos para aceder à app.",
-  "welcome_tagline": "Os seus relatórios de intervenção no smartphone"
+  "welcome_tagline": "Os seus relatórios de intervenção no smartphone",
+  "cr_material_removed": "{} removido"
 }

@@ -1228,5 +1228,6 @@
   "ks_blocked_default": "App temporarily unavailable.\nPlease contact your administrator.",
   "itg_title": "Version not available",
   "itg_default_message": "This demo version is no longer active.\nPlease contact us to access the app.",
-  "welcome_tagline": "Your service reports on your smartphone"
+  "welcome_tagline": "Your service reports on your smartphone",
+  "cr_material_removed": "{} removed"
 }

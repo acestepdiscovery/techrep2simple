@@ -441,7 +441,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     setState(() => _materials.removeAt(index));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${removed.label} supprimé'),
+        content: Text('cr_material_removed'.tr(args: [removed.label])),
         duration: const Duration(seconds: 4),
         action: SnackBarAction(
           label: 'common_cancel'.tr(),
@@ -1925,7 +1925,9 @@ class _MaterialDialogState extends State<_MaterialDialog> {
                       controller: _qty,
                       textAlign: TextAlign.center,
                       decoration: InputDecoration(labelText: 'md_qty'.tr()),
-                      keyboardType: TextInputType.number,
+                      // decimal: true → touche virgule sur iPhone (2,5 m de tube…)
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true),
                     ),
                   ),
                   IconButton(
@@ -2046,7 +2048,7 @@ class _TotalPreview extends StatelessWidget {
         children: [
           if (hours > 0)
             _TotalRow('cr_labor'.tr(),
-                '${hours.toStringAsFixed(1)}h × ${formatMoney(rate)}/h',
+                '${formatQuantity(hours)} h × ${formatMoney(rate)}/h',
                 labor),
           if (matTotal > 0) _TotalRow('cr_materials'.tr(), '', matTotal),
           const Divider(height: 12),

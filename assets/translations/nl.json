@@ -1228,5 +1228,6 @@
   "ks_blocked_default": "App tijdelijk niet beschikbaar.\nNeem contact op met je beheerder.",
   "itg_title": "Versie niet beschikbaar",
   "itg_default_message": "Deze demoversie is niet meer actief.\nNeem contact met ons op voor toegang tot de app.",
-  "welcome_tagline": "Je werkbonnen op je smartphone"
+  "welcome_tagline": "Je werkbonnen op je smartphone",
+  "cr_material_removed": "{} verwijderd"
 }

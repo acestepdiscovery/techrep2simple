@@ -112,3 +112,17 @@ String sectorValueLabel(String stored) {
   final tk = sectorOptionLabelKey[stored];
   return tk != null ? tk.tr() : stored;
 }
+
+/// Libellé traduit du NOM d'un champ secteur (clé stable stockée en base,
+/// ex. `type_tuyauterie` → `sf_type_tuyauterie` → « Pipe type »), comme dans le
+/// formulaire. Clé inconnue (vieux rapport) → « Type tuyauterie » (jamais de plantage).
+/// 2026-10-14 : PDF / détail / exports affichaient la clé brute (« Type Tuyauterie »)
+/// dans toutes les langues.
+String sectorFieldLabel(String key) {
+  const aliases = {'pression_testee_bar': 'sf_pression_testee'};
+  final tk = aliases[key] ?? 'sf_$key';
+  final t = tk.tr();
+  if (t != tk) return t;
+  final s = key.replaceAll('_', ' ').trim();
+  return s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+}

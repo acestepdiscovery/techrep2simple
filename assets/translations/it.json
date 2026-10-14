@@ -1228,5 +1228,6 @@
   "ks_blocked_default": "App temporaneamente non disponibile.\nContatta il tuo amministratore.",
   "itg_title": "Versione non disponibile",
   "itg_default_message": "Questa versione dimostrativa non è più attiva.\nContattaci per accedere all'app.",
-  "welcome_tagline": "I tuoi rapporti di intervento sullo smartphone"
+  "welcome_tagline": "I tuoi rapporti di intervento sullo smartphone",
+  "cr_material_removed": "{} rimosso"
 }

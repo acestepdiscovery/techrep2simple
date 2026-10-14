@@ -1230,5 +1230,6 @@
   "ks_blocked_default": "Aplikacja jest tymczasowo niedostępna.\nSkontaktuj się z administratorem.",
   "itg_title": "Wersja niedostępna",
   "itg_default_message": "Ta wersja demonstracyjna nie jest już aktywna.\nSkontaktuj się z nami, aby uzyskać dostęp do aplikacji.",
-  "welcome_tagline": "Twoje raporty serwisowe na smartfonie"
+  "welcome_tagline": "Twoje raporty serwisowe na smartfonie",
+  "cr_material_removed": "Usunięto: {}"
 }

@@ -1228,5 +1228,6 @@
   "ks_blocked_default": "Aplicación no disponible temporalmente.\nContacta con tu administrador.",
   "itg_title": "Versión no disponible",
   "itg_default_message": "Esta versión de demostración ya no está activa.\nContacta con nosotros para acceder a la aplicación.",
-  "welcome_tagline": "Tus partes de intervención en el móvil"
+  "welcome_tagline": "Tus partes de intervención en el móvil",
+  "cr_material_removed": "{} eliminado"
 }

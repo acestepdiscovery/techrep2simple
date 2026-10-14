@@ -140,10 +140,10 @@ class PdfService {
             _buildSectorFieldsSection(report, baseStyle, boldStyle),
           ],
           pw.SizedBox(height: 10),
-          _buildWorkSection(report, baseStyle),
+          ..._buildWorkSection(report, baseStyle),
           if (_hasBilling(report)) ...[
             pw.SizedBox(height: 10),
-            _buildBillingSection(report, baseStyle, boldStyle),
+            ..._buildBillingSection(report, baseStyle, boldStyle),
           ],
           if (photoImages.isNotEmpty) ...[
             pw.SizedBox(height: 14),
@@ -310,19 +310,21 @@ class PdfService {
                             fontWeight: pw.FontWeight.bold, fontSize: 11)),
                     pw.SizedBox(height: 8),
                     _profRow('pdf_lbl_client'.tr(), report.clientName),
+                    // (2026-10-14) une seule ligne : « Lieu d'intervention » répétait
+                    // la même adresse que « Adresse ».
                     if (f(report.clientAddress))
                       _profRow('pdf_lbl_address'.tr(), report.clientAddress),
-                    if (f(report.clientAddress))
-                      _profRow('pdf_lbl_location'.tr(), report.clientAddress),
                     if (f(report.clientContact))
                       _profRow('pdf_lbl_contact'.tr(), report.clientContact),
                     if (f(technicianName)) _profRow('pdf_lbl_technician'.tr(), technicianName!),
+                    // Début = 1er jour, fin = dernier jour (avant : « Du 3/10 au
+                    // 4/10 08:30 » sur les deux lignes pour un chantier multi-jours).
                     if (report.startTime != null)
                       _profRow('pdf_lbl_start'.tr(),
-                          '$dateStr ${_timeStr(report.startTime!)}'),
+                          '${DateFormat.yMd().format(report.date)} ${_timeStr(report.startTime!)}'),
                     if (report.endTime != null)
                       _profRow('pdf_lbl_end'.tr(),
-                          '$dateStr ${_timeStr(report.endTime!)}'),
+                          '${DateFormat.yMd().format(report.endDate ?? report.date)} ${_timeStr(report.endTime!)}'),
                     _profRow('pdf_lbl_under_contract'.tr(),
                         report.sousContrat ? 'pdf_yes'.tr() : 'pdf_no'.tr()),
                     // (#4b) Champs personnalisés saisis par l'utilisateur.
@@ -394,6 +396,7 @@ class PdfService {
         pw.Text(
           report.description.isEmpty ? '—' : report.description,
           style: const pw.TextStyle(fontSize: 9, lineSpacing: 2),
+          overflow: pw.TextOverflow.span, // texte long → continue page suivante
         ),
         if (f(report.observations)) ...[
           pw.SizedBox(height: 12),
@@ -402,11 +405,12 @@ class PdfService {
                   fontWeight: pw.FontWeight.bold, fontSize: 11)),
           pw.SizedBox(height: 6),
           pw.Text(report.observations,
-              style: const pw.TextStyle(fontSize: 9, lineSpacing: 2)),
+              style: const pw.TextStyle(fontSize: 9, lineSpacing: 2),
+              overflow: pw.TextOverflow.span),
         ],
         if (_hasBilling(report)) ...[
           pw.SizedBox(height: 16),
-          _buildBillingSection(
+          ..._buildBillingSection(
               report,
               const pw.TextStyle(fontSize: 9),
               pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
@@ -431,7 +435,7 @@ class PdfService {
           text: pw.TextSpan(
             children: [
               pw.TextSpan(
-                  text: '$label : ',
+                  text: '$label${labelSep()}',
                   style: const pw.TextStyle(fontSize: 9, color: _grey)),
               pw.TextSpan(text: value, style: const pw.TextStyle(fontSize: 9)),
             ],
@@ -678,7 +682,7 @@ class PdfService {
       child: pw.Table(
         children: entries
             .map((e) => _tableRow(
-                  _formatKey(e.key),
+                  sectorFieldLabel(e.key),
                   sectorValueLabel(e.value.toString()),
                   baseStyle,
                   boldStyle,
@@ -688,32 +692,26 @@ class PdfService {
     );
   }
 
-  pw.Widget _buildWorkSection(
-      ReportModel report, pw.TextStyle baseStyle) =>
-      pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          _section(
-            title: 'pdf_sec_work'.tr(),
-            child: pw.Text(
-              report.description.isEmpty ? '—' : report.description,
-              style: baseStyle.copyWith(lineSpacing: 2),
-            ),
-          ),
-          if (report.observations.isNotEmpty) ...[
-            pw.SizedBox(height: 10),
-            _section(
-              title: 'pdf_sec_observations'.tr(),
-              child: pw.Text(
-                report.observations,
-                style: baseStyle.copyWith(lineSpacing: 2),
-              ),
-            ),
-          ],
-        ],
-      );
+  List<pw.Widget> _buildWorkSection(
+      ReportModel report, pw.TextStyle baseStyle) {
+    final style = baseStyle.copyWith(lineSpacing: 2);
+    List<pw.Widget> block(String title, String text) =>
+        text.length <= _boxMaxChars
+            ? [_section(title: title, child: pw.Text(text, style: style))]
+            : _openSection(title, [
+                pw.Text(text, style: style, overflow: pw.TextOverflow.span),
+              ]);
+    return [
+      ...block('pdf_sec_work'.tr(),
+          report.description.isEmpty ? '—' : report.description),
+      if (report.observations.isNotEmpty) ...[
+        pw.SizedBox(height: 10),
+        ...block('pdf_sec_observations'.tr(), report.observations),
+      ],
+    ];
+  }
 
-  pw.Widget _buildBillingSection(
+  List<pw.Widget> _buildBillingSection(
       ReportModel report,
       pw.TextStyle baseStyle,
       pw.TextStyle boldStyle) {
@@ -727,7 +725,7 @@ class PdfService {
     if (report.laborHours != null && report.laborHours! > 0) {
       rows.add(_tableRow(
         'pdf_lbl_labor'.tr(),
-        '${report.laborHours!.toStringAsFixed(1)} h × '
+        '${formatQuantity(report.laborHours!)} h × '
             '${_money(report.laborRate ?? 0)}/h = '
             '${_money(labor)}',
         baseStyle,
@@ -745,27 +743,33 @@ class PdfService {
       ));
     }
 
-    return _section(
-      title: 'pdf_sec_billing'.tr(),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+    final content = <pw.Widget>[
+      pw.Table(children: rows),
+      pw.Divider(color: _divider),
+      pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.end,
         children: [
-          pw.Table(children: rows),
-          pw.Divider(color: _divider),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.end,
-            children: [
-              pw.Text('pdf_total_ht'.tr(),
-                  style: boldStyle.copyWith(
-                      color: _blue, fontSize: 10)),
-              pw.Text(_money(total),
-                  style: boldStyle.copyWith(
-                      color: _blue, fontSize: 11)),
-            ],
-          ),
+          pw.Text('pdf_total_ht'.tr(),
+              style: boldStyle.copyWith(
+                  color: _blue, fontSize: 10)),
+          pw.Text(_money(total),
+              style: boldStyle.copyWith(
+                  color: _blue, fontSize: 11)),
         ],
       ),
-    );
+    ];
+    if (rows.length > _boxMaxRows) {
+      return _openSection('pdf_sec_billing'.tr(), content);
+    }
+    return [
+      _section(
+        title: 'pdf_sec_billing'.tr(),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: content,
+        ),
+      ),
+    ];
   }
 
   pw.Widget _buildPhotosSection(
@@ -930,9 +934,25 @@ class PdfService {
 
   // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+  static final _sectionTitleStyle = pw.TextStyle(
+    color: _blue,
+    fontSize: 9,
+    fontWeight: pw.FontWeight.bold,
+    letterSpacing: 0.8,
+  );
+
+  // Un bloc encadré (pw.Container décoré) ne peut PAS être coupé entre deux
+  // pages : s'il dépasse une page entière, la génération plante (« won't fit
+  // into the page » / TooManyPagesException). Au-delà de ces seuils, on passe
+  // en _openSection (titre encadré + contenu libre, coupable). (2026-10-14)
+  static const _boxMaxChars = 2500;
+  static const _boxMaxRows = 15;
+
   pw.Widget _section(
           {required String title, required pw.Widget child}) =>
-      pw.Container(
+      // Inseparable : un cadre qui ne tient pas en bas de page passe ENTIER à la
+      // page suivante (sinon un bout de cadre vide restait en bas de page).
+      pw.Inseparable(child: pw.Container(
         decoration: const pw.BoxDecoration(
           color: _blueLight,
           borderRadius:
@@ -942,20 +962,29 @@ class PdfService {
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text(
-              title,
-              style: pw.TextStyle(
-                color: _blue,
-                fontSize: 9,
-                fontWeight: pw.FontWeight.bold,
-                letterSpacing: 0.8,
-              ),
-            ),
+            pw.Text(title, style: _sectionTitleStyle),
             pw.SizedBox(height: 6),
             child,
           ],
         ),
-      );
+      ));
+
+  /// Même titre que [_section], mais le contenu n'est pas enfermé dans le
+  /// cadre → MultiPage peut le couper sur plusieurs pages (texte en
+  /// `TextOverflow.span`, `pw.Table`). À étaler (`...`) dans la liste MultiPage.
+  List<pw.Widget> _openSection(String title, List<pw.Widget> children) => [
+        pw.Container(
+          width: double.infinity,
+          padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: const pw.BoxDecoration(
+            color: _blueLight,
+            borderRadius: pw.BorderRadius.all(pw.Radius.circular(6)),
+          ),
+          child: pw.Text(title, style: _sectionTitleStyle),
+        ),
+        pw.SizedBox(height: 6),
+        ...children,
+      ];
 
   pw.TableRow _tableRow(String label, String value,
       pw.TextStyle baseStyle, pw.TextStyle boldStyle) =>
@@ -988,11 +1017,6 @@ class PdfService {
 
   String _sectorLabel(SectorTemplate s) => s.label;
 
-  String _formatKey(String k) =>
-      k.replaceAll('_', ' ').split(' ').map((w) {
-        if (w.isEmpty) return w;
-        return w[0].toUpperCase() + w.substring(1);
-      }).join(' ');
 
   // ── Invoice PDF ─────────────────────────────────────────────────────────────
 
@@ -1036,12 +1060,42 @@ class PdfService {
     final total = subtotal + tva;
 
     final doc = pw.Document(theme: await PdfFonts.theme());
-    doc.addPage(pw.Page(
+    // MultiPage (2026-10-14) : en pw.Page unique, tout ce qui dépassait une page
+    // (≈ 12+ articles) était COUPÉ EN SILENCE, totaux HT/TVA/TTC compris.
+    doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.all(40),
-      build: (ctx) => pw.Column(
+      header: (ctx) => ctx.pageNumber == 1
+          ? pw.SizedBox()
+          : pw.Container(
+              alignment: pw.Alignment.centerRight,
+              margin: const pw.EdgeInsets.only(bottom: 8),
+              child: pw.Text(
+                  '${'pdf_invoice_title'.tr()} ${'pdf_number_prefix'.tr(args: [invoiceNum])}',
+                  style: const pw.TextStyle(fontSize: 8, color: _grey)),
+            ),
+      footer: (ctx) => pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
+          pw.Divider(color: _divider),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Expanded(
+                child: pw.Text('pdf_invoice_footer'.tr(),
+                    style: const pw.TextStyle(
+                        fontSize: 9, color: PdfColor(0.5, 0.5, 0.5))),
+              ),
+              if (ctx.pagesCount > 1)
+                pw.Text(
+                    'pdf_page'.tr(args: ['${ctx.pageNumber}', '${ctx.pagesCount}']),
+                    style: const pw.TextStyle(fontSize: 8, color: _grey)),
+            ],
+          ),
+        ],
+      ),
+      build: (ctx) => [
           // Header
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -1168,8 +1222,10 @@ class PdfService {
           // Rows
           if (report.laborHours != null && report.laborHours! > 0)
             _invoiceRow(
-              'pdf_labor_with_tech'.tr(args: [report.technicianName ?? '']),
-              '${report.laborHours!.toStringAsFixed(1)} h',
+              (report.technicianName ?? '').trim().isEmpty
+                  ? 'pdf_lbl_labor'.tr()
+                  : 'pdf_labor_with_tech'.tr(args: [report.technicianName!.trim()]),
+              '${formatQuantity(report.laborHours!)} h',
               report.laborRate ?? 0,
               laborTotal,
               even: false,
@@ -1206,14 +1262,7 @@ class PdfService {
                 style: const pw.TextStyle(
                     fontSize: 9, color: PdfColor(0.4, 0.4, 0.4))),
           ],
-          pw.Spacer(),
-          pw.Divider(color: _divider),
-          pw.Text(
-              'pdf_invoice_footer'.tr(),
-              style: const pw.TextStyle(fontSize: 9,
-                  color: PdfColor(0.5, 0.5, 0.5))),
-        ],
-      ),
+      ],
     ));
     return doc.save();
   }

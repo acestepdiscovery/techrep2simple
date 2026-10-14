@@ -1228,5 +1228,6 @@
   "ks_blocked_default": "Application temporairement indisponible.\nVeuillez contacter votre administrateur.",
   "itg_title": "Version non disponible",
   "itg_default_message": "Cette version de démonstration n'est plus active.\nMerci de nous contacter pour accéder à l'application.",
-  "welcome_tagline": "Vos bons d'intervention sur smartphone"
+  "welcome_tagline": "Vos bons d'intervention sur smartphone",
+  "cr_material_removed": "{} supprimé"
 }

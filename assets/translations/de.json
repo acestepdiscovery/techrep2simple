@@ -1228,5 +1228,6 @@
   "ks_blocked_default": "App vorübergehend nicht verfügbar.\nBitte wenden Sie sich an Ihren Administrator.",
   "itg_title": "Version nicht verfügbar",
   "itg_default_message": "Diese Demoversion ist nicht mehr aktiv.\nBitte kontaktieren Sie uns, um Zugang zur App zu erhalten.",
-  "welcome_tagline": "Ihre Serviceberichte auf dem Smartphone"
+  "welcome_tagline": "Ihre Serviceberichte auf dem Smartphone",
+  "cr_material_removed": "{} entfernt"
 }
