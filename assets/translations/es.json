@@ -1229,5 +1229,21 @@
   "itg_title": "Versión no disponible",
   "itg_default_message": "Esta versión de demostración ya no está activa.\nContacta con nosotros para acceder a la aplicación.",
   "welcome_tagline": "Tus partes de intervención en el móvil",
-  "cr_material_removed": "{} eliminado"
+  "cr_material_removed": "{} eliminado",
+  "special_code_gift_months": {
+    "one": "¡{} mes de Pro gratis! 🎁",
+    "other": "¡{} meses de Pro gratis! 🎁"
+  },
+  "special_code_gift_lifetime": "¡Acceso Pro de por vida de regalo! 🎁",
+  "special_code_gift_seats": {
+    "one": "¡{} puesto de por vida de regalo para tu equipo! 🎁",
+    "other": "¡{} puestos de por vida de regalo para tu equipo! 🎁"
+  },
+  "special_code_err_expired": "Este código ha caducado.",
+  "special_code_err_used_up": "Este código ha alcanzado su límite de uso.",
+  "special_code_err_already_used": "Ya has utilizado este código.",
+  "special_code_err_inactive": "Este código ya no está activo.",
+  "special_code_err_not_yet_active": "Este código aún no está activo.",
+  "special_code_err_team_admin_only": "Solo el administrador de un equipo puede usar este código.",
+  "special_code_err_too_many": "Demasiados intentos. Vuelve a intentarlo en un minuto."
 }

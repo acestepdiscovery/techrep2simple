@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../reports/models/currency_options.dart';
 import '../../reports/models/tax_options.dart';
 
 /// Éditeur de taxe RÉUTILISABLE (Réglages = défaut global ; form de création =
@@ -104,7 +105,7 @@ class _TaxEditorDialogState extends State<_TaxEditorDialog> {
   }
 
   double get _currentRate =>
-      double.tryParse(_rateCtrl.text.replaceAll(',', '.').trim()) ?? 0;
+      parseLocalNumber(_rateCtrl.text) ?? 0;
 
   @override
   void dispose() {

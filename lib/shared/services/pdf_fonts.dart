@@ -38,6 +38,12 @@ class PdfFonts {
     return _bold!;
   }
 
+  /// À mettre dans les styles GRAS (`fontFallback: PdfFonts.boldFirst`) : la police
+  /// de secours est choisie sans tenir compte du gras (1re qui a le caractère) → sans
+  /// ça, le « € » ou un « ł » d'un total en gras sortait en maigre. (2026-10-14)
+  /// Valide après `await theme()` (polices chargées).
+  static List<pw.Font> get boldFirst => _bold == null ? const [] : [_bold!];
+
   /// Thème de police d'un PDF. [language] = code langue (défaut : langue de l'app).
   static Future<pw.ThemeData> theme({String? language}) async {
     await _load();

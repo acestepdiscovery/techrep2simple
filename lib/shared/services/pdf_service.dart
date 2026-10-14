@@ -111,7 +111,7 @@ class PdfService {
     );
 
     final baseStyle = pw.TextStyle(fontSize: 9);
-    final boldStyle = pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9);
+    final boldStyle = pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 9);
 
     doc.addPage(
       pw.MultiPage(
@@ -128,7 +128,7 @@ class PdfService {
         footer: (ctx) => _buildFooter(ctx),
         build: (ctx) => [
           pw.SizedBox(height: 12),
-          _buildClientSection(report, baseStyle, boldStyle),
+          ..._buildClientSection(report, baseStyle, boldStyle),
           pw.SizedBox(height: 10),
           _buildInterventionSection(report, dateStr, baseStyle, boldStyle),
           if (_hasEquipment(report)) ...[
@@ -147,7 +147,7 @@ class PdfService {
           ],
           if (photoImages.isNotEmpty) ...[
             pw.SizedBox(height: 14),
-            _buildPhotosSection(photoImages),
+            ..._buildPhotosSection(photoImages),
           ],
           pw.SizedBox(height: 14),
           _buildSignaturesSection(
@@ -219,7 +219,7 @@ class PdfService {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Row(
+                pw.Expanded(child: pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     if (logo != null) ...[
@@ -230,13 +230,13 @@ class PdfService {
                           child: pw.Image(logo, fit: pw.BoxFit.contain)),
                       pw.SizedBox(width: 12),
                     ],
-                    pw.Column(
+                    pw.Expanded(child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         if (f(companyName))
                           pw.Text(companyName!,
                               style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                                  fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)),
                         if (f(companyAddress))
                           pw.Text(companyAddress!,
                               style: const pw.TextStyle(fontSize: 9)),
@@ -254,19 +254,20 @@ class PdfService {
                           pw.Text('pdf_tva'.tr(args: [companyTva!]),
                               style: const pw.TextStyle(fontSize: 9)),
                       ],
-                    ),
+                    )),
                   ],
-                ),
+                )),
+                pw.SizedBox(width: 12),
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Text('pdf_report_title'.tr(),
                         style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold, fontSize: 15)),
+                            fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 15)),
                     pw.SizedBox(height: 4),
                     pw.Text('pdf_number_prefix'.tr(args: [reportNumber]),
                         style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                            fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 10)),
                   ],
                 ),
               ],
@@ -307,7 +308,7 @@ class PdfService {
                   children: [
                     pw.Text('pdf_infos'.tr(),
                         style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                            fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)),
                     pw.SizedBox(height: 8),
                     _profRow('pdf_lbl_client'.tr(), report.clientName),
                     // (2026-10-14) une seule ligne : « Lieu d'intervention » répétait
@@ -327,9 +328,11 @@ class PdfService {
                           '${DateFormat.yMd().format(report.endDate ?? report.date)} ${_timeStr(report.endTime!)}'),
                     _profRow('pdf_lbl_under_contract'.tr(),
                         report.sousContrat ? 'pdf_yes'.tr() : 'pdf_no'.tr()),
-                    // (#4b) Champs personnalisés saisis par l'utilisateur.
-                    ...report.customFields.entries
-                        .map((e) => _profRow(e.key, e.value)),
+                    // (#4b) Champs personnalisés saisis par l'utilisateur
+                    // (nombreux → section dédiée sous ce bloc, voir plus bas).
+                    if (report.customFields.length <= _maxInlineCustom)
+                      ...report.customFields.entries
+                          .map((e) => _profRow(e.key, e.value)),
                   ],
                 ),
               ),
@@ -340,7 +343,7 @@ class PdfService {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(sigTechStart != null ? 'pdf_tech_start'.tr() : 'pdf_sig_tech'.tr(),
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 10)),
                   pw.SizedBox(height: 8),
                   pw.Container(
                     height: 90, width: double.infinity,
@@ -352,7 +355,7 @@ class PdfService {
                   if (sigTech != null && sigTechStart != null) ...[
                     pw.SizedBox(height: 8),
                     pw.Text('pdf_tech_end'.tr(),
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 10)),
                     pw.SizedBox(height: 8),
                     pw.Container(
                       height: 90, width: double.infinity,
@@ -362,7 +365,7 @@ class PdfService {
                   ],
                   pw.SizedBox(height: 16),
                   pw.Text(sigClientStart != null ? 'pdf_client_start'.tr() : 'pdf_sig_client'.tr(),
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 10)),
                   pw.SizedBox(height: 8),
                   pw.Container(
                     height: 90, width: double.infinity,
@@ -374,7 +377,7 @@ class PdfService {
                   if (sigClient != null && sigClientStart != null) ...[
                     pw.SizedBox(height: 8),
                     pw.Text('pdf_client_end'.tr(),
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 10)),
                     pw.SizedBox(height: 8),
                     pw.Container(
                       height: 90, width: double.infinity,
@@ -387,11 +390,20 @@ class PdfService {
             ),
           ],
         ),
+        // Bloc INFOS | SIGNATURES = une ligne insécable : au-delà de
+        // [_maxInlineCustom] champs perso, ils vont ici (coupables entre pages).
+        if (report.customFields.length > _maxInlineCustom) ...[
+          pw.SizedBox(height: 16),
+          pw.Text('pdf_infos'.tr(),
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)),
+          pw.SizedBox(height: 6),
+          ...report.customFields.entries.map((e) => _profRow(e.key, e.value)),
+        ],
         pw.SizedBox(height: 16),
         // ── MOTIFS ──────────────────────────────────────────────────────────
         pw.Text('pdf_motifs'.tr(),
             style:
-                pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)),
         pw.SizedBox(height: 6),
         pw.Text(
           report.description.isEmpty ? '—' : report.description,
@@ -402,7 +414,7 @@ class PdfService {
           pw.SizedBox(height: 12),
           pw.Text('pdf_observations'.tr(),
               style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                  fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)),
           pw.SizedBox(height: 6),
           pw.Text(report.observations,
               style: const pw.TextStyle(fontSize: 9, lineSpacing: 2),
@@ -413,13 +425,13 @@ class PdfService {
           ..._buildBillingSection(
               report,
               const pw.TextStyle(fontSize: 9),
-              pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+              pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 9)),
         ],
         if (photoImages.isNotEmpty) ...[
           pw.SizedBox(height: 20),
           pw.Text('pdf_photos'.tr(),
               style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                  fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)),
           pw.SizedBox(height: 8),
           ..._profPhotosGrid(photoImages),
         ],
@@ -491,10 +503,12 @@ class PdfService {
         borderRadius: pw.BorderRadius.all(pw.Radius.circular(8)),
       ),
       padding: const pw.EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      // (2026-10-14) Partie gauche en Expanded : un nom d'entreprise long passe à
+      // la ligne au lieu de pousser hors de la page le n° / la date / le métier.
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Row(
+          pw.Expanded(child: pw.Row(
             children: [
               if (logo != null) ...[
                 pw.Container(
@@ -510,7 +524,7 @@ class PdfService {
                 ),
                 pw.SizedBox(width: 12),
               ],
-              pw.Column(
+              pw.Expanded(child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
@@ -518,7 +532,7 @@ class PdfService {
                     style: pw.TextStyle(
                       color: PdfColors.white,
                       fontSize: 14,
-                      fontWeight: pw.FontWeight.bold,
+                      fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -546,9 +560,10 @@ class PdfService {
                     pw.Text('pdf_tech_prefix'.tr(args: [technicianName!]),
                         style: const pw.TextStyle(color: _white70, fontSize: 9)),
                 ],
-              ),
+              )),
             ],
-          ),
+          )),
+          pw.SizedBox(width: 12),
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
@@ -557,7 +572,7 @@ class PdfService {
                 style: pw.TextStyle(
                   color: PdfColors.white,
                   fontSize: 12,
-                  fontWeight: pw.FontWeight.bold,
+                  fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst,
                 ),
               ),
               pw.Text(dateStr,
@@ -591,13 +606,16 @@ class PdfService {
 
   // ─── Sections ────────────────────────────────────────────────────────────────
 
-  pw.Widget _buildClientSection(
+  // (2026-10-14) Champs personnalisés illimités : au-delà de [_maxInlineCustom],
+  // section OUVERTE (la table, au 1er niveau, se coupe entre les pages) — sinon
+  // la génération plantait (~60+ champs).
+  static const _maxInlineCustom = 12;
+
+  List<pw.Widget> _buildClientSection(
       ReportModel report,
       pw.TextStyle baseStyle,
-      pw.TextStyle boldStyle) =>
-      _section(
-        title: 'pdf_sec_client'.tr(),
-        child: pw.Table(
+      pw.TextStyle boldStyle) {
+    final table = pw.Table(
           children: [
             _tableRow('pdf_lbl_name'.tr(), report.clientName, baseStyle, boldStyle),
             if (report.clientAddress.isNotEmpty)
@@ -618,8 +636,11 @@ class PdfService {
             ...report.customFields.entries.map(
                 (e) => _tableRow(e.key, e.value, baseStyle, boldStyle)),
           ],
-        ),
-      );
+        );
+    return report.customFields.length <= _maxInlineCustom
+        ? [_section(title: 'pdf_sec_client'.tr(), child: table)]
+        : _openSection('pdf_sec_client'.tr(), [table]);
+  }
 
   pw.Widget _buildInterventionSection(
       ReportModel report,
@@ -772,7 +793,7 @@ class PdfService {
     ];
   }
 
-  pw.Widget _buildPhotosSection(
+  List<pw.Widget> _buildPhotosSection(
       List<pw.MemoryImage> images) {
     final rows = <pw.Widget>[];
     for (int i = 0; i < images.length; i += 2) {
@@ -802,10 +823,9 @@ class PdfService {
         ),
       );
     }
-    return _section(
-      title: 'pdf_sec_photos'.tr(),
-      child: pw.Column(children: rows),
-    );
+    // (2026-10-14) Section ouverte : 12 photos = 6 rangées ≈ 1,2 page → un cadre
+    // unique plantait la génération. Les rangées passent d'une page à l'autre.
+    return _openSection('pdf_sec_photos'.tr(), rows);
   }
 
   pw.Widget _buildSignaturesSection({
@@ -937,7 +957,7 @@ class PdfService {
   static final _sectionTitleStyle = pw.TextStyle(
     color: _blue,
     fontSize: 9,
-    fontWeight: pw.FontWeight.bold,
+    fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst,
     letterSpacing: 0.8,
   );
 
@@ -949,10 +969,10 @@ class PdfService {
   static const _boxMaxRows = 15;
 
   pw.Widget _section(
-          {required String title, required pw.Widget child}) =>
-      // Inseparable : un cadre qui ne tient pas en bas de page passe ENTIER à la
-      // page suivante (sinon un bout de cadre vide restait en bas de page).
-      pw.Inseparable(child: pw.Container(
+          {required String title,
+          required pw.Widget child,
+          bool keepTogether = true}) {
+    final box = pw.Container(
         decoration: const pw.BoxDecoration(
           color: _blueLight,
           borderRadius:
@@ -967,7 +987,13 @@ class PdfService {
             child,
           ],
         ),
-      ));
+      );
+    // keepTogether (petits blocs) : un cadre qui ne tient pas en bas de page
+    // passe ENTIER à la page suivante (sinon un bout de cadre vide restait en bas
+    // de page). JAMAIS pour un contenu qui peut dépasser une page : un bloc
+    // insécable plus haut qu'une page fait planter la génération.
+    return keepTogether ? pw.Inseparable(child: box) : box;
+  }
 
   /// Même titre que [_section], mais le contenu n'est pas enfermé dans le
   /// cadre → MultiPage peut le couper sur plusieurs pages (texte en
@@ -1038,9 +1064,11 @@ class PdfService {
     _currencyCode = currencyCode ?? 'EUR';
     final logo = logoBytes != null ? pw.MemoryImage(logoBytes) : null;
     final fmt = DateFormat.yMd();
-    final today = fmt.format(DateTime.now());
-    final invoiceNum =
-        '${'pdf_invoice_prefix'.tr()}-${report.reportNumber.toString().padLeft(3, '0')}-${DateTime.now().year}';
+    // (2026-10-14) Date et n° STABLES = date de fin d'intervention, plus le jour
+    // de génération : re-générer en janvier une facture de décembre changeait
+    // son numéro (année) et sa date.
+    final issueDate = fmt.format(report.endDate ?? report.date);
+    final invoiceNum = invoiceNumber(report);
 
     final laborTotal = (report.laborHours ?? 0) * (report.laborRate ?? 0);
     final matsTotal =
@@ -1101,7 +1129,8 @@ class PdfService {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Column(
+              // (2026-10-14) Expanded : nom d'entreprise long → retour à la ligne.
+              pw.Expanded(child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   if (logo != null)
@@ -1109,7 +1138,7 @@ class PdfService {
                   if (companyName != null)
                     pw.Text(companyName,
                         style: pw.TextStyle(
-                            fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                            fontSize: 16, fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst)),
                   if (companyAddress != null)
                     pw.Text(companyAddress,
                         style: const pw.TextStyle(fontSize: 10)),
@@ -1124,7 +1153,8 @@ class PdfService {
                         style: const pw.TextStyle(fontSize: 9,
                             color: PdfColor(0.4, 0.4, 0.4))),
                 ],
-              ),
+              )),
+              pw.SizedBox(width: 12),
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
@@ -1139,13 +1169,13 @@ class PdfService {
                         style: pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 18,
-                            fontWeight: pw.FontWeight.bold)),
+                            fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst)),
                   ),
                   pw.SizedBox(height: 8),
                   pw.Text('pdf_number_prefix'.tr(args: [invoiceNum]),
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold,
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst,
                           fontSize: 11)),
-                  pw.Text('pdf_date_prefix'.tr(args: [today]),
+                  pw.Text('pdf_date_prefix'.tr(args: [issueDate]),
                       style: const pw.TextStyle(fontSize: 10)),
                 ],
               ),
@@ -1167,7 +1197,7 @@ class PdfService {
                 pw.SizedBox(height: 4),
                 pw.Text(report.clientName,
                     style: pw.TextStyle(
-                        fontSize: 13, fontWeight: pw.FontWeight.bold)),
+                        fontSize: 13, fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst)),
                 if (report.clientAddress.isNotEmpty)
                   pw.Text(report.clientAddress,
                       style: const pw.TextStyle(fontSize: 10)),
@@ -1184,7 +1214,7 @@ class PdfService {
                 report.reportNumber.toString().padLeft(3, '0'),
                 fmt.format(report.date),
                 report.interventionType,
-              ]),
+              ]).replaceFirst(RegExp(r'\s*—\s*$'), ''), // pas de « — » orphelin sans type
               style: const pw.TextStyle(fontSize: 10,
                   color: PdfColor(0.4, 0.4, 0.4))),
           pw.SizedBox(height: 16),
@@ -1197,25 +1227,25 @@ class PdfService {
                 pw.Expanded(flex: 5,
                     child: pw.Text('pdf_col_designation'.tr(),
                         style: pw.TextStyle(color: PdfColors.white,
-                            fontWeight: pw.FontWeight.bold, fontSize: 10))),
+                            fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 10))),
                 pw.SizedBox(
                     width: 60,
                     child: pw.Text('pdf_col_qty'.tr(),
                         textAlign: pw.TextAlign.center,
                         style: pw.TextStyle(color: PdfColors.white,
-                            fontWeight: pw.FontWeight.bold, fontSize: 10))),
+                            fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 10))),
                 pw.SizedBox(
                     width: 70,
                     child: pw.Text('pdf_col_unit_price'.tr(),
                         textAlign: pw.TextAlign.right,
                         style: pw.TextStyle(color: PdfColors.white,
-                            fontWeight: pw.FontWeight.bold, fontSize: 10))),
+                            fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 10))),
                 pw.SizedBox(
                     width: 75,
                     child: pw.Text('pdf_col_total'.tr(),
                         textAlign: pw.TextAlign.right,
                         style: pw.TextStyle(color: PdfColors.white,
-                            fontWeight: pw.FontWeight.bold, fontSize: 10))),
+                            fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 10))),
               ],
             ),
           ),
@@ -1267,6 +1297,11 @@ class PdfService {
     return doc.save();
   }
 
+  /// N° de facture (« FAC-042-2026 ») : année de la date de fin d'intervention,
+  /// identique à chaque génération. Utilisé aussi pour le nom du fichier.
+  static String invoiceNumber(ReportModel r) =>
+      '${'pdf_invoice_prefix'.tr()}-${r.reportNumber.toString().padLeft(3, '0')}-${(r.endDate ?? r.date).year}';
+
   pw.Widget _invoiceRow(String label, String qty, double pu, double total,
       {required bool even}) {
     return pw.Container(
@@ -1298,7 +1333,7 @@ class PdfService {
 
   pw.Widget _totalRow(String label, double amount, {bool bold = false}) {
     final style = bold
-        ? pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)
+        ? pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)
         : const pw.TextStyle(fontSize: 10);
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 3),

@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../shared/utils/share_origin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../features/reports/models/currency_options.dart';
 import '../../../features/reports/models/report_model.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../features/subscription/subscription_provider.dart';
@@ -2037,7 +2038,16 @@ class _ValidationPdfButtonState extends State<_ValidationPdfButton> {
   Future<void> _generate() async {
     setState(() => _loading = true);
     try {
-      final bytes = await ValidationPdfService.generate(widget.snapshot);
+      final settings = ProviderScope.containerOf(context, listen: false)
+              .read(settingsProvider)
+              .valueOrNull ??
+          <String, String>{};
+      final bytes = await ValidationPdfService.generate(
+        widget.snapshot,
+        currencyCode: resolveCurrencyCode(settings,
+            region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
+            language: context.locale.languageCode),
+      );
       if (!mounted) return;
       Navigator.push(
         context,

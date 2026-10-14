@@ -99,3 +99,26 @@ String formatQuantity(num q, {String? locale}) =>
 /// français uniquement (« Adresse : … »), « Address: … » ailleurs. (2026-10-14)
 String labelSep({String? locale}) =>
     (locale ?? Intl.defaultLocale ?? 'fr').startsWith('fr') ? ' : ' : ': ';
+
+/// Lit un nombre TAPÉ par l'utilisateur, quelle que soit la langue (2026-10-14) :
+/// « 12,5 », « 12.5 », « 1 234,50 », « 1.234,50 », « 1,234.50 », « 1'234.50 ».
+/// Avant : seule « , » → « . » était gérée ; un séparateur de milliers rendait
+/// le nombre illisible → prix 0 € en silence. Retourne null si illisible.
+double? parseLocalNumber(String? input) {
+  if (input == null) return null;
+  var s = input.trim().replaceAll(RegExp(r"[\s'\u2019]"), '');
+  if (s.isEmpty) return null;
+  final lastComma = s.lastIndexOf(',');
+  final lastDot = s.lastIndexOf('.');
+  if (lastComma >= 0 && lastDot >= 0) {
+    // Les deux : le DERNIER est le séparateur décimal, l'autre = milliers.
+    final dec = lastComma > lastDot ? ',' : '.';
+    s = s.replaceAll(dec == ',' ? '.' : ',', '').replaceAll(dec, '.');
+  } else if (lastComma >= 0) {
+    // Une seule virgule = décimale ; plusieurs = milliers (« 1,234,567 »).
+    s = ','.allMatches(s).length > 1 ? s.replaceAll(',', '') : s.replaceAll(',', '.');
+  } else if ('.'.allMatches(s).length > 1) {
+    s = s.replaceAll('.', ''); // « 1.234.567 »
+  }
+  return double.tryParse(s);
+}

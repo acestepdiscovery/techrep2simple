@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'currency_options.dart';
 
 /// ─── Catalogue de taxes (TVA / VAT / MwSt / GST / Sales Tax…) ────────────────
 ///
@@ -222,7 +223,7 @@ TaxConfig resolveGlobalTax(Map<dynamic, dynamic> settings,
   final fallback = defaultTaxConfig(region: region, language: language);
   final rateStr = settings['tax_rate']?.toString();
   final rate =
-      rateStr == null ? null : double.tryParse(rateStr.replaceAll(',', '.'));
+      rateStr == null ? null : parseLocalNumber(rateStr);
   if (rate == null) return fallback;
   final lbl = settings['tax_label']?.toString();
   return TaxConfig(

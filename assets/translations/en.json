@@ -1229,5 +1229,21 @@
   "itg_title": "Version not available",
   "itg_default_message": "This demo version is no longer active.\nPlease contact us to access the app.",
   "welcome_tagline": "Your service reports on your smartphone",
-  "cr_material_removed": "{} removed"
+  "cr_material_removed": "{} removed",
+  "special_code_gift_months": {
+    "one": "{} month of Pro free! 🎁",
+    "other": "{} months of Pro free! 🎁"
+  },
+  "special_code_gift_lifetime": "Lifetime Pro access unlocked! 🎁",
+  "special_code_gift_seats": {
+    "one": "{} lifetime seat added to your team! 🎁",
+    "other": "{} lifetime seats added to your team! 🎁"
+  },
+  "special_code_err_expired": "This code has expired.",
+  "special_code_err_used_up": "This code has reached its usage limit.",
+  "special_code_err_already_used": "You have already used this code.",
+  "special_code_err_inactive": "This code is no longer active.",
+  "special_code_err_not_yet_active": "This code is not active yet.",
+  "special_code_err_team_admin_only": "Only a team administrator can use this code.",
+  "special_code_err_too_many": "Too many attempts. Try again in a minute."
 }

@@ -1229,5 +1229,21 @@
   "itg_title": "Versie niet beschikbaar",
   "itg_default_message": "Deze demoversie is niet meer actief.\nNeem contact met ons op voor toegang tot de app.",
   "welcome_tagline": "Je werkbonnen op je smartphone",
-  "cr_material_removed": "{} verwijderd"
+  "cr_material_removed": "{} verwijderd",
+  "special_code_gift_months": {
+    "one": "{} maand Pro cadeau! 🎁",
+    "other": "{} maanden Pro cadeau! 🎁"
+  },
+  "special_code_gift_lifetime": "Levenslange Pro-toegang cadeau! 🎁",
+  "special_code_gift_seats": {
+    "one": "{} levenslange plek cadeau voor je team! 🎁",
+    "other": "{} levenslange plekken cadeau voor je team! 🎁"
+  },
+  "special_code_err_expired": "Deze code is verlopen.",
+  "special_code_err_used_up": "Deze code heeft zijn gebruikslimiet bereikt.",
+  "special_code_err_already_used": "Deze code is al door je gebruikt.",
+  "special_code_err_inactive": "Deze code is niet meer actief.",
+  "special_code_err_not_yet_active": "Deze code is nog niet actief.",
+  "special_code_err_team_admin_only": "Alleen een teambeheerder kan deze code gebruiken.",
+  "special_code_err_too_many": "Te veel pogingen. Probeer het over een minuut opnieuw."
 }

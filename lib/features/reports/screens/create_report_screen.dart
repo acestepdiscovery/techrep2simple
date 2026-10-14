@@ -701,8 +701,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       signatureTechStartData: _sigTechStartData,
       signatureClientData: _sigClientData,
       signatureTechData: _sigTechData,
-      laborHours: double.tryParse(_laborHours.text.replaceAll(',', '.')),
-      laborRate: double.tryParse(_laborRate.text.replaceAll(',', '.')),
+      laborHours: parseLocalNumber(_laborHours.text),
+      laborRate: parseLocalNumber(_laborRate.text),
       materials: List.from(_materials),
       taxRate: _taxRate,
       taxLabel: _taxLabel,
@@ -1797,8 +1797,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                   if (_laborHours.text.isNotEmpty || _materials.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     _TotalPreview(
-                      hours: double.tryParse(_laborHours.text.replaceAll(',', '.')) ?? 0,
-                      rate: double.tryParse(_laborRate.text.replaceAll(',', '.')) ?? 0,
+                      hours: parseLocalNumber(_laborHours.text) ?? 0,
+                      rate: parseLocalNumber(_laborRate.text) ?? 0,
                       materials: _materials,
                     ),
                   ],
@@ -1913,8 +1913,7 @@ class _MaterialDialogState extends State<_MaterialDialog> {
                     icon: const Icon(Icons.remove_circle_outline,
                         color: AppColors.primary),
                     onPressed: () {
-                      final v = (double.tryParse(
-                                  _qty.text.replaceAll(',', '.')) ??
+                      final v = (parseLocalNumber(_qty.text) ??
                               1)
                           .toInt();
                       if (v > 1) setState(() => _qty.text = '${v - 1}');
@@ -1934,8 +1933,7 @@ class _MaterialDialogState extends State<_MaterialDialog> {
                     icon: const Icon(Icons.add_circle_outline,
                         color: AppColors.primary),
                     onPressed: () {
-                      final v = (double.tryParse(
-                                  _qty.text.replaceAll(',', '.')) ??
+                      final v = (parseLocalNumber(_qty.text) ??
                               1)
                           .toInt();
                       setState(() => _qty.text = '${v + 1}');
@@ -1966,11 +1964,9 @@ class _MaterialDialogState extends State<_MaterialDialog> {
               widget.onAdd(MaterialItem(
                 reference: _ref.text.trim(),
                 label: _label.text.trim(),
-                quantity: double.tryParse(
-                        _qty.text.replaceAll(',', '.')) ??
+                quantity: parseLocalNumber(_qty.text) ??
                     1,
-                unitPrice: double.tryParse(
-                        _price.text.replaceAll(',', '.')) ??
+                unitPrice: parseLocalNumber(_price.text) ??
                     0,
               ));
               Navigator.pop(context);

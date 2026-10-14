@@ -146,12 +146,56 @@ class SubscriptionService {
       body: jsonEncode({'code': code.trim().toUpperCase()}),
     );
 
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode != 200) {
-      throw Exception(data['error'] ?? 'special_code_invalid'.tr());
+    Map<String, dynamic> data;
+    try {
+      data = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {
+      data = const {};
     }
-    return (data['type'] as String? ?? 'grant',
-        data['message'] as String? ?? 'special_code_applied'.tr());
+    if (response.statusCode != 200) {
+      throw Exception(_redeemErrorText(response.statusCode, data['code'] as String?));
+    }
+    return (data['type'] as String? ?? 'grant', _redeemSuccessText(data));
+  }
+
+  // (2026-10-14) Messages du code spécial dans la LANGUE DE L'APP : la CF répond
+  // en français ; elle envoie aussi un `code` stable (erreurs) et `kind` (succès).
+  // Ancienne CF sans ces champs → repli sur le statut HTTP / message générique.
+  static String _redeemErrorText(int status, String? code) {
+    switch (code ?? (status == 429 ? 'too_many' : status == 401 ? 'login' : 'invalid')) {
+      case 'expired':
+        return 'special_code_err_expired'.tr();
+      case 'used_up':
+        return 'special_code_err_used_up'.tr();
+      case 'already_used':
+        return 'special_code_err_already_used'.tr();
+      case 'inactive':
+        return 'special_code_err_inactive'.tr();
+      case 'not_yet_active':
+        return 'special_code_err_not_yet_active'.tr();
+      case 'team_admin_only':
+        return 'special_code_err_team_admin_only'.tr();
+      case 'too_many':
+        return 'special_code_err_too_many'.tr();
+      case 'login':
+        return 'settings_not_logged_in'.tr();
+      default:
+        return 'special_code_invalid'.tr();
+    }
+  }
+
+  static String _redeemSuccessText(Map<String, dynamic> d) {
+    int n(Object? v) => v is num ? v.toInt() : int.tryParse('$v') ?? 0;
+    switch (d['kind']) {
+      case 'months':
+        return 'special_code_gift_months'.plural(n(d['months']));
+      case 'lifetime':
+        return 'special_code_gift_lifetime'.tr();
+      case 'team_seats':
+        return 'special_code_gift_seats'.plural(n(d['seats']));
+      default:
+        return 'special_code_applied'.tr();
+    }
   }
 
   /// [target] : 'personal' ou 'company' pour gérer indépendamment l'un OU

@@ -14,6 +14,9 @@ import 'package:easy_localization/src/localization.dart';
 import 'package:easy_localization/src/translations.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+// ignore: depend_on_referenced_packages
+import 'package:image/image.dart' as img;
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:reportnew1cld/features/reports/models/report_model.dart';
 import 'package:reportnew1cld/shared/services/pdf_service.dart';
@@ -61,6 +64,24 @@ void main() {
           pdfTemplate: tpl,
           currencyCode: 'EUR');
       expect(_pageCount(bytes), greaterThan(3));
+    });
+  }
+
+  // (2026-10-14) 12 photos plantaient le modèle simple (cadre insécable > 1 page) ;
+  // les champs personnalisés sont illimités → ne doivent jamais faire planter.
+  for (final tpl in ['simple', 'professionnel']) {
+    test('rapport $tpl : 30 photos + 80 champs personnalisés → pas de plantage', () async {
+      final im = img.Image(width: 800, height: 600);
+      img.fill(im, color: img.ColorRgb8(90, 120, 160));
+      final jpg = Uint8List.fromList(img.encodeJpg(im, quality: 60));
+      final r = _report().copyWith(customFields: {
+        for (var i = 0; i < 80; i++) 'Champ perso $i': 'Valeur $i',
+      });
+      final bytes = await PdfService().generateReport(r,
+          photos: [for (var i = 0; i < 30; i++) XFile.fromData(jpg, name: 'p$i.jpg')],
+          pdfTemplate: tpl,
+          currencyCode: 'EUR');
+      expect(_pageCount(bytes), greaterThan(2));
     });
   }
 

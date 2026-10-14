@@ -1231,5 +1231,25 @@
   "itg_title": "Wersja niedostępna",
   "itg_default_message": "Ta wersja demonstracyjna nie jest już aktywna.\nSkontaktuj się z nami, aby uzyskać dostęp do aplikacji.",
   "welcome_tagline": "Twoje raporty serwisowe na smartfonie",
-  "cr_material_removed": "Usunięto: {}"
+  "cr_material_removed": "Usunięto: {}",
+  "special_code_gift_months": {
+    "one": "{} miesiąc Pro w prezencie! 🎁",
+    "few": "{} miesiące Pro w prezencie! 🎁",
+    "many": "{} miesięcy Pro w prezencie! 🎁",
+    "other": "{} miesiąca Pro w prezencie! 🎁"
+  },
+  "special_code_gift_lifetime": "Dożywotni dostęp Pro w prezencie! 🎁",
+  "special_code_gift_seats": {
+    "one": "{} dożywotnie miejsce dla Twojego zespołu w prezencie! 🎁",
+    "few": "{} dożywotnie miejsca dla Twojego zespołu w prezencie! 🎁",
+    "many": "{} dożywotnich miejsc dla Twojego zespołu w prezencie! 🎁",
+    "other": "{} dożywotniego miejsca dla Twojego zespołu w prezencie! 🎁"
+  },
+  "special_code_err_expired": "Ten kod wygasł.",
+  "special_code_err_used_up": "Ten kod osiągnął limit użyć.",
+  "special_code_err_already_used": "Ten kod został już użyty na tym koncie.",
+  "special_code_err_inactive": "Ten kod nie jest już aktywny.",
+  "special_code_err_not_yet_active": "Ten kod nie jest jeszcze aktywny.",
+  "special_code_err_team_admin_only": "Tylko administrator zespołu może użyć tego kodu.",
+  "special_code_err_too_many": "Zbyt wiele prób. Spróbuj ponownie za minutę."
 }

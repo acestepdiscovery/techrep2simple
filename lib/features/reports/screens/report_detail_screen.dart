@@ -547,11 +547,11 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       final s = _pdfSettings();
       final report = widget.report;
       // Défaut global de taxe (les Réglages) ; le rapport peut l'override.
-      final globalTax = resolveGlobalTax(
-        s,
-        region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
-        language: context.locale.languageCode,
-      );
+      final region = WidgetsBinding.instance.platformDispatcher.locale.countryCode;
+      final language = context.locale.languageCode;
+      final globalTax = resolveGlobalTax(s, region: region, language: language);
+      // (2026-10-14) le logo n'était jamais transmis → factures sans logo.
+      final logoBytes = await _loadLogoBytes();
       final bytes = await PdfService().generateInvoice(
         report,
         companyName: _pdfCompanyName(s),
@@ -559,18 +559,14 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
         companyPhone: s['company_phone'],
         companyEmail: s['company_email'],
         companySiret: s['company_siret'],
+        logoBytes: logoBytes,
         taxRate: globalTax.rate,
         taxLabel: globalTax.label,
         taxMention: globalTax.mention,
-        currencyCode: resolveCurrencyCode(
-          s,
-          region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
-          language: context.locale.languageCode,
-        ),
+        currencyCode: resolveCurrencyCode(s, region: region, language: language),
       );
       final dir = await getTemporaryDirectory();
-      final invoiceNum =
-          '${'pdf_invoice_prefix'.tr()}-${report.reportNumber.toString().padLeft(3, '0')}-${DateTime.now().year}';
+      final invoiceNum = PdfService.invoiceNumber(report);
       final file = File('${dir.path}/$invoiceNum.pdf');
       await file.writeAsBytes(bytes);
       await Share.shareXFiles(

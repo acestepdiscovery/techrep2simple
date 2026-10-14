@@ -1229,5 +1229,21 @@
   "itg_title": "Versão indisponível",
   "itg_default_message": "Esta versão de demonstração já não está ativa.\nContacte-nos para aceder à app.",
   "welcome_tagline": "Os seus relatórios de intervenção no smartphone",
-  "cr_material_removed": "{} removido"
+  "cr_material_removed": "{} removido",
+  "special_code_gift_months": {
+    "one": "{} mês de Pro oferecido! 🎁",
+    "other": "{} meses de Pro oferecidos! 🎁"
+  },
+  "special_code_gift_lifetime": "Acesso Pro vitalício oferecido! 🎁",
+  "special_code_gift_seats": {
+    "one": "{} lugar vitalício oferecido à sua equipa! 🎁",
+    "other": "{} lugares vitalícios oferecidos à sua equipa! 🎁"
+  },
+  "special_code_err_expired": "Este código expirou.",
+  "special_code_err_used_up": "Este código atingiu o limite de utilizações.",
+  "special_code_err_already_used": "Já utilizou este código.",
+  "special_code_err_inactive": "Este código já não está ativo.",
+  "special_code_err_not_yet_active": "Este código ainda não está ativo.",
+  "special_code_err_team_admin_only": "Só o administrador de uma equipa pode usar este código.",
+  "special_code_err_too_many": "Demasiadas tentativas. Tente novamente dentro de um minuto."
 }

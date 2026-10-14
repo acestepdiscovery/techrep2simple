@@ -25,6 +25,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:reportnew1cld/features/reports/models/report_model.dart';
 import 'package:reportnew1cld/shared/services/pdf_service.dart';
+import 'package:reportnew1cld/shared/services/validation_pdf_service.dart';
 
 const langs = ['fr', 'en', 'de', 'es', 'it', 'nl', 'pl', 'pt'];
 
@@ -188,6 +189,69 @@ void main() {
             taxMention: 'Mention — test « ok »',
             currencyCode: currency));
       }
+    }
+
+    // ── Cas supplémentaires (2026-10-14) : rapport presque vide, alphabets non
+    // latins, nom d'entreprise très long, 12 photos, PDF de validation équipe.
+    for (final lang in ['fr', 'de', 'pl']) {
+      _useLanguage(lang);
+      Future<void> run(String name, Future<Uint8List> Function() gen) async {
+        final missing = <String>{};
+        try {
+          final bytes = await runZoned(gen,
+              zoneSpecification: ZoneSpecification(print: (s, p, z, line) {
+            final m = RegExp(r'Unable to find a font to draw "(.+?)"').firstMatch(line);
+            if (m != null) missing.add(m.group(1)!);
+          }));
+          File('$dir/x_${lang}_$name.pdf').writeAsBytesSync(bytes);
+          if (missing.isNotEmpty) problems.add('x/$lang/$name : caractères perdus $missing');
+        } catch (e) {
+          problems.add('x/$lang/$name : PLANTAGE ${e.toString().split('\n').first}');
+        }
+      }
+
+      final vide = ReportModel(
+          id: 'vide0000', clientName: '', date: DateTime(2026, 10, 14),
+          createdAt: DateTime(2026), updatedAt: DateTime(2026));
+      await run('vide_simple', () => PdfService().generateReport(vide, pdfTemplate: 'simple'));
+      await run('vide_pro', () => PdfService().generateReport(vide, pdfTemplate: 'professionnel'));
+      await run('vide_facture', () => PdfService().generateInvoice(vide));
+
+      final monde = _report(extreme: false).copyWith(
+        clientName: 'Иван Петров · Γιώργος Παπαδόπουλος · محمد · 王伟 · Đặng',
+        clientAddress: 'ул. Ленина 5, Москва — Αθήνα — Hà Nội',
+      );
+      final photos12 = [
+        for (var i = 0; i < 12; i++) XFile.fromData(_photoJpg(i % 4), name: 'p$i.jpg')
+      ];
+      const longCompany =
+          'Établissements Dupont-Moreau & Fils — Plomberie, Chauffage, Climatisation, Dépannage 24h/24';
+      for (final tpl in ['simple', 'professionnel']) {
+        await run('monde_$tpl', () => PdfService().generateReport(monde,
+            photos: photos12,
+            companyName: longCompany,
+            technicianName: 'Jean-Baptiste de La Rochefoucauld-Montmorency',
+            logoBytes: _logoPng(),
+            pdfTemplate: tpl));
+      }
+      await run('monde_facture',
+          () => PdfService().generateInvoice(monde, companyName: longCompany, logoBytes: _logoPng()));
+
+      final ext = _report(extreme: true);
+      final snap = <String, dynamic>{
+        ...ext.toMap(),
+        'date': ext.date.toIso8601String(),
+        'materials': [
+          for (final m in ext.materials)
+            {'label': m.label, 'quantity': m.quantity, 'unitPrice': m.unitPrice}
+        ],
+        'sector_fields': ext.sectorFields,
+        'photo_count': 5,
+        'signature_client': ext.signatureClientData,
+        'signature_tech': ext.signatureTechData,
+      };
+      await run('validation', () => ValidationPdfService.generate(snap,
+          currencyCode: lang == 'pl' ? 'PLN' : 'EUR'));
     }
     File('$dir/_problemes.txt').writeAsStringSync(problems.join('\n'));
     // ignore: avoid_print

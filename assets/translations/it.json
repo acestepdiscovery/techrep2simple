@@ -1229,5 +1229,21 @@
   "itg_title": "Versione non disponibile",
   "itg_default_message": "Questa versione dimostrativa non è più attiva.\nContattaci per accedere all'app.",
   "welcome_tagline": "I tuoi rapporti di intervento sullo smartphone",
-  "cr_material_removed": "{} rimosso"
+  "cr_material_removed": "{} rimosso",
+  "special_code_gift_months": {
+    "one": "{} mese di Pro in regalo! 🎁",
+    "other": "{} mesi di Pro in regalo! 🎁"
+  },
+  "special_code_gift_lifetime": "Accesso Pro a vita in regalo! 🎁",
+  "special_code_gift_seats": {
+    "one": "{} posto a vita in regalo per il tuo team! 🎁",
+    "other": "{} posti a vita in regalo per il tuo team! 🎁"
+  },
+  "special_code_err_expired": "Questo codice è scaduto.",
+  "special_code_err_used_up": "Questo codice ha raggiunto il limite di utilizzo.",
+  "special_code_err_already_used": "Hai già utilizzato questo codice.",
+  "special_code_err_inactive": "Questo codice non è più attivo.",
+  "special_code_err_not_yet_active": "Questo codice non è ancora attivo.",
+  "special_code_err_team_admin_only": "Solo l'amministratore di un team può usare questo codice.",
+  "special_code_err_too_many": "Troppi tentativi. Riprova tra un minuto."
 }

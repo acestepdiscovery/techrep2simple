@@ -15,6 +15,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../shared/services/ai_service.dart';
 import '../../../shared/services/local_db_service.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../reports/models/currency_options.dart';
 import '../../reports/models/report_model.dart';
 import '../../reports/providers/reports_provider.dart';
 import '../../subscription/paywall_bottom_sheet.dart';
@@ -178,7 +179,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     // Parse labor_hours string → num
     double? laborHours;
     final lh = fields['labor_hours'] ?? '';
-    if (lh.isNotEmpty) laborHours = double.tryParse(lh.replaceAll(',', '.'));
+    if (lh.isNotEmpty) laborHours = parseLocalNumber(lh);
 
     final preset = ReportPreset(
       id: const Uuid().v4(),

@@ -1229,5 +1229,21 @@
   "itg_title": "Version non disponible",
   "itg_default_message": "Cette version de démonstration n'est plus active.\nMerci de nous contacter pour accéder à l'application.",
   "welcome_tagline": "Vos bons d'intervention sur smartphone",
-  "cr_material_removed": "{} supprimé"
+  "cr_material_removed": "{} supprimé",
+  "special_code_gift_months": {
+    "one": "{} mois Pro offert ! 🎁",
+    "other": "{} mois Pro offerts ! 🎁"
+  },
+  "special_code_gift_lifetime": "Accès Pro à vie offert ! 🎁",
+  "special_code_gift_seats": {
+    "one": "{} siège à vie offert à votre équipe ! 🎁",
+    "other": "{} sièges à vie offerts à votre équipe ! 🎁"
+  },
+  "special_code_err_expired": "Ce code a expiré.",
+  "special_code_err_used_up": "Ce code a atteint sa limite d'utilisation.",
+  "special_code_err_already_used": "Vous avez déjà utilisé ce code.",
+  "special_code_err_inactive": "Ce code n'est plus actif.",
+  "special_code_err_not_yet_active": "Ce code n'est pas encore actif.",
+  "special_code_err_team_admin_only": "Seul l'administrateur d'une équipe peut utiliser ce code.",
+  "special_code_err_too_many": "Trop de tentatives. Réessayez dans une minute."
 }
