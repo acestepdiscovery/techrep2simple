@@ -428,6 +428,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
   String? _recordedPath;
   Duration _elapsed = Duration.zero;
   Timer? _timer;
+  static const _kMaxRecording = Duration(minutes: 15);
 
   @override
   void initState() {
@@ -474,14 +475,22 @@ class _VoiceSheetState extends State<_VoiceSheet> {
       final path =
           '${dir.path}/ai_record_${DateTime.now().millisecondsSinceEpoch}.m4a';
       await _recorder.start(
-          const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
+          const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 64000, numChannels: 1), path: path);
       setState(() {
         _recording = true;
         _elapsed = Duration.zero;
         _recordedPath = null;
       });
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        if (mounted) setState(() => _elapsed += const Duration(seconds: 1));
+        if (!mounted) return;
+        setState(() => _elapsed += const Duration(seconds: 1));
+        // (2026-10-14) Durée max : au-delà, le fichier dépasserait la limite du
+        // serveur et l'envoi serait très long sur un réseau mobile.
+        if (_recording && _elapsed >= _kMaxRecording) {
+          _toggleRecord();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('ai_record_max'.tr(args: ['${_kMaxRecording.inMinutes}']))));
+        }
       });
     }
   }
@@ -817,7 +826,7 @@ class _ImproveSheetState extends State<_ImproveSheet> {
       if (!hasPermission) return;
       final dir = await getTemporaryDirectory();
       final path = '${dir.path}/ai_note_${DateTime.now().millisecondsSinceEpoch}.m4a';
-      await _audioRecorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
+      await _audioRecorder.start(const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 64000, numChannels: 1), path: path);
       setState(() { _recordingNote = true; _noteElapsed = Duration.zero; _noteAudioPath = null; });
       _noteTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted) setState(() => _noteElapsed += const Duration(seconds: 1));
@@ -1223,6 +1232,13 @@ class _DocumentSheetState extends State<_DocumentSheet> {
     if (result == null || result.files.isEmpty) return;
     final file = result.files.first;
     if (file.bytes == null) return;
+    // (2026-10-14) Le serveur refuse les envois > 32 Mo (le PDF grossit d'un tiers
+    // une fois encodé) → refus clair AVANT l'envoi, au lieu d'une « erreur réseau ».
+    const maxMb = 15;
+    if (file.size > maxMb * 1024 * 1024) {
+      setState(() => _error = 'ai_err_file_too_big'.tr(args: ['$maxMb']));
+      return;
+    }
 
     setState(() { _loading = true; _fileName = file.name; _error = null; });
 

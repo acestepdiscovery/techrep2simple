@@ -1249,5 +1249,7 @@
   "cr_number_taken": "Nr. {} wird bereits von einem anderen Bericht verwendet: Die Rechnungen hätten dieselbe Nummer.",
   "cloud_err_upload": "Hochladen zu {} fehlgeschlagen (Code {}). Bitte erneut versuchen.",
   "cloud_err_google_token": "Verbindung zu Google nicht möglich. Bitte erneut versuchen.",
-  "team_err_create": "Team konnte nicht erstellt werden. Bitte Verbindung prüfen und erneut versuchen."
+  "team_err_create": "Team konnte nicht erstellt werden. Bitte Verbindung prüfen und erneut versuchen.",
+  "ai_record_max": "Aufnahme nach {} Min. beendet (maximale Dauer).",
+  "ai_err_file_too_big": "Datei zu groß: maximal {} MB."
 }

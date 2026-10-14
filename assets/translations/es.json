@@ -1249,5 +1249,7 @@
   "cr_number_taken": "El n.º {} ya lo usa otro informe: sus facturas tendrían el mismo número.",
   "cloud_err_upload": "Error al subir a {} (código {}). Vuelve a intentarlo.",
   "cloud_err_google_token": "No se pudo conectar con Google. Vuelve a intentarlo.",
-  "team_err_create": "No se pudo crear el equipo. Comprueba la conexión y vuelve a intentarlo."
+  "team_err_create": "No se pudo crear el equipo. Comprueba la conexión y vuelve a intentarlo.",
+  "ai_record_max": "Grabación detenida a los {} min (duración máxima).",
+  "ai_err_file_too_big": "Archivo demasiado grande: {} MB como máximo."
 }

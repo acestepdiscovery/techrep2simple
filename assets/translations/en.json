@@ -1249,5 +1249,7 @@
   "cr_number_taken": "No. {} is already used by another report: their invoices would have the same number.",
   "cloud_err_upload": "Upload to {} failed (code {}). Please try again.",
   "cloud_err_google_token": "Could not connect to Google. Please try again.",
-  "team_err_create": "Could not create the team. Check your connection and try again."
+  "team_err_create": "Could not create the team. Check your connection and try again.",
+  "ai_record_max": "Recording stopped after {} min (maximum length).",
+  "ai_err_file_too_big": "File too large: {} MB maximum."
 }

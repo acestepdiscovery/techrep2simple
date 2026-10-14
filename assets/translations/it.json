@@ -1249,5 +1249,7 @@
   "cr_number_taken": "Il n. {} è già usato da un altro report: le fatture avrebbero lo stesso numero.",
   "cloud_err_upload": "Caricamento su {} non riuscito (codice {}). Riprova.",
   "cloud_err_google_token": "Impossibile connettersi a Google. Riprova.",
-  "team_err_create": "Impossibile creare il team. Controlla la connessione e riprova."
+  "team_err_create": "Impossibile creare il team. Controlla la connessione e riprova.",
+  "ai_record_max": "Registrazione interrotta dopo {} min (durata massima).",
+  "ai_err_file_too_big": "File troppo grande: massimo {} MB."
 }

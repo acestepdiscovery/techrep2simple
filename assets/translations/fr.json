@@ -1249,5 +1249,7 @@
   "cr_number_taken": "Le n° {} est déjà utilisé par un autre rapport : leurs factures auraient le même numéro.",
   "cloud_err_upload": "Échec de l'envoi vers {} (code {}). Réessayez.",
   "cloud_err_google_token": "Connexion à Google impossible. Réessayez.",
-  "team_err_create": "Impossible de créer l'équipe. Vérifiez la connexion et réessayez."
+  "team_err_create": "Impossible de créer l'équipe. Vérifiez la connexion et réessayez.",
+  "ai_record_max": "Enregistrement arrêté au bout de {} min (durée maximale).",
+  "ai_err_file_too_big": "Fichier trop volumineux : {} Mo maximum."
 }

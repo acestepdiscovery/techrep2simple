@@ -1255,5 +1255,7 @@
   "cr_number_taken": "Nr {} jest już używany przez inny raport: faktury miałyby ten sam numer.",
   "cloud_err_upload": "Nie udało się wysłać do {} (kod {}). Spróbuj ponownie.",
   "cloud_err_google_token": "Nie udało się połączyć z Google. Spróbuj ponownie.",
-  "team_err_create": "Nie udało się utworzyć zespołu. Sprawdź połączenie i spróbuj ponownie."
+  "team_err_create": "Nie udało się utworzyć zespołu. Sprawdź połączenie i spróbuj ponownie.",
+  "ai_record_max": "Nagrywanie zatrzymane po {} min (maksymalny czas).",
+  "ai_err_file_too_big": "Plik jest za duży: maksymalnie {} MB."
 }

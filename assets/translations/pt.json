@@ -1249,5 +1249,7 @@
   "cr_number_taken": "O n.º {} já é usado por outro relatório: as faturas teriam o mesmo número.",
   "cloud_err_upload": "Falha ao enviar para {} (código {}). Tente novamente.",
   "cloud_err_google_token": "Não foi possível ligar ao Google. Tente novamente.",
-  "team_err_create": "Não foi possível criar a equipa. Verifique a ligação e tente novamente."
+  "team_err_create": "Não foi possível criar a equipa. Verifique a ligação e tente novamente.",
+  "ai_record_max": "Gravação parada ao fim de {} min (duração máxima).",
+  "ai_err_file_too_big": "Ficheiro demasiado grande: {} MB no máximo."
 }
