@@ -37,6 +37,8 @@ class PdfService {
     String pdfTemplate = 'professionnel',
     String reportNumberFormat = '{num}',
     String? currencyCode,
+    // (2026-10-14) Filigrane en diagonale (rapports d'EXEMPLE : « EXEMPLE »).
+    String? watermark,
   }) async {
     _currencyCode = currencyCode ?? 'EUR';
     // Load signature images
@@ -100,6 +102,7 @@ class PdfService {
         companyEmail: companyEmail,
         companySiret: companySiret,
         companyTva: companyTva,
+        watermark: watermark,
       );
     }
 
@@ -115,8 +118,7 @@ class PdfService {
 
     doc.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 36),
+        pageTheme: _reportPageTheme(watermark),
         header: (ctx) => _buildHeader(
             report, companyName, technicianName, dateStr, reportNumber,
             logo: logo,
@@ -185,6 +187,7 @@ class PdfService {
     String? companyEmail,
     String? companySiret,
     String? companyTva,
+    String? watermark,
   }) async {
     bool f(String? v) => v != null && v.trim().isNotEmpty;
 
@@ -195,8 +198,7 @@ class PdfService {
     );
 
     doc.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 36),
+      pageTheme: _reportPageTheme(watermark),
       header: (ctx) {
         if (ctx.pageNumber > 1) {
           return pw.Container(
@@ -953,6 +955,31 @@ class PdfService {
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+  /// A4, marges des rapports, et filigrane diagonal optionnel par-dessus le contenu.
+  pw.PageTheme _reportPageTheme(String? watermark) => pw.PageTheme(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 36),
+        buildForeground: watermark == null || watermark.isEmpty
+            ? null
+            : (ctx) => pw.FullPage(
+                  ignoreMargins: true,
+                  // Transparence via pw.Opacity (l'alpha d'une PdfColor est ignoré
+                  // pour le texte → filigrane opaque qui cachait le contenu).
+                  child: pw.Opacity(
+                    opacity: 0.13,
+                    child: pw.Watermark.text(
+                      watermark,
+                      style: pw.TextStyle(
+                        color: const PdfColor(0.80, 0.10, 0.10),
+                        fontSize: 96,
+                        fontWeight: pw.FontWeight.bold,
+                        fontFallback: PdfFonts.boldFirst,
+                      ),
+                    ),
+                  ),
+                ),
+      );
 
   static final _sectionTitleStyle = pw.TextStyle(
     color: _blue,

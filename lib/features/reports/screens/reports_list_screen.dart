@@ -22,6 +22,7 @@ import '../providers/photo_request_provider.dart';
 import '../../../shared/widgets/clients_icon.dart';
 import '../../../shared/widgets/badged_icon.dart';
 import '../../../shared/utils/error_text.dart';
+import '../widgets/sample_reports_sheet.dart';
 
 class ReportsListScreen extends ConsumerStatefulWidget {
   const ReportsListScreen({super.key});
@@ -116,10 +117,17 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
       context: context,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => _NewReportSheet(onNew: () {
-        Navigator.pop(ctx);
-        context.push('/create-report');
-      }),
+      builder: (ctx) => _NewReportSheet(
+        onNew: () {
+          Navigator.pop(ctx);
+          context.push('/create-report');
+        },
+        // Contexte de l'ÉCRAN (la feuille se ferme avant d'ouvrir les exemples).
+        onExamples: () {
+          Navigator.pop(ctx);
+          showSampleReports(context);
+        },
+      ),
     );
   }
 
@@ -462,7 +470,8 @@ class _ExportQuotaBannerState extends ConsumerState<_ExportQuotaBanner>
 
 class _NewReportSheet extends StatefulWidget {
   final VoidCallback onNew;
-  const _NewReportSheet({required this.onNew});
+  final VoidCallback onExamples;
+  const _NewReportSheet({required this.onNew, required this.onExamples});
 
   @override
   State<_NewReportSheet> createState() => _NewReportSheetState();
@@ -505,6 +514,13 @@ class _NewReportSheetState extends State<_NewReportSheet> {
             icon: const Icon(Icons.edit_outlined),
             label: Text('nr_blank'.tr()),
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: widget.onExamples,
+            icon: const Icon(Icons.auto_awesome_outlined),
+            label: Text('ex_start_from_example'.tr()),
+            style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
           ),
           const SizedBox(height: 10),
           OutlinedButton.icon(
@@ -584,6 +600,13 @@ class _ReportsList extends StatelessWidget {
               'rl_empty_sub'.tr(),
               style:
                   TextStyle(color: Colors.grey.shade400, fontSize: 13),
+            ),
+            // (2026-10-14) Montrer tout de suite ce qu'on obtient, par métier.
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              onPressed: () => showSampleReports(context),
+              icon: const Icon(Icons.visibility_outlined),
+              label: Text('ex_see_examples'.tr()),
             ),
           ],
         ),

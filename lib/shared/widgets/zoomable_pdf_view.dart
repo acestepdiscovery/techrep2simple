@@ -10,10 +10,13 @@ import 'package:printing/printing.dart';
 class ZoomablePdfView extends StatefulWidget {
   final Uint8List bytes;
   final String? title; // null → « Aperçu PDF » traduit
+  /// (2026-10-14) Barre d'action en bas (ex. « Créer mon rapport » sous un exemple).
+  final Widget? bottomBar;
   const ZoomablePdfView({
     super.key,
     required this.bytes,
     this.title,
+    this.bottomBar,
   });
 
   @override
@@ -60,6 +63,7 @@ class _ZoomablePdfViewState extends State<ZoomablePdfView> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
+      bottomNavigationBar: widget.bottomBar,
       appBar: AppBar(
         title: Text(widget.title ?? 'cr_pdf_preview'.tr()),
         actions: [

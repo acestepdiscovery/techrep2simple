@@ -42,6 +42,7 @@ import '../../subscription/paywall_bottom_sheet.dart';
 import '../../subscription/subscription_provider.dart';
 import '../../../shared/utils/error_text.dart';
 import '../models/invoice_terms.dart';
+import '../../../shared/services/review_prompt.dart';
 
 class ReportDetailScreen extends ConsumerWidget {
   final String reportId;
@@ -511,6 +512,8 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       if (!mounted) return;
       await Printing.sharePdf(
           bytes: bytes, filename: filename, bounds: shareOrigin(context));
+      // (2026-10-14) Note dans le store après le 3ᵉ / 10ᵉ / 20ᵉ export réussi.
+      unawaited(ReviewPrompt.onSuccessfulExport());
 
       final s = _pdfSettings();
       final user = ref.read(firebaseUserProvider).valueOrNull;

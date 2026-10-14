@@ -77,6 +77,7 @@ dependencies:
   cloud_firestore: ^5.6.6
   firebase_messaging: ^15.2.6
   flutter_local_notifications: ^18.0.0
+  in_app_review: 2.0.12
 
   # Stripe Checkout uses flutter_web_auth_2 (already present for OneDrive/Dropbox)
 
@@ -127,3 +128,5 @@ flutter:
     - assets/translations/
     # Polices des PDF (Noto Sans, licence OFL — voir assets/fonts/OFL.txt)
     - assets/fonts/
+    # Rapports d'exemple (signatures fictives) — 2026-10-14
+    - assets/samples/
