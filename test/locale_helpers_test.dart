@@ -111,4 +111,10 @@ void main() {
     expect(t.total, 18.0);
     expect(roundMoney(t.subtotal + t.tax), t.total);
   });
+
+  test('searchFold : recherche sans accents ni majuscules', () {
+    expect(searchFold('Société Générale').contains(searchFold('societe')), isTrue);
+    expect(searchFold('Müller GmbH').contains('muller'), isTrue);
+    expect(searchFold('ŁUKASZ Żółć'), 'lukasz zolc');
+  });
 }

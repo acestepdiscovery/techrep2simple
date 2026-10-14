@@ -23,6 +23,7 @@ import '../../../shared/widgets/clients_icon.dart';
 import '../../../shared/widgets/badged_icon.dart';
 import '../../../shared/utils/error_text.dart';
 import '../widgets/sample_reports_sheet.dart';
+import '../../../shared/utils/file_slug.dart';
 
 class ReportsListScreen extends ConsumerStatefulWidget {
   const ReportsListScreen({super.key});
@@ -47,7 +48,7 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _searchController.addListener(() {
-      setState(() => _searchQuery = _searchController.text.toLowerCase());
+      setState(() => _searchQuery = searchFold(_searchController.text.trim()));
     });
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -133,10 +134,16 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
 
   List<ReportModel> _filter(List<ReportModel> reports) {
     if (_searchQuery.isEmpty) return reports;
+    // (2026-10-14) Sans accents ni majuscules ; + adresse, n° de série, matériel.
+    bool has(String v) => searchFold(v).contains(_searchQuery);
     return reports.where((r) {
-      return r.clientName.toLowerCase().contains(_searchQuery) ||
-          r.interventionType.toLowerCase().contains(_searchQuery) ||
-          r.description.toLowerCase().contains(_searchQuery) ||
+      return has(r.clientName) ||
+          has(r.interventionType) ||
+          has(r.description) ||
+          has(r.clientAddress) ||
+          has(r.equipmentSerial) ||
+          has(r.equipmentBrand) ||
+          has(r.equipmentModel) ||
           (r.reportNumber > 0 &&
               r.reportNumber.toString().contains(_searchQuery));
     }).toList();

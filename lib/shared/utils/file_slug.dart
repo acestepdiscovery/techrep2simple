@@ -20,6 +20,17 @@ String fileSlug(String input, {int maxLength = 40}) {
   return s;
 }
 
+/// Texte « comparable » pour la recherche (2026-10-14) : minuscules et SANS
+/// accents → « societe » trouve « Société », « muller » trouve « Müller ».
+String searchFold(String input) {
+  final b = StringBuffer();
+  for (final r in input.runes) {
+    final ch = String.fromCharCode(r);
+    b.write(_fold[ch] ?? ch);
+  }
+  return b.toString().toLowerCase();
+}
+
 const Map<String, String> _fold = {
   'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a', 'ą': 'a',
   'À': 'A', 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'Ä': 'A', 'Å': 'A', 'Ą': 'A',

@@ -10,6 +10,7 @@ import '../models/client_model.dart';
 import '../providers/clients_provider.dart';
 import '../providers/shared_clients_provider.dart';
 import '../../../shared/utils/error_text.dart';
+import '../../../shared/utils/file_slug.dart';
 
 class ClientsListScreen extends ConsumerStatefulWidget {
   const ClientsListScreen({super.key});
@@ -118,7 +119,7 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
                   borderSide: BorderSide.none,
                 ),
               ),
-              onChanged: (v) => setState(() => _query = v.toLowerCase()),
+              onChanged: (v) => setState(() => _query = searchFold(v.trim())),
             ),
           ),
         ),
@@ -131,9 +132,9 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
               ? clients
               : clients
                   .where((c) =>
-                      c.name.toLowerCase().contains(_query) ||
-                      c.phone.toLowerCase().contains(_query) ||
-                      c.email.toLowerCase().contains(_query))
+                      searchFold(c.name).contains(_query) ||
+                      searchFold(c.phone).contains(_query) ||
+                      searchFold(c.email).contains(_query))
                   .toList();
 
           final personalIds = clients.map((c) => c.id).toSet();
@@ -144,9 +145,9 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
               .where((sc) =>
                   !personalIds.contains(sc.id) &&
                   (_query.isEmpty ||
-                      sc.name.toLowerCase().contains(_query) ||
-                      sc.phone.toLowerCase().contains(_query) ||
-                      sc.email.toLowerCase().contains(_query)))
+                      searchFold(sc.name).contains(_query) ||
+                      searchFold(sc.phone).contains(_query) ||
+                      searchFold(sc.email).contains(_query)))
               .toList();
 
           if (filtered.isEmpty && sharedToShow.isEmpty) {
