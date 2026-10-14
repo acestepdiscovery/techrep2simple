@@ -145,7 +145,7 @@ class SubscriptionService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'code': code.trim().toUpperCase()}),
-    );
+    ).timeout(const Duration(seconds: 20));
 
     Map<String, dynamic> data;
     try {

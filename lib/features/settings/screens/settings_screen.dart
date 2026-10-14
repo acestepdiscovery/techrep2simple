@@ -2186,7 +2186,11 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
         'consent_marketing': _consent,
         'company_id': team?.companyId,
         'created_at': FieldValue.serverTimestamp(),
-      });
+      })
+          // (2026-10-14) Hors ligne : envoi mis en file, partira au retour du
+          // réseau → on n'attend pas la confirmation (bouton bloqué sinon).
+          .then((_) {})
+          .timeout(const Duration(seconds: 8), onTimeout: () {});
       // Mémorise le consentement marketing sur le doc user (réutilisable).
       // Best-effort : ne bloque pas l'envoi du feedback en cas d'échec.
       if (user != null) {
@@ -2198,7 +2202,7 @@ class _FeedbackSectionState extends ConsumerState<_FeedbackSection> {
             'marketing_consent': _consent,
             'marketing_consent_at':
                 _consent ? FieldValue.serverTimestamp() : null,
-          }, SetOptions(merge: true));
+          }, SetOptions(merge: true)).timeout(const Duration(seconds: 8), onTimeout: () {});
         } catch (_) {}
       }
       final prefs = await SharedPreferences.getInstance();

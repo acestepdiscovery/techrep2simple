@@ -75,7 +75,8 @@ class SharedClientsService {
         'shared_by_uid': sharedByUid,
         'shared_by_name': sharedByName,
         'shared_at': FieldValue.serverTimestamp(),
-      });
+        // (2026-10-14) Hors ligne : écriture en file, on n'attend pas le serveur.
+      }).timeout(const Duration(seconds: 8), onTimeout: () {});
 
   Future<void> unshareClient(String companyId, String clientId) => _db
       .collection('companies_raptech1')

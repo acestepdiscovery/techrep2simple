@@ -463,7 +463,7 @@ class _ProfileBody extends ConsumerWidget {
           }
         }
       } else if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('common_error'.tr(args: ['${e.message}']))));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))));
       }
     }
   }

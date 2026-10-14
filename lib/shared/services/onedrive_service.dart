@@ -81,7 +81,7 @@ class OneDriveService {
         'Content-Type': 'application/pdf',
       },
       body: bytes,
-    );
+    ).timeout(const Duration(seconds: 120));
 
     if (resp.statusCode == 401) {
       final refreshed = await _refresh();
@@ -96,7 +96,7 @@ class OneDriveService {
           'Content-Type': 'application/pdf',
         },
         body: bytes,
-      );
+      ).timeout(const Duration(seconds: 120));
     }
 
     if (resp.statusCode != 200 && resp.statusCode != 201) {
@@ -114,7 +114,7 @@ class OneDriveService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'type': 'view', 'scope': 'anonymous'}),
-    );
+    ).timeout(const Duration(seconds: 30));
     if (shareResp.statusCode == 200 || shareResp.statusCode == 201) {
       final shareData = jsonDecode(shareResp.body) as Map<String, dynamic>;
       return (shareData['link'] as Map<String, dynamic>)['webUrl'] as String?;
@@ -167,7 +167,7 @@ class OneDriveService {
           'grant_type': 'authorization_code',
           'code_verifier': verifier,
         },
-      );
+      ).timeout(const Duration(seconds: 30));
       if (tokenResp.statusCode != 200) return false;
 
       final data = jsonDecode(tokenResp.body) as Map<String, dynamic>;
@@ -196,7 +196,7 @@ class OneDriveService {
         'refresh_token': refreshToken,
         'grant_type': 'refresh_token',
       },
-    );
+    ).timeout(const Duration(seconds: 30));
     if (resp.statusCode != 200) return false;
     final data = jsonDecode(resp.body) as Map<String, dynamic>;
     await prefs.setString(_tokenKey, data['access_token'] as String);
@@ -211,7 +211,7 @@ class OneDriveService {
       final resp = await http.get(
         Uri.parse('https://graph.microsoft.com/v1.0/me'),
         headers: {'Authorization': 'Bearer $token'},
-      );
+      ).timeout(const Duration(seconds: 30));
       if (resp.statusCode == 200) {
         final d = jsonDecode(resp.body) as Map<String, dynamic>;
         final name = d['displayName'] ?? d['mail'] ?? d['userPrincipalName'];

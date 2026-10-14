@@ -50,7 +50,7 @@ class TeamService {
         'name': name.trim(),
         'display_name': adminDisplayName,
       }),
-    );
+    ).timeout(const Duration(seconds: 20)); // (2026-10-14) mauvais réseau : pas d'attente sans fin
 
     if (response.statusCode != 200) {
       // (2026-10-14) Le serveur répond en français → message traduit selon le
@@ -96,7 +96,7 @@ class TeamService {
     // NON BLOQUANT. Le vrai plafond est imposé à l'approbation admin
     // (approveMember), où l'admin (membre actif) peut compter les sièges.
     final sub = matched.data()['subscription'] as Map<String, dynamic>?;
-    final seatLimit = sub?['seat_limit'] as int?;
+    final seatLimit = (sub?['seat_limit'] as num?)?.toInt();
     if (seatLimit != null) {
       try {
         final membersSnap =
@@ -228,7 +228,7 @@ class TeamService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'company_id': companyId, 'member_uid': uid}),
-    );
+    ).timeout(const Duration(seconds: 20));
     if (response.statusCode != 200) {
       Map<String, dynamic> body;
       try {
@@ -326,11 +326,18 @@ class TeamService {
       // the latest content. Also preserves snapshot if no edit was made by
       // including it explicitly — prevents tx.set from wiping an existing field.
       data['snapshot'] = _buildSnapshot(report);
-      await ref.set(data);
+      await _queued(ref.set(data));
     } else {
-      await ref.set(data);
+      await _queued(ref.set(data));
     }
   }
+
+  /// (2026-10-14) Hors ligne, Firestore met l'écriture en file d'attente et ne
+  /// la confirme qu'au RETOUR DU RÉSEAU : on n'attend pas plus de 8 s (elle
+  /// partira toute seule). Avant, « Soumettre » tournait sans fin dans une cave.
+  /// Une vraie erreur (règles, droits) arrive vite et reste remontée.
+  static Future<void> _queued(Future<void> write) =>
+      write.timeout(const Duration(seconds: 8), onTimeout: () {});
 
   static Map<String, dynamic> _buildSnapshot(ReportModel report) {
     return {
@@ -380,7 +387,8 @@ class TeamService {
         .doc(companyId)
         .collection('reports_raptech1')
         .doc(reportId)
-        .update(data);
+        .update(data)
+        .timeout(const Duration(seconds: 8), onTimeout: () {});
   }
 
   Future<void> requestPhotos(

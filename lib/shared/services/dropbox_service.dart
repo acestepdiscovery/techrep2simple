@@ -81,7 +81,7 @@ class DropboxService {
         }),
       },
       body: bytes,
-    );
+    ).timeout(const Duration(seconds: 120));
 
     if (uploadResp.statusCode == 401) {
       final refreshed = await _refresh();
@@ -101,7 +101,7 @@ class DropboxService {
           }),
         },
         body: bytes,
-      );
+      ).timeout(const Duration(seconds: 120));
       if (retry.statusCode != 200) {
         throw Exception('cloud_err_upload'.tr(args: ['Dropbox', '${retry.statusCode}']));
       }
@@ -118,7 +118,7 @@ class DropboxService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({'path': '$folder/$filename'}),
-    );
+    ).timeout(const Duration(seconds: 30));
 
     if (shareResp.statusCode == 200) {
       final shareData = jsonDecode(shareResp.body) as Map<String, dynamic>;
@@ -133,7 +133,7 @@ class DropboxService {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({'path': '$folder/$filename', 'direct_only': true}),
-      );
+      ).timeout(const Duration(seconds: 30));
       if (getResp.statusCode == 200) {
         final links = (jsonDecode(getResp.body)['links'] as List);
         if (links.isNotEmpty) return links.first['url'] as String?;
@@ -186,7 +186,7 @@ class DropboxService {
           'grant_type': 'authorization_code',
           'code_verifier': verifier,
         },
-      );
+      ).timeout(const Duration(seconds: 30));
       if (tokenResp.statusCode != 200) return false;
 
       final data = jsonDecode(tokenResp.body) as Map<String, dynamic>;
@@ -215,7 +215,7 @@ class DropboxService {
         'refresh_token': refreshToken,
         'grant_type': 'refresh_token',
       },
-    );
+    ).timeout(const Duration(seconds: 30));
     if (resp.statusCode != 200) return false;
     final data = jsonDecode(resp.body) as Map<String, dynamic>;
     await prefs.setString(_tokenKey, data['access_token'] as String);
@@ -228,7 +228,7 @@ class DropboxService {
         Uri.parse(
             'https://api.dropboxapi.com/2/users/get_current_account'),
         headers: {'Authorization': 'Bearer $token'},
-      );
+      ).timeout(const Duration(seconds: 30));
       if (resp.statusCode == 200) {
         final d = jsonDecode(resp.body) as Map<String, dynamic>;
         final name =

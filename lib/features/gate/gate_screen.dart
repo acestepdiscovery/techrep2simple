@@ -379,7 +379,7 @@ class _BlockedViewState extends State<_BlockedView> {
         'message': text,
         'block_reason': widget.reason,
         'created_at': FieldValue.serverTimestamp(),
-      });
+      }).then((_) {}).timeout(const Duration(seconds: 8), onTimeout: () {});
       if (mounted) setState(() { _sent = true; _sending = false; });
     } catch (_) {
       if (mounted) setState(() => _sending = false);

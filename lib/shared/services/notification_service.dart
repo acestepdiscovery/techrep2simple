@@ -153,7 +153,7 @@ class NotificationService {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({'token': token}),
-      );
+      ).timeout(const Duration(seconds: 15));
     } catch (_) {
       // non bloquant
     }

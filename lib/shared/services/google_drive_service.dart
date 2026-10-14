@@ -94,7 +94,7 @@ class GoogleDriveService {
         'Content-Type': 'multipart/related; boundary=$boundary',
       },
       body: fullBody,
-    );
+    ).timeout(const Duration(seconds: 120));
 
     if (uploadResp.statusCode != 200) {
       throw Exception('cloud_err_upload'.tr(args: ['Google Drive', '${uploadResp.statusCode}']));
@@ -109,7 +109,7 @@ class GoogleDriveService {
           'https://www.googleapis.com/drive/v3/files/$fileId/permissions'),
       headers: {...headers, 'Content-Type': 'application/json'},
       body: jsonEncode({'type': 'anyone', 'role': 'reader'}),
-    );
+    ).timeout(const Duration(seconds: 30));
 
     return data['webViewLink'] as String?;
   }
@@ -135,7 +135,7 @@ class GoogleDriveService {
       Uri.parse(
           'https://www.googleapis.com/drive/v3/files?q=$query&fields=files(id)'),
       headers: headers,
-    );
+    ).timeout(const Duration(seconds: 30));
     final files = (jsonDecode(search.body)['files'] as List);
     if (files.isNotEmpty) return files.first['id'] as String;
 
@@ -148,7 +148,7 @@ class GoogleDriveService {
       Uri.parse('https://www.googleapis.com/drive/v3/files?fields=id'),
       headers: {...headers, 'Content-Type': 'application/json'},
       body: jsonEncode(body),
-    );
+    ).timeout(const Duration(seconds: 30));
     return (jsonDecode(create.body) as Map<String, dynamic>)['id'] as String;
   }
 }
