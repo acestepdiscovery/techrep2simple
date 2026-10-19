@@ -184,7 +184,14 @@ class _MainShellState extends ConsumerState<MainShell> {
             .doc('app_control')
             .get()
             .timeout(const Duration(seconds: 3));
-        final remote = doc.data()?['milestone_${toShow}_message'] as String?;
+        // (2026-10-19) Message PAR LANGUE (« milestone_N_message_de »…) ; le champ
+        // générique est rédigé en français → seulement pour les francophones
+        // (même règle que les messages du coupe-circuit). Avant : français pour tous.
+        final lang = (Intl.defaultLocale ?? 'fr').split(RegExp('[_-]')).first;
+        final data = doc.data() ?? const <String, dynamic>{};
+        final generic = data['milestone_${toShow}_message'];
+        final remote = (data['milestone_${toShow}_message_$lang'] ??
+            (lang == 'fr' ? generic : null)) as String?;
         if (remote != null && remote.trim().isNotEmpty) body = remote.trim();
       } catch (_) {}
       if (!mounted) return; // l'écran a pu être quitté pendant la lecture

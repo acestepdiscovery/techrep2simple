@@ -110,7 +110,7 @@ class PdfService {
     // ── Simple layout (default) ──────────────────────────────────────────────
     final doc = pw.Document(
       title: 'pdf_doc_title'.tr(args: [report.clientName]),
-      author: companyName ?? 'Tech Report',
+      author: companyName ?? 'app_brand'.tr(),
       theme: await PdfFonts.theme(),
     );
 
