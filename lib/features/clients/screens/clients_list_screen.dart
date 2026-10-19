@@ -68,18 +68,33 @@ class _ClientsListScreenState extends ConsumerState<ClientsListScreen> {
     final user = ref.read(firebaseUserProvider).valueOrNull;
     final companyId = teamState?.companyId;
     if (companyId == null || user == null) return;
-    await SharedClientsService().shareClient(
-      companyId,
-      client,
-      sharedByUid: user.uid,
-      sharedByName: user.displayName ?? user.email ?? 'Admin',
-    );
+    // (2026-10-19) Erreur (droits, serveur) affichée — avant : silencieuse.
+    try {
+      await SharedClientsService().shareClient(
+        companyId,
+        client,
+        sharedByUid: user.uid,
+        sharedByName: user.displayName ?? user.email ?? 'Admin',
+      );
+    } catch (e) {
+      _showError(e);
+    }
   }
 
   Future<void> _unshareClient(String clientId) async {
     final companyId = ref.read(teamStateProvider).valueOrNull?.companyId;
     if (companyId == null) return;
-    await SharedClientsService().unshareClient(companyId, clientId);
+    try {
+      await SharedClientsService().unshareClient(companyId, clientId);
+    } catch (e) {
+      _showError(e);
+    }
+  }
+
+  void _showError(Object e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))));
   }
 
   @override

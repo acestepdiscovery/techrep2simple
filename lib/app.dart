@@ -285,8 +285,12 @@ class _TechReportAppState extends ConsumerState<TechReportApp>
       // depuis la page de garde AVANT l'inscription. L'account-switch se déclenche
       // pile à l'inscription → sans préserver cette clé, elle était effacée avant
       // que l'écran d'auth la lise → on retombait sur /home au lieu de /team-setup.
+      // (2026-10-19) + la LANGUE choisie ('locale' = clé d'easy_localization,
+      // 'lang_follow_system') : c'est un réglage de l'appareil, pas du compte —
+      // avant, changer de compte remettait la langue du téléphone.
       final keysToKeep = {
         'onboarding_done', 'app_mode', 'last_signed_in_uid', 'team_intent',
+        'locale', 'lang_follow_system',
       };
       for (final key in prefs.getKeys()) {
         if (keysToKeep.contains(key)) continue;

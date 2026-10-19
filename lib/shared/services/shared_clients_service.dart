@@ -83,5 +83,7 @@ class SharedClientsService {
       .doc(companyId)
       .collection('shared_clients_raptech1')
       .doc(clientId)
-      .delete();
+      .delete()
+      // (2026-10-19) même délai que le partage (hors ligne : pas d'attente sans fin).
+      .timeout(const Duration(seconds: 8), onTimeout: () {});
 }
