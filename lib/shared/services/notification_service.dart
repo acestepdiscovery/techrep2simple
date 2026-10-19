@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -29,6 +30,9 @@ class NotificationService {
   GoRouter? _router;
   final _local = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  // (2026-10-19) UN seul écouteur de renouvellement du jeton : avant, chaque
+  // connexion en ajoutait un (et celui de l'ancien compte restait actif).
+  StreamSubscription<String>? _tokenRefreshSub;
 
   // ── Setup ────────────────────────────────────────────────────────────────
 
@@ -100,7 +104,8 @@ class NotificationService {
     if (token != null) await _saveToken(uid, token);
 
     // Re-register if token rotates (e.g. after app reinstall or token expiry).
-    FirebaseMessaging.instance.onTokenRefresh
+    await _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = FirebaseMessaging.instance.onTokenRefresh
         .listen((newToken) => _saveToken(uid, newToken));
   }
 
@@ -166,11 +171,16 @@ class NotificationService {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString(_tokenPrefsKey);
       if (token == null) return;
+      // (2026-10-19) Délai : hors ligne, la DÉCONNEXION (qui attend ceci)
+      // restait bloquée. L'écriture partira d'elle-même au retour du réseau.
       await FirebaseFirestore.instance
           .collection('users_raptech1')
           .doc(uid)
-          .update({'fcmTokens': FieldValue.arrayRemove([token])});
+          .update({'fcmTokens': FieldValue.arrayRemove([token])})
+          .timeout(const Duration(seconds: 5), onTimeout: () {});
       await prefs.remove(_tokenPrefsKey);
+      await _tokenRefreshSub?.cancel();
+      _tokenRefreshSub = null;
     } catch (_) {}
   }
 
@@ -215,7 +225,11 @@ class NotificationService {
     final reportId = data['reportId'] as String?;
 
     switch (type) {
+      // (2026-10-19) « Rapport envoyé » (reçu par le responsable) : ce rapport
+      // est celui d'un technicien, il n'est PAS sur ce téléphone → onglet Équipe
+      // (avant : écran « rapport introuvable »).
       case 'report_submitted':
+        router.go('/team-tab');
       case 'report_validated':
       case 'report_rejected':
         if (reportId != null) {
