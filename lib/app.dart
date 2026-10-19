@@ -288,9 +288,12 @@ class _TechReportAppState extends ConsumerState<TechReportApp>
       // (2026-10-19) + la LANGUE choisie ('locale' = clé d'easy_localization,
       // 'lang_follow_system') : c'est un réglage de l'appareil, pas du compte —
       // avant, changer de compte remettait la langue du téléphone.
+      // (2026-10-19) + 'archived_report_ids' : les RAPPORTS sont gardés (2.1), donc
+      // leur état « supprimé / à la corbeille » aussi — avant, tous les rapports
+      // supprimés RÉAPPARAISSAIENT dans la liste après un changement de compte.
       final keysToKeep = {
         'onboarding_done', 'app_mode', 'last_signed_in_uid', 'team_intent',
-        'locale', 'lang_follow_system',
+        'locale', 'lang_follow_system', 'archived_report_ids',
       };
       for (final key in prefs.getKeys()) {
         if (keysToKeep.contains(key)) continue;
