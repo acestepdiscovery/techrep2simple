@@ -289,16 +289,26 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   }
 
   @override
-  void dispose() {
+  void deactivate() {
     // (#4c) FLUSH FINAL : persiste le brouillon MÊME si on quitte avant les 2s du
-    // debounce (ex. on remplit 1 champ et on quitte aussitôt). Les contrôleurs
-    // sont encore vivants ici ; `reportsProvider` survit au widget (non autoDispose)
-    // → le brouillon apparaîtra dans la liste. Idempotent (id de session stable).
+    // debounce (ex. on remplit 1 champ et on quitte aussitôt). `reportsProvider`
+    // survit au widget (non autoDispose) → le brouillon apparaîtra dans la liste.
+    // Idempotent (id de session stable).
+    // (2026-10-19) ICI et plus dans dispose() : dans dispose(), `ref` lève
+    // « Cannot use ref after the widget was disposed » → cette sauvegarde n'a
+    // JAMAIS fonctionné (et la suite du nettoyage était sautée). Trouvé par
+    // test/report_form_edit_test.dart.
+    _autoSaveTimer?.cancel();
     if (_hasChanges()) {
       ref
           .read(reportsProvider.notifier)
           .upsertSilently(_buildReport(ReportStatus.draft));
     }
+    super.deactivate();
+  }
+
+  @override
+  void dispose() {
     _autoSaveTimer?.cancel();
     for (final c in [
       _clientName, _clientAddress, _clientPhone, _clientContact,
@@ -383,6 +393,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   Future<void> _autoSave() async {
     if (!mounted) return;
     if (!_hasChanges()) return;
+    // Ce contenu est désormais enregistré (pas de 2e écriture à la sortie).
+    _baseline = _contentKey();
     // (A) Passe par le PROVIDER (et plus par un insert direct) → la liste des
     // rapports reflète le brouillon EN DIRECT, sans attendre un autre save.
     await ref
@@ -390,9 +402,13 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         .upsertSilently(_buildReport(ReportStatus.draft));
   }
 
+  /// (2026-10-19) Après / avant un enregistrement EXPLICITE (brouillon, envoi) :
+  /// plus d'auto-enregistrement ni de sauvegarde de sortie pour CE contenu —
+  /// sinon elles réécrivaient le rapport tout juste envoyé en « Brouillon ».
   void _clearAutosave() {
     _autoSaveTimer?.cancel();
     _autoSaveTimer = null;
+    _baseline = _contentKey();
   }
 
   // ─── PDF preview ──────────────────────────────────────────────────────────────
@@ -983,6 +999,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       return;
     }
     setState(() => _isSaving = true);
+    _clearAutosave();
     await ref
         .read(reportsProvider.notifier)
         .saveReport(_buildReport(ReportStatus.draft));
@@ -1030,6 +1047,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       _travauxSectionError = false;
     });
     setState(() => _isSaving = true);
+    _clearAutosave(); // (2026-10-19) un auto-save en attente écrasait l'envoi
     final report = _buildReport(ReportStatus.submitted);
     await ref.read(reportsProvider.notifier).saveReport(report);
     final s = ref.read(settingsProvider).valueOrNull ?? {};

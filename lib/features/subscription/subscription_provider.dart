@@ -132,6 +132,42 @@ final effectiveSubscriptionProvider = Provider<bool>((ref) {
   return true;
 });
 
+// ── Export PDF : qui couvre ce rapport ? (2026-10-19 : sorti de l'écran du
+// rapport pour être TESTÉ — test/subscription_logic_test.dart) ────────────────
+enum ExportCoverage {
+  /// Couvert par un abonnement (équipe ou solo) → illimité, sans compteur.
+  covered,
+  /// Rapport d'équipe sans siège actif → bloqué (pas de repli gratuit).
+  seatInactive,
+  /// Rapport perso sans abonnement solo → exports gratuits du mois.
+  freeQuota,
+}
+
+/// (#10) La couverture suit le TAG du rapport : rapport d'ÉQUIPE = abonnement
+/// équipe + siège actif uniquement ; rapport PERSO = abonnement solo, sinon les
+/// exports gratuits du mois.
+ExportCoverage exportCoverage({
+  required bool isTeamReport,
+  required Map<String, dynamic>? companySub,
+  required int lifetimeSeats,
+  required bool memberActive,
+  required Map<String, dynamic>? personalSub,
+}) {
+  if (isTeamReport) {
+    final companyActive = companySub.isActive || lifetimeSeats > 0;
+    return companyActive && memberActive
+        ? ExportCoverage.covered
+        : ExportCoverage.seatInactive;
+  }
+  return personalSub.isActive ? ExportCoverage.covered : ExportCoverage.freeQuota;
+}
+
+/// « Double négative » : limite atteinte si l'APPAREIL *ou* le COMPTE l'a
+/// atteinte (`accountCount` null = compteur du compte indisponible → appareil seul).
+bool freeQuotaReached(int deviceCount, int? accountCount,
+        {int limit = SubscriptionService.freeMonthlyExports}) =>
+    deviceCount >= limit || (accountCount != null && accountCount >= limit);
+
 // ── Extension helpers on a raw subscription map ────────────────────────────
 
 extension SubscriptionX on Map<String, dynamic>? {

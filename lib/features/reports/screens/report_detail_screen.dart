@@ -431,15 +431,17 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     //   • rapport PERSO (companyId == null) → couvert par l'abo SOLO ; sinon les
     //     5 gratuits/mois (par device). Vaut aussi pour un membre d'équipe qui fait
     //     un rapport perso (identité perso → pas de fraude sous le nom de la company).
-    final isTeamReport = widget.report.companyId != null;
+    // (2026-10-19) Décision sortie dans `exportCoverage` (testée).
+    final coverage = exportCoverage(
+      isTeamReport: widget.report.companyId != null,
+      companySub: ref.read(companySubscriptionProvider).valueOrNull,
+      lifetimeSeats: ref.read(companyLifetimeSeatsProvider).valueOrNull ?? 0,
+      memberActive: ref.read(memberActiveProvider).valueOrNull ?? true,
+      personalSub: ref.read(subscriptionProvider).valueOrNull,
+    );
+    if (coverage == ExportCoverage.covered) return true;
 
-    if (isTeamReport) {
-      final companySub = ref.read(companySubscriptionProvider).valueOrNull;
-      final lifetimeSeats =
-          ref.read(companyLifetimeSeatsProvider).valueOrNull ?? 0;
-      final companyActive = companySub.isActive || lifetimeSeats > 0;
-      final memberActive = ref.read(memberActiveProvider).valueOrNull ?? true;
-      if (companyActive && memberActive) return true; // couvert par l'abo équipe
+    if (coverage == ExportCoverage.seatInactive) {
       if (mounted) {
         await showDialog(
           context: context,
@@ -458,9 +460,8 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       return false;
     }
 
-    // Rapport PERSO couvert par l'abo SOLO → illimité (sans toucher le compteur
-    // gratuit du device, qui ne doit décompter QUE les exports réellement gratuits).
-    if (ref.read(subscriptionProvider).valueOrNull.isActive) return true;
+    // Rapport PERSO couvert par l'abo SOLO → déjà rendu `covered` ci-dessus (sans
+    // toucher le compteur gratuit du device, qui ne décompte QUE les exports gratuits).
 
     // Check if this report was already counted this month
     final now = DateTime.now();
@@ -479,11 +480,7 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
     final deviceCount = await SubscriptionService.getMonthlyExportCount();
     final accountCount =
         await SubscriptionService.getAccountMonthlyExportCount();
-    final reachedLimit =
-        deviceCount >= SubscriptionService.freeMonthlyExports ||
-            (accountCount != null &&
-                accountCount >= SubscriptionService.freeMonthlyExports);
-    if (reachedLimit) {
+    if (freeQuotaReached(deviceCount, accountCount)) {
       if (mounted) {
         await PaywallBottomSheet.show(
           context,
