@@ -1,8 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../models/report_model.dart';
 import '../../../shared/services/local_db_service.dart';
+import '../../../shared/services/team_service.dart';
 
 final reportsProvider = AsyncNotifierProvider<ReportsNotifier, List<ReportModel>>(ReportsNotifier.new);
 
@@ -74,7 +74,7 @@ class ReportsNotifier extends AsyncNotifier<List<ReportModel>> {
   /// SQLite if they diverged (e.g. admin validated a report).
   Future<void> syncStatusFromTeam(String companyId, String uid) async {
     try {
-      final snap = await FirebaseFirestore.instance
+      final snap = await TeamService.firestore
           .collection('companies_raptech1')
           .doc(companyId)
           .collection('reports_raptech1')

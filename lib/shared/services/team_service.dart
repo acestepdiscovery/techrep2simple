@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:http/http.dart' as http;
 import '../../../features/reports/models/report_model.dart';
 import '../../../features/team/models/company_model.dart';
@@ -16,7 +17,14 @@ class TeamService {
   factory TeamService() => _instance;
   TeamService._internal();
 
-  FirebaseFirestore get _db => FirebaseFirestore.instance;
+  /// (2026-10-19) Base remplaçable par une base SIMULÉE dans les tests
+  /// (test/team_service_test.dart). Jamais utilisé dans l'app.
+  @visibleForTesting
+  static FirebaseFirestore? debugFirestore;
+  static FirebaseFirestore get firestore =>
+      debugFirestore ?? FirebaseFirestore.instance;
+
+  FirebaseFirestore get _db => firestore;
 
   // ─── Invite code ──────────────────────────────────────────────────────────
 

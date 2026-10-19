@@ -18,8 +18,20 @@ class CompanyModel {
         name: m['name'] ?? '',
         inviteCode: m['invite_code'] ?? '',
         adminId: m['admin_id'] ?? '',
-        createdAt: DateTime.parse(m['created_at']),
+        // (2026-10-19) Tolérant : une date absente ou au format Firestore
+        // faisait planter « Rejoindre une équipe ».
+        createdAt: _date(m['created_at']),
       );
+
+  static DateTime _date(Object? v) {
+    if (v is DateTime) return v;
+    if (v is String) return DateTime.tryParse(v) ?? DateTime.now();
+    try {
+      return (v as dynamic).toDate() as DateTime; // Timestamp Firestore
+    } catch (_) {
+      return DateTime.now();
+    }
+  }
 
   Map<String, dynamic> toMap() => {
         'name': name,

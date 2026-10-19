@@ -1,0 +1,13 @@
+{
+  "name": "techreport-firestore-rules-test",
+  "private": true,
+  "type": "module",
+  "description": "Tests des règles Firestore (portion WORK 2) sur l'émulateur local — aucun accès au vrai projet.",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project demo-techreport \"node --test rules.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "^13.0.0"
+  }
+}
