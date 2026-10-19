@@ -102,7 +102,7 @@ class _GateScreenState extends State<GateScreen> {
     if (mode == 'team') {
       try {
         final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
+        if (user != null && !user.isAnonymous) {
           if (mounted) context.go('/home');
           return;
         }

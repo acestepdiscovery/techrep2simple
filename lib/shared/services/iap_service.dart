@@ -141,7 +141,10 @@ class IapService {
   /// Returns false immediately if it can't start (not logged in / no product).
   Future<bool> buy(IapProduct product, {String? companyId}) async {
     lastError.value = null;
-    if (FirebaseAuth.instance.currentUser == null) {
+    // (2026-10-19) Le compte anonyme (avis envoyé sans compte) ne compte pas :
+    // l'achat serait rattaché à un compte fantôme.
+    final u = FirebaseAuth.instance.currentUser;
+    if (u == null || u.isAnonymous) {
       lastError.value = 'iap_err_login'.tr();
       return false;
     }
@@ -283,7 +286,9 @@ class IapService {
   /// The CF validates with Apple/Google and writes the entitlement.
   Future<void> _verify(PurchaseDetails p) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    // (2026-10-19) Jamais valider (= rattacher) un achat sur le compte anonyme ;
+    // la restauration au prochain vrai compte le fera.
+    if (user == null || user.isAnonymous) return;
     // Only surface errors for a FRESH purchase; silent/startup restores recover
     // quietly (Pro appears if it works; no error spam otherwise).
     final showErrors = p.status == PurchaseStatus.purchased;

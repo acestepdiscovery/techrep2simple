@@ -21,6 +21,14 @@ final firebaseUserProvider = StreamProvider<User?>((ref) {
   }
 });
 
+/// (2026-10-19) Vrai compte connecté — PAS l'utilisateur anonyme créé à la volée
+/// pour envoyer un avis sans compte. Avant, `currentUser != null` le laissait
+/// acheter le Pro ou créer une équipe sur ce compte fantôme (perdu ensuite).
+User? signedInUser() {
+  final u = FirebaseAuth.instance.currentUser;
+  return (u == null || u.isAnonymous) ? null : u;
+}
+
 // ─── Team state (persisted in SharedPreferences + Firestore backup) ───────
 //
 // Persistence strategy:

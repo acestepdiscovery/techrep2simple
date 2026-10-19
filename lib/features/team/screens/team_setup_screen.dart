@@ -342,7 +342,8 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
   @override
   Widget build(BuildContext context) {
     // Guard: redirect unauthenticated users to auth screen
-    if (FirebaseAuth.instance.currentUser == null) {
+    // (2026-10-19) le compte anonyme (avis sans compte) n'est pas un compte.
+    if (signedInUser() == null) {
       return Scaffold(
         appBar: AppBar(title: Text('ts_team_config'.tr())),
         body: Center(
