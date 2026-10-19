@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart' show StringTranslateExtension;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 /// Remote kill switch + version gating via Firestore REST API (no Firebase SDK needed).
 ///
@@ -128,72 +129,81 @@ class KillSwitchService {
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       final fields = body['fields'] as Map<String, dynamic>?;
-
-      String? _str(String key) =>
-          (fields?[key] as Map<String, dynamic>?)?['stringValue'] as String?;
-      int? _int(String key) {
-        final raw = (fields?[key] as Map<String, dynamic>?)?['integerValue'];
-        if (raw is int) return raw;
-        if (raw is String) return int.tryParse(raw);
-        return null;
-      }
-
-      // (2026-10-03) Messages par langue : champ « <clé>_<langue> » prioritaire.
-      // [genericIsFrench] : le champ générique est rédigé en français → réservé aux
-      // francophones ; les autres langues retombent sur le texte par défaut traduit.
       final lang = (Intl.defaultLocale ?? 'fr').split(RegExp('[_-]')).first;
-      String? localized(String key, {bool genericIsFrench = false}) =>
-          _str('${key}_$lang') ??
-          ((genericIsFrench && lang != 'fr') ? null : _str(key));
-
-      final status = _str('status');
-
-      // Kill switch: app blocked entirely
-      if (status != _activeValue) {
-        return _cacheAndReturn(KillSwitchResult.blocked(
-          localized('message', genericIsFrench: true) ?? _defaultBlockedMessage,
-        ));
-      }
-
-      // Version gating
-      final minBuild = _int('min_build');
-      final latestBuild = _int('latest_build');
-      final updateMsg = localized('update_message', genericIsFrench: true) ??
-          'ks_update_default'.tr();
-      final urlAndroid = _str('update_url_android');
-      final urlIos = _str('update_url_ios');
-
-      final forceUpdate = minBuild != null && currentBuild > 0 && currentBuild < minBuild;
-      final softUpdate = !forceUpdate &&
-          latestBuild != null && currentBuild > 0 && currentBuild < latestBuild;
-
-      // Broadcast message
-      final broadcastId = _str('broadcast_id');
-      final broadcastMsg = localized('broadcast_message');
-      final broadcastMaxBuild = _int('broadcast_max_build');
-      final broadcastActive = broadcastId != null && broadcastMsg != null &&
-          (broadcastMaxBuild == null || currentBuild <= broadcastMaxBuild);
-
-      // Banner (persistent top message on reports list)
-      final bannerId = _str('banner_id');
-      final bannerMsg = localized('banner_message');
-      final bannerActive = bannerId != null && bannerId.isNotEmpty &&
-          bannerMsg != null && bannerMsg.isNotEmpty;
-
-      return _cacheAndReturn(KillSwitchResult.allowed(
-        forceUpdate: forceUpdate,
-        softUpdate: softUpdate,
-        updateMessage: updateMsg,
-        updateUrlAndroid: urlAndroid,
-        updateUrlIos: urlIos,
-        broadcastId: broadcastActive ? broadcastId : null,
-        broadcastMessage: broadcastActive ? broadcastMsg : null,
-        bannerId: bannerActive ? bannerId : null,
-        bannerMessage: bannerActive ? bannerMsg : null,
-      ));
+      return _cacheAndReturn(
+          fromFields(fields, currentBuild: currentBuild, lang: lang));
     } catch (_) {
       return KillSwitchResult.allowed();
     }
+  }
+
+  /// (2026-10-19) Lecture des champs de `config/app_control` (format REST
+  /// Firestore) — sortie de [check] pour être TESTÉE (test/kill_switch_test.dart) :
+  /// une faute dans ce document peut bloquer l'app pour TOUS les utilisateurs.
+  @visibleForTesting
+  static KillSwitchResult fromFields(Map<String, dynamic>? fields,
+      {int currentBuild = 0, String lang = 'fr'}) {
+    String? _str(String key) =>
+        (fields?[key] as Map<String, dynamic>?)?['stringValue'] as String?;
+    int? _int(String key) {
+      final raw = (fields?[key] as Map<String, dynamic>?)?['integerValue'];
+      if (raw is int) return raw;
+      if (raw is String) return int.tryParse(raw);
+      return null;
+    }
+
+    // (2026-10-03) Messages par langue : champ « <clé>_<langue> » prioritaire.
+    // [genericIsFrench] : le champ générique est rédigé en français → réservé aux
+    // francophones ; les autres langues retombent sur le texte par défaut traduit.
+    String? localized(String key, {bool genericIsFrench = false}) =>
+        _str('${key}_$lang') ??
+        ((genericIsFrench && lang != 'fr') ? null : _str(key));
+
+    final status = _str('status');
+
+    // Kill switch: app blocked entirely
+    if (status != _activeValue) {
+      return KillSwitchResult.blocked(
+        localized('message', genericIsFrench: true) ?? _defaultBlockedMessage,
+      );
+    }
+
+    // Version gating
+    final minBuild = _int('min_build');
+    final latestBuild = _int('latest_build');
+    final updateMsg = localized('update_message', genericIsFrench: true) ??
+        'ks_update_default'.tr();
+    final urlAndroid = _str('update_url_android');
+    final urlIos = _str('update_url_ios');
+
+    final forceUpdate = minBuild != null && currentBuild > 0 && currentBuild < minBuild;
+    final softUpdate = !forceUpdate &&
+        latestBuild != null && currentBuild > 0 && currentBuild < latestBuild;
+
+    // Broadcast message
+    final broadcastId = _str('broadcast_id');
+    final broadcastMsg = localized('broadcast_message');
+    final broadcastMaxBuild = _int('broadcast_max_build');
+    final broadcastActive = broadcastId != null && broadcastMsg != null &&
+        (broadcastMaxBuild == null || currentBuild <= broadcastMaxBuild);
+
+    // Banner (persistent top message on reports list)
+    final bannerId = _str('banner_id');
+    final bannerMsg = localized('banner_message');
+    final bannerActive = bannerId != null && bannerId.isNotEmpty &&
+        bannerMsg != null && bannerMsg.isNotEmpty;
+
+    return KillSwitchResult.allowed(
+      forceUpdate: forceUpdate,
+      softUpdate: softUpdate,
+      updateMessage: updateMsg,
+      updateUrlAndroid: urlAndroid,
+      updateUrlIos: urlIos,
+      broadcastId: broadcastActive ? broadcastId : null,
+      broadcastMessage: broadcastActive ? broadcastMsg : null,
+      bannerId: bannerActive ? bannerId : null,
+      bannerMessage: bannerActive ? bannerMsg : null,
+    );
   }
 
   static KillSwitchResult _cacheAndReturn(KillSwitchResult result) {

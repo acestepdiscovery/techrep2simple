@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,6 +14,19 @@ import '../../shared/services/kill_switch_service.dart';
 
 // Feedback nudge thresholds (app open count)
 const _nudgeThresholds = {10, 30, 100};
+
+/// (2026-10-19) Où ouvrir l'app au démarrage — sortie de l'écran pour être TESTÉE
+/// (test/startup_route_test.dart). Bug corrigé : une personne connectée revoyait
+/// la page de bienvenue à chaque ouverture.
+@visibleForTesting
+String startRoute(
+    {required String? mode, required bool onboardingDone, required bool signedIn}) {
+  if (mode == 'offline' || (mode == null && (onboardingDone || signedIn))) {
+    return '/home';
+  }
+  if (mode == 'team' && signedIn) return '/home';
+  return '/welcome';
+}
 
 class GateScreen extends StatefulWidget {
   const GateScreen({super.key});
@@ -95,29 +108,18 @@ class _GateScreenState extends State<GateScreen> {
     // (2026-10-19) Déjà connecté avec un vrai compte = accueil terminé (les
     // personnes connectées via « J'ai déjà un compte » revoyaient la page de
     // bienvenue à chaque ouverture).
-    final signedIn = FirebaseAuth.instance.currentUser;
-    if (!onboardingDone && signedIn != null && !signedIn.isAnonymous) {
+    final user = FirebaseAuth.instance.currentUser;
+    final signedIn = user != null && !user.isAnonymous;
+    if (!onboardingDone && signedIn) {
       await prefs.setBool('onboarding_done', true);
       onboardingDone = true;
     }
-
-    if (mode == 'offline' || (mode == null && onboardingDone)) {
-      if (mode == null) await prefs.setString('app_mode', 'offline');
-      if (mounted) context.go('/home');
-      return;
+    final route =
+        startRoute(mode: mode, onboardingDone: onboardingDone, signedIn: signedIn);
+    if (route == '/home' && mode == null) {
+      await prefs.setString('app_mode', 'offline');
     }
-
-    if (mode == 'team') {
-      try {
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null && !user.isAnonymous) {
-          if (mounted) context.go('/home');
-          return;
-        }
-      } catch (_) {}
-    }
-
-    if (mounted) context.go('/welcome');
+    if (mounted) context.go(route);
   }
 
   Future<void> _trackUsage() async {
