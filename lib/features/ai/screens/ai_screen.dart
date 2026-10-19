@@ -897,7 +897,12 @@ class _ImproveSheetState extends State<_ImproveSheet> {
     map['created_at'] = now;
     map['updated_at'] = now;
     map['status'] = 'draft';
-    map['report_number'] = 0;
+    // (2026-10-19) Vrai numéro suivant (avant : 0 → « N° 000 », facture
+    // « FAC-000 ») ; plus de « signé à distance » (les signatures sont vidées :
+    // la copie était VERROUILLÉE en modification) ni d'ancien commentaire de renvoi.
+    map['report_number'] = await LocalDbService().getNextReportNumber();
+    map['signed_remotely'] = 0;
+    map['rejection_comment'] = null;
     map['cloud_url'] = null;
     map['pdf_local_path'] = null;
     map['signature_client_data'] = null;
