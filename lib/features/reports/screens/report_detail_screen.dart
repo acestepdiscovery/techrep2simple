@@ -1392,12 +1392,13 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
                       onSelected: (_) => setS(() { selected = null; showCustom = false; }),
                     ),
                     ...presets.map((p) {
-                      final (value, label, example) = p;
+                      final (value, label, _) = p;
                       return ChoiceChip(
                         label: Text(label.tr(), style: const TextStyle(fontSize: 12)),
                         selected: !showCustom && selected == value,
                         visualDensity: VisualDensity.compact,
-                        tooltip: 'common_example'.tr(args: [example]),
+                        tooltip: 'common_example'.tr(
+                            args: [PdfService.exampleReportNumber(value)]),
                         onSelected: (_) => setS(() { selected = value; showCustom = false; }),
                       );
                     }),

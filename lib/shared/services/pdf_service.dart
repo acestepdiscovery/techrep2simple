@@ -10,6 +10,7 @@ import '../../features/reports/models/sector_options.dart';
 import '../../features/reports/models/tax_options.dart';
 import '../../features/reports/models/currency_options.dart';
 import 'pdf_fonts.dart';
+import '../utils/file_slug.dart';
 
 class PdfService {
   static const _blue = PdfColor.fromInt(0xFF1565C0);
@@ -932,12 +933,14 @@ class PdfService {
     String? companyName,
   }) {
     final d = date ?? DateTime.now();
-    final clientSlug = (clientName ?? '')
+    // (2026-10-19) Accents retirés AVANT de ne garder que A-Z/0-9 : avant,
+    // « Müller » → « MLLER », « Société » → « SOCIT », « Łukasz » → « UKASZ »
+    // (imprimé sur les PDF).
+    String slug(String? s) => fileSlug(s ?? '', maxLength: 200)
         .toUpperCase()
         .replaceAll(RegExp(r'[^A-Z0-9]'), '');
-    final companySlug = (companyName ?? '')
-        .toUpperCase()
-        .replaceAll(RegExp(r'[^A-Z0-9]'), '');
+    final clientSlug = slug(clientName);
+    final companySlug = slug(companyName);
     final tech = (technicianName ?? '')
         .trim()
         .split(RegExp(r'\s+'))
@@ -952,6 +955,17 @@ class PdfService {
         .replaceAll('{month}', d.month.toString().padLeft(2, '0'))
         .replaceAll('{day}', d.day.toString().padLeft(2, '0'))
         .replaceAll('{tech}', tech);
+  }
+
+  /// (2026-10-19) Exemple de numéro avec les noms d'EXEMPLE de la langue de
+  /// l'app (avant : « DUPONT-001 », « MONENTREPRISE », « Jean Dupont » pour tous).
+  static String exampleReportNumber(String pattern, {DateTime? date}) {
+    final tech = 'ex_technician'.tr();
+    return resolveReportNumber(1, pattern,
+        clientName: tech.trim().split(RegExp(r'\s+')).last,
+        date: date ?? DateTime.now(),
+        technicianName: tech,
+        companyName: 'ex_company'.tr());
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────────

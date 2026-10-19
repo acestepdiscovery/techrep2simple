@@ -952,12 +952,13 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
                   runSpacing: 6,
                   children: [
                     ..._presets.map((p) {
-                      final (value, label, example) = p;
+                      final (value, label, _) = p;
                       return ChoiceChip(
                         label: Text(label.tr(), style: const TextStyle(fontSize: 12)),
                         selected: !showCustom && selected == value,
                         visualDensity: VisualDensity.compact,
-                        tooltip: 'common_example'.tr(args: [example]),
+                        tooltip: 'common_example'.tr(
+                            args: [PdfService.exampleReportNumber(value)]),
                         onSelected: (_) => setS(() { selected = value; showCustom = false; }),
                       );
                     }),
@@ -971,7 +972,7 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
                 ),
                 if (!showCustom) ...[
                   const SizedBox(height: 6),
-                  Text('common_example'.tr(args: [PdfService.resolveReportNumber(1, selected, clientName: 'Dupont', date: DateTime.now(), technicianName: 'Jean Dupont', companyName: 'MonEntreprise')]),
+                  Text('common_example'.tr(args: [PdfService.exampleReportNumber(selected)]),
                       style: const TextStyle(fontSize: 11, color: Colors.blue)),
                 ],
                 if (showCustom) ...[
@@ -1028,7 +1029,7 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'fmt_preview'.tr(args: [PdfService.resolveReportNumber(1, customCtrl.text.isEmpty ? '{num}' : customCtrl.text, clientName: 'Dupont', date: DateTime(2026, 5, 18), technicianName: 'Jean Dupont', companyName: 'MonEntreprise')]),
+                    'fmt_preview'.tr(args: [PdfService.exampleReportNumber(customCtrl.text.isEmpty ? '{num}' : customCtrl.text)]),
                     style: const TextStyle(fontSize: 11, color: Colors.blue),
                   ),
                 ],
@@ -1056,14 +1057,7 @@ class _NumberFormatTileState extends State<_NumberFormatTile> {
     );
   }
 
-  String get _preview => PdfService.resolveReportNumber(
-        1,
-        widget.current,
-        clientName: 'Dupont',
-        date: DateTime.now(),
-        technicianName: 'Jean Dupont',
-        companyName: 'MonEntreprise',
-      );
+  String get _preview => PdfService.exampleReportNumber(widget.current);
 
   @override
   Widget build(BuildContext context) {
