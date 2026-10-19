@@ -1331,5 +1331,9 @@
   "ex_transport_load": "Paquetería (1,2 t)",
   "td_filter_rejected": "Rechazados",
   "ts_already_in_team": "Ya formas parte del equipo « {} ».",
-  "ts_paid_team_block": "Tu equipo « {} » tiene una suscripción mensual en curso. Disolverlo para unirte a otro equipo te haría perder esa suscripción, y la tienda la seguiría cobrando. Cancélala primero (Ajustes del equipo → Suscripción) y vuelve después."
+  "ts_paid_team_block": "Tu equipo « {} » tiene una suscripción mensual en curso. Disolverlo para unirte a otro equipo te haría perder esa suscripción, y la tienda la seguiría cobrando. Cancélala primero (Ajustes del equipo → Suscripción) y vuelve después.",
+  "td_leave_team": "Abandonar el equipo",
+  "td_leave_team_desc": "Dejarás de ver los informes y clientes compartidos de « {} ». Tus informes se quedan en este teléfono. Para volver, necesitarás el código de invitación y la aprobación del responsable.",
+  "td_cancel_request": "Cancelar mi solicitud",
+  "td_left_team": "Has abandonado el equipo."
 }

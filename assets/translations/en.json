@@ -1331,5 +1331,9 @@
   "ex_transport_load": "Parcel deliveries (1.2 t)",
   "td_filter_rejected": "Rejected",
   "ts_already_in_team": "You're already a member of « {} ».",
-  "ts_paid_team_block": "Your team « {} » has an active monthly subscription. Dissolving it to join another team would lose that subscription while the store keeps charging it. Cancel it first (Team settings → Subscription), then come back."
+  "ts_paid_team_block": "Your team « {} » has an active monthly subscription. Dissolving it to join another team would lose that subscription while the store keeps charging it. Cancel it first (Team settings → Subscription), then come back.",
+  "td_leave_team": "Leave the team",
+  "td_leave_team_desc": "You will no longer see the shared reports and clients of « {} ». Your reports stay on this phone. To come back, you'll need the invite code and the manager's approval.",
+  "td_cancel_request": "Cancel my request",
+  "td_left_team": "You left the team."
 }

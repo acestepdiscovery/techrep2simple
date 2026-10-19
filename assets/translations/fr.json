@@ -1331,5 +1331,9 @@
   "ex_transport_load": "Colis de messagerie (1,2 t)",
   "td_filter_rejected": "Rejetés",
   "ts_already_in_team": "Vous faites déjà partie de l'équipe « {} ».",
-  "ts_paid_team_block": "Votre équipe « {} » a un abonnement mensuel en cours. La dissoudre pour rejoindre une autre équipe vous ferait perdre cet abonnement, alors que le store continuerait de le facturer. Annulez-le d'abord (Réglages équipe → Abonnement), puis revenez."
+  "ts_paid_team_block": "Votre équipe « {} » a un abonnement mensuel en cours. La dissoudre pour rejoindre une autre équipe vous ferait perdre cet abonnement, alors que le store continuerait de le facturer. Annulez-le d'abord (Réglages équipe → Abonnement), puis revenez.",
+  "td_leave_team": "Quitter l'équipe",
+  "td_leave_team_desc": "Vous ne verrez plus les rapports ni les clients partagés de « {} ». Vos rapports restent sur ce téléphone. Pour revenir, il faudra le code d'invitation et l'accord du responsable.",
+  "td_cancel_request": "Annuler ma demande",
+  "td_left_team": "Vous avez quitté l'équipe."
 }

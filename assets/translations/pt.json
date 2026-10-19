@@ -1331,5 +1331,9 @@
   "ex_transport_load": "Encomendas (1,2 t)",
   "td_filter_rejected": "Recusados",
   "ts_already_in_team": "Já faz parte da equipa «{}».",
-  "ts_paid_team_block": "A sua equipa «{}» tem uma subscrição mensal em curso. Dissolvê-la para entrar noutra equipa faria perder essa subscrição, que a loja continuaria a cobrar. Cancele-a primeiro (Definições da equipa → Subscrição) e depois volte."
+  "ts_paid_team_block": "A sua equipa «{}» tem uma subscrição mensal em curso. Dissolvê-la para entrar noutra equipa faria perder essa subscrição, que a loja continuaria a cobrar. Cancele-a primeiro (Definições da equipa → Subscrição) e depois volte.",
+  "td_leave_team": "Sair da equipa",
+  "td_leave_team_desc": "Deixará de ver os relatórios e os clientes partilhados de «{}». Os seus relatórios ficam neste telemóvel. Para voltar, precisará do código de convite e da aprovação do responsável.",
+  "td_cancel_request": "Cancelar o meu pedido",
+  "td_left_team": "Saiu da equipa."
 }

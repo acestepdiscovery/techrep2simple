@@ -1331,5 +1331,9 @@
   "ex_transport_load": "Spedizioni pacchi (1,2 t)",
   "td_filter_rejected": "Respinti",
   "ts_already_in_team": "Fai già parte del team «{}».",
-  "ts_paid_team_block": "Il tuo team «{}» ha un abbonamento mensile in corso. Scioglierlo per entrare in un altro team ti farebbe perdere l'abbonamento, che lo store continuerebbe ad addebitare. Annullalo prima (Impostazioni del team → Abbonamento), poi torna qui."
+  "ts_paid_team_block": "Il tuo team «{}» ha un abbonamento mensile in corso. Scioglierlo per entrare in un altro team ti farebbe perdere l'abbonamento, che lo store continuerebbe ad addebitare. Annullalo prima (Impostazioni del team → Abbonamento), poi torna qui.",
+  "td_leave_team": "Lascia il team",
+  "td_leave_team_desc": "Non vedrai più i rapporti e i clienti condivisi di «{}». I tuoi rapporti restano su questo telefono. Per rientrare serviranno il codice d'invito e l'approvazione del responsabile.",
+  "td_cancel_request": "Annulla la mia richiesta",
+  "td_left_team": "Hai lasciato il team."
 }

@@ -82,6 +82,7 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
           return Scaffold(
             appBar: teamAppBar(),
             body: _PendingApprovalView(
+              companyId: team.companyId!,
               companyName: team.companyName ?? 'td_the_team'.tr(),
             ),
           );
@@ -838,9 +839,63 @@ class _TeamSettingsView extends ConsumerWidget {
             const SizedBox(height: 10),
           ],
           const SubscriptionSection(scope: SubScope.team),
+          // (2026-10-19) Un membre ne pouvait PAS quitter son équipe (seulement
+          // en rejoindre une autre ou supprimer son compte).
+          if (!isAdmin) ...[
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: BorderSide(color: Colors.red.shade200),
+              ),
+              onPressed: () => _leaveTeam(context, ref,
+                  companyId: companyId, companyName: companyName),
+              icon: const Icon(Icons.logout, size: 18),
+              label: Text('td_leave_team'.tr()),
+            ),
+          ],
         ],
       ),
     );
+  }
+}
+
+/// (2026-10-19) Quitter l'équipe (membre) / annuler sa demande (en attente).
+/// L'équipe est effacée de l'appareil AVANT de supprimer l'adhésion : sinon le
+/// guetteur du shell voyait l'adhésion disparaître et affichait « Vous avez été
+/// retiré par l'administrateur ».
+Future<void> _leaveTeam(BuildContext context, WidgetRef ref,
+    {required String companyId, String? companyName, bool confirm = true}) async {
+  if (confirm) {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dlg) => AlertDialog(
+        title: Text('ts_leave_q'.tr()),
+        content: Text('td_leave_team_desc'.tr(args: [companyName ?? ''])),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dlg, false),
+              child: Text('common_cancel'.tr())),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(dlg, true),
+            child: Text('td_leave_team'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+  }
+  final uid = ref.read(firebaseUserProvider).valueOrNull?.uid;
+  if (uid == null) return;
+  final messenger = ScaffoldMessenger.of(context);
+  await ref.read(teamStateProvider.notifier).clearTeam(removeLink: true);
+  try {
+    await TeamService().leaveCompany(companyId, uid);
+    messenger.showSnackBar(SnackBar(content: Text('td_left_team'.tr())));
+  } catch (e) {
+    messenger.showSnackBar(
+        SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))));
   }
 }
 
@@ -1844,12 +1899,14 @@ class _FeatureRow extends StatelessWidget {
 
 // ─── Pending approval view ────────────────────────────────────────────────────
 
-class _PendingApprovalView extends StatelessWidget {
+class _PendingApprovalView extends ConsumerWidget {
+  final String companyId;
   final String companyName;
-  const _PendingApprovalView({required this.companyName});
+  const _PendingApprovalView(
+      {required this.companyId, required this.companyName});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -1882,6 +1939,14 @@ class _PendingApprovalView extends StatelessWidget {
               'td_will_notify'.tr(),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            ),
+            // (2026-10-19) Mauvaise équipe / plus intéressé : aucune sortie avant.
+            const SizedBox(height: 20),
+            TextButton.icon(
+              onPressed: () => _leaveTeam(context, ref,
+                  companyId: companyId, companyName: companyName, confirm: false),
+              icon: const Icon(Icons.close, size: 18),
+              label: Text('td_cancel_request'.tr()),
             ),
           ],
         ),

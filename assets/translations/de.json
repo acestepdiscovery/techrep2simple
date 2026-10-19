@@ -1331,5 +1331,9 @@
   "ex_transport_load": "Paketsendungen (1,2 t)",
   "td_filter_rejected": "Abgelehnt",
   "ts_already_in_team": "Sie sind bereits Mitglied von „{}“.",
-  "ts_paid_team_block": "Ihr Team „{}“ hat ein laufendes Monatsabonnement. Wenn Sie es auflösen, um einem anderen Team beizutreten, verlieren Sie dieses Abonnement, während der Store es weiter abrechnet. Kündigen Sie es zuerst (Teameinstellungen → Abonnement) und kommen Sie dann zurück."
+  "ts_paid_team_block": "Ihr Team „{}“ hat ein laufendes Monatsabonnement. Wenn Sie es auflösen, um einem anderen Team beizutreten, verlieren Sie dieses Abonnement, während der Store es weiter abrechnet. Kündigen Sie es zuerst (Teameinstellungen → Abonnement) und kommen Sie dann zurück.",
+  "td_leave_team": "Team verlassen",
+  "td_leave_team_desc": "Sie sehen die geteilten Berichte und Kunden von „{}“ nicht mehr. Ihre Berichte bleiben auf diesem Telefon. Für eine Rückkehr brauchen Sie den Einladungscode und die Zustimmung des Verantwortlichen.",
+  "td_cancel_request": "Meine Anfrage zurückziehen",
+  "td_left_team": "Sie haben das Team verlassen."
 }
