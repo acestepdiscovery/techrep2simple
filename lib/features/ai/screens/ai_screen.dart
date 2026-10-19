@@ -178,6 +178,17 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       } catch (_) {}
     }
 
+    // (2026-10-19) Heures « HH:MM » détectées par l'IA → transmises au formulaire
+    // (avant : ignorées), sur la date détectée (sinon aujourd'hui).
+    String? atTime(String key) {
+      final m = RegExp(r'^(\d{1,2})[:hH.](\d{2})$').firstMatch((fields[key] ?? '').trim());
+      if (m == null) return null;
+      final h = int.parse(m.group(1)!), min = int.parse(m.group(2)!);
+      if (h > 23 || min > 59) return null;
+      final day = DateTime.tryParse(parsedDate ?? '') ?? DateTime.now();
+      return DateTime(day.year, day.month, day.day, h, min).toIso8601String();
+    }
+
     // Parse labor_hours string → num
     double? laborHours;
     final lh = fields['labor_hours'] ?? '';
@@ -193,7 +204,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         'client_phone': fields['client_phone'] ?? '',
         'client_contact': fields['client_contact'] ?? '',
         'contract_number': fields['contract_number'] ?? '',
-        if (parsedDate != null) 'date': parsedDate,
+        // (2026-10-19) clé dédiée : « date » est écrasé par la date du jour à
+        // l'ouverture d'un modèle → la date dictée était perdue.
+        if (parsedDate != null) 'ai_date': parsedDate,
+        if (atTime('start_time') != null) 'start_time': atTime('start_time'),
+        if (atTime('end_time') != null) 'end_time': atTime('end_time'),
         'intervention_type': fields['intervention_type'] ?? '',
         'description': fields['description'] ?? '',
         'observations': fields['observations'] ?? '',

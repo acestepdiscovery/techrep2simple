@@ -229,4 +229,30 @@ void main() {
     expect(find.textContaining(RegExp(r'100[,.]00')), findsWidgets, reason: 'suit la 2e saisie');
     await closeForm(tester);
   });
+
+  testWidgets("rapport créé par l'IA : date, heure et badge IA conservés", (tester) async {
+    final before = (await tester.runAsync(() => LocalDbService().getAllReports()))!;
+    await openForm(tester, null,
+        preset: ReportPreset(id: 'ai', name: 'IA', createdAt: DateTime(2026), data: {
+          'client_name': 'Client Dicté',
+          'description': 'Fuite réparée',
+          'ai_date': DateTime(2026, 10, 12).toIso8601String(),
+          'start_time': DateTime(2026, 10, 12, 8, 30).toIso8601String(),
+          'ai_enhanced': 1,
+        }));
+    // Une modification de l'utilisateur → le brouillon est enregistré.
+    tester.widget<TextFormField>(find.byWidgetPredicate(
+            (w) => w is TextFormField && w.controller?.text == 'Fuite réparée'))
+        .controller!
+        .text = 'Fuite réparée, joint changé';
+    await tester.pump(const Duration(seconds: 3));
+    await closeForm(tester);
+    final after = (await tester.runAsync(() => LocalDbService().getAllReports()))!;
+    final r = after.firstWhere((x) => !before.any((b) => b.id == x.id));
+    expect(DateTime(r.date.year, r.date.month, r.date.day), DateTime(2026, 10, 12),
+        reason: "date dictée (avant : remplacée par aujourd'hui)");
+    expect(r.startTime?.hour, 8);
+    expect(r.startTime?.minute, 30);
+    expect(r.aiEnhanced, isTrue);
+  });
 }

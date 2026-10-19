@@ -118,6 +118,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   late String _reportId;
   Timer? _autoSaveTimer;
   bool _isDirty = false;
+  // (2026-10-19) Rapport créé par l'IA (badge « IA ») — avant, perdu à l'ouverture.
+  bool _aiEnhanced = false;
   // (2026-10-19) Contenu « de départ » (rapport rouvert ou modèle) : l'auto-
   // enregistrement et la sauvegarde à la sortie n'écrivent QUE s'il a changé.
   // Avant, rouvrir un rapport le réenregistrait au bout de 2 s (remplir les
@@ -244,11 +246,14 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   /// rapport déjà ouvert : ce changement doit être enregistré (auto-save).
   void _fillFromTemplate(Map<String, dynamic> data, {bool resetBaseline = true}) {
     final now = DateTime.now().toIso8601String();
+    // (2026-10-19) Date détectée par l'IA (« ai_date ») ; un modèle, lui, prend
+    // toujours la date du jour.
+    final aiDate = DateTime.tryParse('${data['ai_date'] ?? ''}');
     final r = ReportModel.fromMap({
       // (2026-10-19) Les 2 formats de modèles (formulaire / fiche du rapport).
       ...ReportPreset.reportData(data),
       'id': _reportId,
-      'date': now,
+      'date': aiDate?.toIso8601String() ?? now,
       'created_at': now,
       'updated_at': now,
       'status': 'draft',
@@ -281,6 +286,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       _sectorFields = Map.from(r.sectorFields);
       _clientId = r.clientId;
       _materials..clear()..addAll(r.materials);
+      if (aiDate != null) _date = aiDate;
+      _aiEnhanced = _aiEnhanced || r.aiEnhanced;
       // (2026-10-19) Aussi : horaires (reportés sur la date du rapport), « sous
       // contrat », champs libres et taxe — avant, perdus avec un modèle.
       DateTime? onDate(DateTime? t) => t == null
@@ -820,7 +827,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       // refaite sur place.
       signedRemotely: (_existing?.signedRemotely ?? false) &&
           _sigClientData == _existing?.signatureClientData,
-      aiEnhanced: _existing?.aiEnhanced ?? false,
+      aiEnhanced: (_existing?.aiEnhanced ?? false) || _aiEnhanced,
       // (2026-10-19) Le commentaire du responsable disparaissait au premier
       // enregistrement ; on le garde jusqu'au nouvel envoi.
       rejectionComment:
