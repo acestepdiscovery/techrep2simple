@@ -1342,5 +1342,6 @@
   "td_leave_team_desc": "Nie będziesz już widzieć wspólnych raportów i klientów zespołu „{}”. Twoje raporty zostają w tym telefonie. Aby wrócić, potrzebny będzie kod zaproszenia i zgoda kierownika.",
   "td_cancel_request": "Anuluj moją prośbę",
   "td_left_team": "Opuszczono zespół.",
-  "photo_access_denied": "Odmówiono dostępu do zdjęć lub aparatu. Zezwól na niego w ustawieniach telefonu."
+  "photo_access_denied": "Odmówiono dostępu do zdjęć lub aparatu. Zezwól na niego w ustawieniach telefonu.",
+  "tax_rate_invalid": "Stawka od 0 do 100%"
 }

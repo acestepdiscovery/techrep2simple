@@ -1336,5 +1336,6 @@
   "td_leave_team_desc": "Deixará de ver os relatórios e os clientes partilhados de «{}». Os seus relatórios ficam neste telemóvel. Para voltar, precisará do código de convite e da aprovação do responsável.",
   "td_cancel_request": "Cancelar o meu pedido",
   "td_left_team": "Saiu da equipa.",
-  "photo_access_denied": "Acesso às fotos ou à câmara recusado. Autorize-o nas definições do telemóvel."
+  "photo_access_denied": "Acesso às fotos ou à câmara recusado. Autorize-o nas definições do telemóvel.",
+  "tax_rate_invalid": "Taxa entre 0 e 100 %"
 }

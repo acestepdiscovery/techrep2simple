@@ -107,6 +107,16 @@ class _TaxEditorDialogState extends State<_TaxEditorDialog> {
   double get _currentRate =>
       parseLocalNumber(_rateCtrl.text) ?? 0;
 
+  /// (2026-10-19) Taux saisi lisible et entre 0 et 100 % (avant : « 200 » au
+  /// lieu de « 20 », un taux négatif ou du texte passaient tels quels sur la
+  /// facture — le texte devenait 0 % sans prévenir).
+  bool get _rateValid {
+    final t = _rateCtrl.text.trim();
+    if (t.isEmpty) return true;
+    final v = parseLocalNumber(t);
+    return v != null && v >= 0 && v <= 100;
+  }
+
   @override
   void dispose() {
     _rateCtrl.dispose();
@@ -203,6 +213,8 @@ class _TaxEditorDialogState extends State<_TaxEditorDialog> {
                           labelText: 'tax_rate_label'.tr(),
                           suffixText: '%',
                           isDense: true,
+                          errorText: _rateValid ? null : 'tax_rate_invalid'.tr(),
+                          errorMaxLines: 2,
                         ),
                         onChanged: (_) => setState(() {}),
                       ),
@@ -263,7 +275,7 @@ class _TaxEditorDialogState extends State<_TaxEditorDialog> {
           child: Text('common_cancel'.tr()),
         ),
         ElevatedButton(
-          onPressed: () {
+          onPressed: !_rateValid ? null : () {
             final label = _labelCtrl.text.trim();
             Navigator.pop(
               context,

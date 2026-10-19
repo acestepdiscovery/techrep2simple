@@ -1336,5 +1336,6 @@
   "td_leave_team_desc": "You will no longer see the shared reports and clients of « {} ». Your reports stay on this phone. To come back, you'll need the invite code and the manager's approval.",
   "td_cancel_request": "Cancel my request",
   "td_left_team": "You left the team.",
-  "photo_access_denied": "Access to photos or the camera was denied. Allow it in your phone settings."
+  "photo_access_denied": "Access to photos or the camera was denied. Allow it in your phone settings.",
+  "tax_rate_invalid": "Rate between 0 and 100%"
 }
