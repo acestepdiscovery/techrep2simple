@@ -1339,5 +1339,6 @@
   "photo_access_denied": "Accesso alle foto o alla fotocamera negato. Consentilo nelle impostazioni del telefono.",
   "tax_rate_invalid": "Aliquota tra 0 e 100%",
   "app_brand": "Rapportino di Intervento IA",
-  "common_link_failed": "Impossibile aprire il link."
+  "common_link_failed": "Impossibile aprire il link.",
+  "rd_formats_pro": "Le esportazioni in testo, JSON e HTML e la copia del rapporto sono riservate agli abbonati Pro."
 }

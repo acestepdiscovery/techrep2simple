@@ -1339,5 +1339,6 @@
   "photo_access_denied": "Toegang tot foto's of camera geweigerd. Sta het toe in de instellingen van je telefoon.",
   "tax_rate_invalid": "Tarief tussen 0 en 100%",
   "app_brand": "Werkbon AI",
-  "common_link_failed": "De link kon niet worden geopend."
+  "common_link_failed": "De link kon niet worden geopend.",
+  "rd_formats_pro": "Export als tekst, JSON en HTML en het kopiëren van de werkbon zijn voor Pro-abonnees."
 }

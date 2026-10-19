@@ -1339,5 +1339,6 @@
   "photo_access_denied": "Acceso a las fotos o a la cámara denegado. Permítelo en los ajustes del teléfono.",
   "tax_rate_invalid": "Tipo entre 0 y 100 %",
   "app_brand": "Parte de Trabajo IA",
-  "common_link_failed": "No se ha podido abrir el enlace."
+  "common_link_failed": "No se ha podido abrir el enlace.",
+  "rd_formats_pro": "Las exportaciones en texto, JSON y HTML y la copia del informe están reservadas a los suscriptores Pro."
 }

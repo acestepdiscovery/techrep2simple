@@ -1339,5 +1339,6 @@
   "photo_access_denied": "Acesso às fotos ou à câmara recusado. Autorize-o nas definições do telemóvel.",
   "tax_rate_invalid": "Taxa entre 0 e 100 %",
   "app_brand": "Relatório de Intervenção IA",
-  "common_link_failed": "Não foi possível abrir a ligação."
+  "common_link_failed": "Não foi possível abrir a ligação.",
+  "rd_formats_pro": "As exportações em texto, JSON e HTML e a cópia do relatório estão reservadas aos subscritores Pro."
 }

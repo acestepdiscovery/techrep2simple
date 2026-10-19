@@ -1339,5 +1339,6 @@
   "photo_access_denied": "Zugriff auf Fotos oder Kamera verweigert. Erlauben Sie ihn in den Einstellungen des Telefons.",
   "tax_rate_invalid": "Satz zwischen 0 und 100 %",
   "app_brand": "Servicebericht KI",
-  "common_link_failed": "Der Link konnte nicht geöffnet werden."
+  "common_link_failed": "Der Link konnte nicht geöffnet werden.",
+  "rd_formats_pro": "Text-, JSON- und HTML-Export sowie das Kopieren des Berichts sind Pro-Abonnenten vorbehalten."
 }

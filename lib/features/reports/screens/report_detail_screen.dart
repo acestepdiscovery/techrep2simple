@@ -1657,31 +1657,53 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
     }
   }
 
+  /// (2026-10-19, décision du user) Texte / JSON / HTML / « copier le rapport »
+  /// réservés au Pro — même règle de couverture que le PDF (rapport d'équipe =
+  /// abonnement d'équipe + siège ; rapport perso = abonnement solo). Avant :
+  /// gratuits et illimités, hors quota.
+  bool get _otherFormatsCovered => exportCoverage(
+        isTeamReport: widget.report.companyId != null,
+        companySub: ref.read(companySubscriptionProvider).valueOrNull,
+        lifetimeSeats: ref.read(companyLifetimeSeatsProvider).valueOrNull ?? 0,
+        memberActive: ref.read(memberActiveProvider).valueOrNull ?? true,
+        personalSub: ref.read(subscriptionProvider).valueOrNull,
+      ) ==
+      ExportCoverage.covered;
+
+  VoidCallback _proOnly(VoidCallback action) => () {
+        if (_otherFormatsCovered) {
+          action();
+        } else {
+          PaywallBottomSheet.show(context, reason: 'rd_formats_pro'.tr());
+        }
+      };
+
   void _showCloudOptions() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (_) => _CloudOptionsSheet(
         report: widget.report,
+        formatsLocked: !_otherFormatsCovered,
         onGoogleDriveTap: _uploadToGoogleDrive,
         onOneDriveTap: _uploadToOneDrive,
         onDropboxTap: _uploadToDropbox,
-        onShareText: () => Share.share(_buildTextReport(),
-            sharePositionOrigin: shareOrigin(context)),
-        onShareJson: () => Share.share(
-          _buildJsonReport(),
-          subject:
-              '${'tx_html_title'.tr(args: [widget.report.reportNumber.toString().padLeft(3, '0')])}.json',
-          sharePositionOrigin: shareOrigin(context),
-        ),
-        onShareHtml: _shareAsHtml,
-        onCopyText: () {
+        onShareText: _proOnly(() => Share.share(_buildTextReport(),
+            sharePositionOrigin: shareOrigin(context))),
+        onShareJson: _proOnly(() => Share.share(
+              _buildJsonReport(),
+              subject:
+                  '${'tx_html_title'.tr(args: [widget.report.reportNumber.toString().padLeft(3, '0')])}.json',
+              sharePositionOrigin: shareOrigin(context),
+            )),
+        onShareHtml: _proOnly(_shareAsHtml),
+        onCopyText: _proOnly(() {
           Clipboard.setData(ClipboardData(text: _buildTextReport()));
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 content: Text('rd_copied_clipboard'.tr())),
           );
-        },
+        }),
       ),
     );
   }
@@ -2542,6 +2564,19 @@ class _RemoteSigButton extends ConsumerWidget {
 
 // ─── Cloud options sheet ──────────────────────────────────────────────────────
 
+Widget _formatTrailing(bool locked) => locked
+    ? Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.amber.shade700,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: const Text('PRO',
+            style: TextStyle(
+                fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
+      )
+    : const Icon(Icons.chevron_right);
+
 class _CloudOptionsSheet extends StatefulWidget {
   final ReportModel report;
   final VoidCallback? onGoogleDriveTap;
@@ -2551,6 +2586,8 @@ class _CloudOptionsSheet extends StatefulWidget {
   final VoidCallback? onShareJson;
   final VoidCallback? onShareHtml;
   final VoidCallback? onCopyText;
+  /// (2026-10-19) Autres formats réservés au Pro → badge « PRO » à la place du chevron.
+  final bool formatsLocked;
 
   const _CloudOptionsSheet({
     required this.report,
@@ -2561,6 +2598,7 @@ class _CloudOptionsSheet extends StatefulWidget {
     this.onShareJson,
     this.onShareHtml,
     this.onCopyText,
+    this.formatsLocked = false,
   });
 
   @override
@@ -2718,7 +2756,7 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
                 title: Text('rd_share_text'.tr()),
                 subtitle: Text('rd_share_text_sub'.tr(),
                     style: const TextStyle(fontSize: 12)),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: _formatTrailing(widget.formatsLocked),
                 onTap: () => _tap(context, widget.onShareText),
               ),
               ListTile(
@@ -2727,7 +2765,7 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
                 title: Text('rd_export_json'.tr()),
                 subtitle: Text('rd_export_json_sub'.tr(),
                     style: const TextStyle(fontSize: 12)),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: _formatTrailing(widget.formatsLocked),
                 onTap: () => _tap(context, widget.onShareJson),
               ),
               ListTile(
@@ -2737,7 +2775,7 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
                 title: Text('rd_export_html'.tr()),
                 subtitle: Text('rd_export_html_sub'.tr(),
                     style: const TextStyle(fontSize: 12)),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: _formatTrailing(widget.formatsLocked),
                 onTap: () => _tap(context, widget.onShareHtml),
               ),
               ListTile(
@@ -2747,7 +2785,7 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
                 title: Text('rd_copy_clipboard'.tr()),
                 subtitle: Text('rd_copy_clipboard_sub'.tr(),
                     style: const TextStyle(fontSize: 12)),
-                trailing: const Icon(Icons.chevron_right),
+                trailing: _formatTrailing(widget.formatsLocked),
                 onTap: () => _tap(context, widget.onCopyText),
               ),
             ],

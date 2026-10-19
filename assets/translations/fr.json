@@ -1339,5 +1339,6 @@
   "photo_access_denied": "Accès aux photos ou à l'appareil photo refusé. Autorisez-le dans les réglages du téléphone.",
   "tax_rate_invalid": "Taux entre 0 et 100 %",
   "app_brand": "Rapport Technique IA",
-  "common_link_failed": "Impossible d'ouvrir le lien."
+  "common_link_failed": "Impossible d'ouvrir le lien.",
+  "rd_formats_pro": "Les exports texte, JSON, HTML et la copie du rapport sont réservés aux abonnés Pro."
 }

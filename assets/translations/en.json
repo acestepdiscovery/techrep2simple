@@ -1339,5 +1339,6 @@
   "photo_access_denied": "Access to photos or the camera was denied. Allow it in your phone settings.",
   "tax_rate_invalid": "Rate between 0 and 100%",
   "app_brand": "Service Report AI",
-  "common_link_failed": "Couldn't open the link."
+  "common_link_failed": "Couldn't open the link.",
+  "rd_formats_pro": "Text, JSON and HTML exports and copying the report are for Pro subscribers."
 }
