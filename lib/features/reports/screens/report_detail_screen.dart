@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -1920,9 +1921,11 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
             children: [
               _InfoRow('rd_name'.tr(), report.clientName),
               if (report.clientAddress.isNotEmpty)
-                _InfoRow('field_address'.tr(), report.clientAddress),
+                _InfoRow('field_address'.tr(), report.clientAddress,
+                    action: _InfoAction.directions),
               if (report.clientPhone.isNotEmpty)
-                _InfoRow('cr_phone'.tr(), report.clientPhone),
+                _InfoRow('cr_phone'.tr(), report.clientPhone,
+                    action: _InfoAction.call),
               if (report.clientContact.isNotEmpty)
                 _InfoRow('field_contact'.tr(), report.clientContact),
               if (report.contractNumber.isNotEmpty)
@@ -2897,30 +2900,81 @@ class _ProBadge extends StatelessWidget {
       );
 }
 
+/// (2026-10-19) Actions rapides de la FICHE du rapport (jamais dans le formulaire,
+/// pour ne pas appeler en voulant corriger un numéro) : petit bouton SÉPARÉ à côté
+/// de la valeur. 📞 ouvre le clavier du téléphone avec le numéro (on appuie soi-même
+/// sur « Appeler ») ; 🗺️ ouvre une app de cartes. Appui long sur une ligne = copier.
+enum _InfoAction { none, call, directions }
+
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
+  final _InfoAction action;
 
-  const _InfoRow(this.label, this.value);
+  const _InfoRow(this.label, this.value, {this.action = _InfoAction.none});
+
+  Future<void> _run(BuildContext context) async {
+    final Uri uri;
+    if (action == _InfoAction.call) {
+      uri = Uri(scheme: 'tel', path: value.replaceAll(RegExp(r'[^0-9+]'), ''));
+    } else if (Platform.isIOS) {
+      uri = Uri.parse('https://maps.apple.com/?q=${Uri.encodeComponent(value)}');
+    } else {
+      uri = Uri.parse('geo:0,0?q=${Uri.encodeComponent(value)}');
+    }
+    final messenger = ScaffoldMessenger.of(context);
+    var ok = false;
+    try {
+      ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {}
+    if (!ok) {
+      messenger.showSnackBar(SnackBar(content: Text('common_link_failed'.tr())));
+    }
+  }
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 110,
-              child: Text(label,
-                  style: TextStyle(
-                      color: Colors.grey.shade600, fontSize: 13)),
-            ),
-            Expanded(
-              child: Text(value,
-                  style:
-                      const TextStyle(fontWeight: FontWeight.w500)),
-            ),
-          ],
+  Widget build(BuildContext context) => InkWell(
+        onLongPress: () {
+          Clipboard.setData(ClipboardData(text: value));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('rd_value_copied'.tr(args: [value])),
+              duration: const Duration(seconds: 2)));
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 110,
+                child: Text(label,
+                    style: TextStyle(
+                        color: Colors.grey.shade600, fontSize: 13)),
+              ),
+              Expanded(
+                child: Text(value,
+                    style:
+                        const TextStyle(fontWeight: FontWeight.w500)),
+              ),
+              if (action != _InfoAction.none)
+                SizedBox(
+                  height: 28,
+                  width: 36,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    iconSize: 20,
+                    color: AppColors.primary,
+                    tooltip: action == _InfoAction.call
+                        ? 'rd_call'.tr()
+                        : 'rd_directions'.tr(),
+                    icon: Icon(action == _InfoAction.call
+                        ? Icons.phone_outlined
+                        : Icons.directions_outlined),
+                    onPressed: () => _run(context),
+                  ),
+                ),
+            ],
+          ),
         ),
       );
 }

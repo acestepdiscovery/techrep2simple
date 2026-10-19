@@ -1340,5 +1340,8 @@
   "tax_rate_invalid": "Rate between 0 and 100%",
   "app_brand": "Service Report AI",
   "common_link_failed": "Couldn't open the link.",
-  "rd_formats_pro": "Text, JSON and HTML exports and copying the report are for Pro subscribers."
+  "rd_formats_pro": "Text, JSON and HTML exports and copying the report are for Pro subscribers.",
+  "rd_call": "Call",
+  "rd_directions": "Directions",
+  "rd_value_copied": "Copied: {}"
 }

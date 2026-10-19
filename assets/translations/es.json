@@ -1340,5 +1340,8 @@
   "tax_rate_invalid": "Tipo entre 0 y 100 %",
   "app_brand": "Parte de Trabajo IA",
   "common_link_failed": "No se ha podido abrir el enlace.",
-  "rd_formats_pro": "Las exportaciones en texto, JSON y HTML y la copia del informe están reservadas a los suscriptores Pro."
+  "rd_formats_pro": "Las exportaciones en texto, JSON y HTML y la copia del informe están reservadas a los suscriptores Pro.",
+  "rd_call": "Llamar",
+  "rd_directions": "Cómo llegar",
+  "rd_value_copied": "Copiado: {}"
 }

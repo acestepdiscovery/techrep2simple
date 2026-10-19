@@ -1340,5 +1340,8 @@
   "tax_rate_invalid": "Tarief tussen 0 en 100%",
   "app_brand": "Werkbon AI",
   "common_link_failed": "De link kon niet worden geopend.",
-  "rd_formats_pro": "Export als tekst, JSON en HTML en het kopiëren van de werkbon zijn voor Pro-abonnees."
+  "rd_formats_pro": "Export als tekst, JSON en HTML en het kopiëren van de werkbon zijn voor Pro-abonnees.",
+  "rd_call": "Bellen",
+  "rd_directions": "Route",
+  "rd_value_copied": "Gekopieerd: {}"
 }

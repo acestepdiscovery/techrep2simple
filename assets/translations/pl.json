@@ -1346,5 +1346,8 @@
   "tax_rate_invalid": "Stawka od 0 do 100%",
   "app_brand": "Raport serwisowy AI",
   "common_link_failed": "Nie udało się otworzyć linku.",
-  "rd_formats_pro": "Eksport do tekstu, JSON i HTML oraz kopiowanie raportu są dostępne dla subskrybentów Pro."
+  "rd_formats_pro": "Eksport do tekstu, JSON i HTML oraz kopiowanie raportu są dostępne dla subskrybentów Pro.",
+  "rd_call": "Zadzwoń",
+  "rd_directions": "Trasa",
+  "rd_value_copied": "Skopiowano: {}"
 }

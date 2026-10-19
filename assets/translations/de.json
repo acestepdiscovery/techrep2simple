@@ -1340,5 +1340,8 @@
   "tax_rate_invalid": "Satz zwischen 0 und 100 %",
   "app_brand": "Servicebericht KI",
   "common_link_failed": "Der Link konnte nicht geöffnet werden.",
-  "rd_formats_pro": "Text-, JSON- und HTML-Export sowie das Kopieren des Berichts sind Pro-Abonnenten vorbehalten."
+  "rd_formats_pro": "Text-, JSON- und HTML-Export sowie das Kopieren des Berichts sind Pro-Abonnenten vorbehalten.",
+  "rd_call": "Anrufen",
+  "rd_directions": "Route",
+  "rd_value_copied": "Kopiert: {}"
 }
