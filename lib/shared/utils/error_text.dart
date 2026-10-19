@@ -22,6 +22,15 @@ String errorText(Object e) {
     const network = {'network-request-failed', 'unavailable', 'deadline-exceeded'};
     if (network.contains(e.code)) return 'ai_err_network'.tr();
     if (e.code == 'too-many-requests') return 'auth_err_too_many'.tr();
+    // (2026-10-19) Cas fréquents du compte (changer d'e-mail…) : message clair.
+    switch (e.code) {
+      case 'requires-recent-login':
+        return 'profile_relogin'.tr();
+      case 'email-already-in-use':
+        return 'auth_err_email_in_use'.tr();
+      case 'invalid-email':
+        return 'auth_err_invalid_email'.tr();
+    }
     return '${'common_unknown_error'.tr()} (${e.code})';
   }
   final s = e.toString();

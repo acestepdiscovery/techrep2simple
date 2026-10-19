@@ -144,7 +144,8 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
       // ferait perdre l'abonnement que le store continue de facturer → bloqué
       // (comme la suppression du compte).
       final csub = ref.read(companySubscriptionProvider).valueOrNull;
-      if (current.isAdmin && csub.isActive && csub.isRecurring) {
+      if (current.isAdmin && csub.isActive && csub.isRecurring &&
+          csub?['cancel_at_period_end'] != true) {
         await showDialog<void>(
           context: context,
           builder: (dlg) => AlertDialog(

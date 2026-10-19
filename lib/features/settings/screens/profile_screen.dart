@@ -299,12 +299,15 @@ class _ProfileBody extends ConsumerWidget {
     //    débit récurrent → autorisé (avertissement plus bas).
     final sub = ref.read(subscriptionProvider).valueOrNull;
     final companySub = ref.read(companySubscriptionProvider).valueOrNull;
+    // (2026-10-19) Ce garde-fou exigeait un abonnement STRIPE : les abonnements
+    // des stores (les seuls aujourd'hui) passaient → compte supprimé, store qui
+    // continue de prélever. Déjà résilié (fin de période) → suppression permise.
     final hasRecurringPersonal = sub.isActive && sub.isRecurring &&
-        (sub?['stripe_subscription_id'] != null);
+        sub?['cancel_at_period_end'] != true;
     final team = ref.read(teamStateProvider).valueOrNull;
     final isAdmin = team?.isAdmin ?? false;
     final hasRecurringTeam = isAdmin && companySub.isActive && companySub.isRecurring &&
-        (companySub?['stripe_subscription_id'] != null);
+        companySub?['cancel_at_period_end'] != true;
 
     if (hasRecurringPersonal || hasRecurringTeam) {
       await showDialog<void>(
