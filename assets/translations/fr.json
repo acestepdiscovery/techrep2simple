@@ -1335,5 +1335,6 @@
   "td_leave_team": "Quitter l'équipe",
   "td_leave_team_desc": "Vous ne verrez plus les rapports ni les clients partagés de « {} ». Vos rapports restent sur ce téléphone. Pour revenir, il faudra le code d'invitation et l'accord du responsable.",
   "td_cancel_request": "Annuler ma demande",
-  "td_left_team": "Vous avez quitté l'équipe."
+  "td_left_team": "Vous avez quitté l'équipe.",
+  "photo_access_denied": "Accès aux photos ou à l'appareil photo refusé. Autorisez-le dans les réglages du téléphone."
 }

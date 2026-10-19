@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../shared/utils/safe_image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -640,7 +641,7 @@ class _ImageSheetState extends State<_ImageSheet> {
   }
 
   Future<void> _pick(ImageSource source) async {
-    final picked = await ImagePicker().pickImage(
+    final picked = await pickImageSafe(context,
         source: source, imageQuality: 85, maxWidth: 1600);
     if (picked != null && mounted) setState(() => _image = picked);
   }

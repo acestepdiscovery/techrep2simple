@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../shared/utils/safe_image_picker.dart';
 import '../../settings/providers/settings_provider.dart';
 import '../../../shared/widgets/text_field_dialog.dart';
 import 'package:go_router/go_router.dart';
@@ -1018,7 +1019,7 @@ class _TeammateIdentityCardState extends ConsumerState<_TeammateIdentityCard> {
     if (_picking) return;
     setState(() => _picking = true);
     try {
-      final picked = await ImagePicker().pickImage(
+      final picked = await pickImageSafe(context,
           source: ImageSource.gallery,
           imageQuality: 90,
           maxWidth: 512,

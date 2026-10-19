@@ -1335,5 +1335,6 @@
   "td_leave_team": "Team verlaten",
   "td_leave_team_desc": "Je ziet de gedeelde werkbonnen en klanten van ‘{}’ niet meer. Je werkbonnen blijven op deze telefoon. Om terug te komen heb je de uitnodigingscode en de goedkeuring van de verantwoordelijke nodig.",
   "td_cancel_request": "Mijn verzoek annuleren",
-  "td_left_team": "Je hebt het team verlaten."
+  "td_left_team": "Je hebt het team verlaten.",
+  "photo_access_denied": "Toegang tot foto's of camera geweigerd. Sta het toe in de instellingen van je telefoon."
 }

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../shared/utils/safe_image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../shared/utils/share_origin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1494,8 +1495,8 @@ class _LogoTileState extends State<_LogoTile> {
     if (_isPicking) return;
     setState(() => _isPicking = true);
     try {
-      final picker = ImagePicker();
-      final picked = await picker.pickImage(
+      final picked = await pickImageSafe(
+        context,
         source: ImageSource.gallery,
         imageQuality: 90,
         maxWidth: 512,

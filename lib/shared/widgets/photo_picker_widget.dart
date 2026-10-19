@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../utils/safe_image_picker.dart';
 import '../../core/constants/app_colors.dart';
 
 class PhotoPickerWidget extends StatelessWidget {
@@ -18,7 +19,8 @@ class PhotoPickerWidget extends StatelessWidget {
   });
 
   Future<void> _pick(BuildContext context, ImageSource source) async {
-    final picked = await ImagePicker().pickImage(
+    final picked = await pickImageSafe(
+      context,
       source: source,
       imageQuality: 80,
       maxWidth: 1920,
