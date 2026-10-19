@@ -1015,7 +1015,10 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
 
   Future<void> _uploadToGoogleDrive() async {
     if (!mounted) return;
-    if (!await _guardUpload()) return;
+    // (2026-10-19) Envoyer le PDF dans le cloud = un EXPORT : même contrôle que
+    // « Partager le PDF » (quota gratuit, siège d'équipe). Avant : seulement le
+    // coupe-circuit → exports PDF illimités gratuits via Drive/OneDrive/Dropbox.
+    if (!await _guardPdfExport()) return;
     if (!mounted) return;
     showDialog(
       context: context,
@@ -1202,7 +1205,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
   }
 
   Future<void> _uploadToOneDrive() async {
-    if (!await _guardUpload()) return;
+    if (!await _guardPdfExport()) return; // (2026-10-19) cf. Google Drive
     await _uploadToCloud(
       'OneDrive',
       'rd_uploading_onedrive'.tr(),
@@ -1224,7 +1227,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
   }
 
   Future<void> _uploadToDropbox() async {
-    if (!await _guardUpload()) return;
+    if (!await _guardPdfExport()) return; // (2026-10-19) cf. Google Drive
     await _uploadToCloud(
       'Dropbox',
       'rd_uploading_dropbox'.tr(),
