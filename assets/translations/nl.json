@@ -1343,5 +1343,6 @@
   "rd_formats_pro": "Export als tekst, JSON en HTML en het kopiëren van de werkbon zijn voor Pro-abonnees.",
   "rd_call": "Bellen",
   "rd_directions": "Route",
-  "rd_value_copied": "Gekopieerd: {}"
+  "rd_value_copied": "Gekopieerd: {}",
+  "rd_copy_value": "Kopiëren"
 }

@@ -135,14 +135,11 @@
             <data android:mimeType="text/plain"/>
         </intent>
         <!-- (2026-10-19) Fiche du rapport : 📞 ouvre le CLAVIER du téléphone (n'appelle
-             pas directement) et 🗺️ ouvre une app de cartes (Maps, Waze…). -->
+             pas directement). 🗺️ ouvre Google Maps directement (lien https, pas de
+             liste de choix : le user ne veut pas Waze). -->
         <intent>
             <action android:name="android.intent.action.DIAL"/>
             <data android:scheme="tel"/>
-        </intent>
-        <intent>
-            <action android:name="android.intent.action.VIEW"/>
-            <data android:scheme="geo"/>
         </intent>
     </queries>
 </manifest>

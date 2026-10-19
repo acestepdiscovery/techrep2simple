@@ -1343,5 +1343,6 @@
   "rd_formats_pro": "Text-, JSON- und HTML-Export sowie das Kopieren des Berichts sind Pro-Abonnenten vorbehalten.",
   "rd_call": "Anrufen",
   "rd_directions": "Route",
-  "rd_value_copied": "Kopiert: {}"
+  "rd_value_copied": "Kopiert: {}",
+  "rd_copy_value": "Kopieren"
 }

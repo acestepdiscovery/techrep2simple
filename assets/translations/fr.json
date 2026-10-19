@@ -1343,5 +1343,6 @@
   "rd_formats_pro": "Les exports texte, JSON, HTML et la copie du rapport sont réservés aux abonnés Pro.",
   "rd_call": "Appeler",
   "rd_directions": "Itinéraire",
-  "rd_value_copied": "Copié : {}"
+  "rd_value_copied": "Copié : {}",
+  "rd_copy_value": "Copier"
 }

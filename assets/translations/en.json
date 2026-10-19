@@ -1343,5 +1343,6 @@
   "rd_formats_pro": "Text, JSON and HTML exports and copying the report are for Pro subscribers.",
   "rd_call": "Call",
   "rd_directions": "Directions",
-  "rd_value_copied": "Copied: {}"
+  "rd_value_copied": "Copied: {}",
+  "rd_copy_value": "Copy"
 }

@@ -1349,5 +1349,6 @@
   "rd_formats_pro": "Eksport do tekstu, JSON i HTML oraz kopiowanie raportu są dostępne dla subskrybentów Pro.",
   "rd_call": "Zadzwoń",
   "rd_directions": "Trasa",
-  "rd_value_copied": "Skopiowano: {}"
+  "rd_value_copied": "Skopiowano: {}",
+  "rd_copy_value": "Kopiuj"
 }

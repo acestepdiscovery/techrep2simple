@@ -2901,9 +2901,11 @@ class _ProBadge extends StatelessWidget {
 }
 
 /// (2026-10-19) Actions rapides de la FICHE du rapport (jamais dans le formulaire,
-/// pour ne pas appeler en voulant corriger un numéro) : petit bouton SÉPARÉ à côté
-/// de la valeur. 📞 ouvre le clavier du téléphone avec le numéro (on appuie soi-même
-/// sur « Appeler ») ; 🗺️ ouvre une app de cartes. Appui long sur une ligne = copier.
+/// pour ne pas appeler en voulant corriger un numéro) : petits boutons SÉPARÉS au
+/// bout de la ligne (ils ne couvrent pas le texte et ne sont pas dans le PDF).
+/// 📞 ouvre le clavier du téléphone avec le numéro (on appuie soi-même sur
+/// « Appeler ») ; 🗺️ ouvre Google Maps (Android) / Plans (iPhone) — pas Waze, à la
+/// demande du user ; ⧉ copie la valeur (aussi : appui long sur la ligne).
 enum _InfoAction { none, call, directions }
 
 class _InfoRow extends StatelessWidget {
@@ -2920,7 +2922,9 @@ class _InfoRow extends StatelessWidget {
     } else if (Platform.isIOS) {
       uri = Uri.parse('https://maps.apple.com/?q=${Uri.encodeComponent(value)}');
     } else {
-      uri = Uri.parse('geo:0,0?q=${Uri.encodeComponent(value)}');
+      // Lien Google Maps : ouvre l'app Google Maps directement (sans choix d'app).
+      uri = Uri.parse('https://www.google.com/maps/search/?api=1&query='
+          '${Uri.encodeComponent(value)}');
     }
     final messenger = ScaffoldMessenger.of(context);
     var ok = false;
@@ -2932,14 +2936,16 @@ class _InfoRow extends StatelessWidget {
     }
   }
 
+  void _copy(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: value));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('rd_value_copied'.tr(args: [value])),
+        duration: const Duration(seconds: 2)));
+  }
+
   @override
   Widget build(BuildContext context) => InkWell(
-        onLongPress: () {
-          Clipboard.setData(ClipboardData(text: value));
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text('rd_value_copied'.tr(args: [value])),
-              duration: const Duration(seconds: 2)));
-        },
+        onLongPress: () => _copy(context),
         child: Padding(
           padding: const EdgeInsets.only(bottom: 6),
           child: Row(
@@ -2973,6 +2979,18 @@ class _InfoRow extends StatelessWidget {
                     onPressed: () => _run(context),
                   ),
                 ),
+              SizedBox(
+                height: 28,
+                width: 32,
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  iconSize: 16,
+                  color: Colors.grey.shade400,
+                  tooltip: 'rd_copy_value'.tr(),
+                  icon: const Icon(Icons.copy_outlined),
+                  onPressed: () => _copy(context),
+                ),
+              ),
             ],
           ),
         ),
