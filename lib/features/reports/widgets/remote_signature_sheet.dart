@@ -107,7 +107,12 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
 
   Future<void> _applySignature(String base64Sig) async {
     try {
-      final updated = widget.report.copyWith(
+      // (2026-10-19) Sur la version À JOUR du rapport : le client peut signer
+      // longtemps après ; partir de la copie de l'ouverture écrasait les
+      // modifications faites entre-temps.
+      final current =
+          await LocalDbService().getReport(widget.report.id) ?? widget.report;
+      final updated = current.copyWith(
         signatureClientData: base64Sig,
         signedRemotely: true,
       );

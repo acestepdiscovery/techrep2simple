@@ -181,7 +181,11 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
 
   Future<void> _applyBgSignature(String base64Sig) async {
     try {
-      final updated = widget.report.copyWith(
+      // (2026-10-19) Version À JOUR du rapport (cf. remote_signature_sheet) :
+      // sinon une signature reçue plus tard écrasait les modifications.
+      final current =
+          await LocalDbService().getReport(widget.report.id) ?? widget.report;
+      final updated = current.copyWith(
         signatureClientData: base64Sig,
         signedRemotely: true,
       );
