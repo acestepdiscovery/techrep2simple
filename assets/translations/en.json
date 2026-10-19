@@ -1328,5 +1328,8 @@
   "ex_transport_equip": "3.5 t van",
   "ex_transport_mat1": "12 V 95 Ah battery",
   "ex_transport_mat2": "Call-out charge",
-  "ex_transport_load": "Parcel deliveries (1.2 t)"
+  "ex_transport_load": "Parcel deliveries (1.2 t)",
+  "td_filter_rejected": "Rejected",
+  "ts_already_in_team": "You're already a member of « {} ».",
+  "ts_paid_team_block": "Your team « {} » has an active monthly subscription. Dissolving it to join another team would lose that subscription while the store keeps charging it. Cancel it first (Team settings → Subscription), then come back."
 }

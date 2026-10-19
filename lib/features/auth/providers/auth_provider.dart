@@ -291,9 +291,10 @@ class TeamStateNotifier extends AsyncNotifier<TeamState> {
 
   Future<void> _clearFirestoreLink(String uid) async {
     try {
+      // (2026-10-19) délai : hors ligne, l'écriture attend le réseau sans fin.
       await _db.collection('users_raptech1').doc(uid).update(
         {'company_id': FieldValue.delete()},
-      );
+      ).timeout(const Duration(seconds: 8));
     } catch (_) {}
   }
 
@@ -313,7 +314,7 @@ class TeamStateNotifier extends AsyncNotifier<TeamState> {
         await _db.collection('users_raptech1').doc(uid).set(
           {'company_id': company.id},
           SetOptions(merge: true),
-        );
+        ).timeout(const Duration(seconds: 8));
       }
     } catch (_) {}
   }

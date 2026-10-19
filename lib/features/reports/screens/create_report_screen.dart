@@ -118,6 +118,11 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   late String _reportId;
   Timer? _autoSaveTimer;
   bool _isDirty = false;
+  // (2026-10-19) Contenu « de départ » (rapport rouvert ou modèle) : l'auto-
+  // enregistrement et la sauvegarde à la sortie n'écrivent QUE s'il a changé.
+  // Avant, rouvrir un rapport le réenregistrait au bout de 2 s (remplir les
+  // champs déclenchait l'auto-save) → statut repassé en « Brouillon ».
+  String? _baseline;
 
   // Parent-controlled section expansion — survives parent setState calls (fix 1E)
   final Map<int, bool> _sectionExpanded = {
@@ -211,6 +216,14 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       _taxRate = report.taxRate;
       _taxLabel = report.taxLabel;
       _taxMention = report.taxMention;
+      // (2026-10-19) 🔴 Les PHOTOS n'étaient jamais rechargées en modification :
+      // la section était vide et le premier enregistrement (auto ou à la sortie)
+      // réécrivait le rapport SANS ses photos. Fichiers disparus = ignorés.
+      _photos
+        ..clear()
+        ..addAll(report.photosPaths
+            .where((p) => p.isNotEmpty && (kIsWeb || File(p).existsSync()))
+            .map(XFile.new));
       // Auto-expand sections that already have data when editing
       _sectionExpanded[1] = report.clientName.isNotEmpty;
       _sectionExpanded[3] = report.equipmentType.isNotEmpty;
@@ -224,6 +237,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
           report.laborRate != null ||
           report.materials.isNotEmpty;
     });
+    _baseline = _contentKey();
   }
 
   void _fillFromTemplate(Map<String, dynamic> data) {
@@ -269,6 +283,9 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       _sectionExpanded[5] = r.description.isNotEmpty;
       _sectionExpanded[8] = r.laborHours != null || r.laborRate != null || r.materials.isNotEmpty;
     });
+    // (2026-10-19) Modèle / exemple ouvert puis abandonné sans rien changer →
+    // plus de brouillon parasite dans la liste.
+    _baseline = _contentKey();
   }
 
   @override
@@ -277,7 +294,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     // debounce (ex. on remplit 1 champ et on quitte aussitôt). Les contrôleurs
     // sont encore vivants ici ; `reportsProvider` survit au widget (non autoDispose)
     // → le brouillon apparaîtra dans la liste. Idempotent (id de session stable).
-    if (_hasAnyContent()) {
+    if (_hasChanges()) {
       ref
           .read(reportsProvider.notifier)
           .upsertSilently(_buildReport(ReportStatus.draft));
@@ -343,9 +360,29 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     return hasAnyText || hasOtherContent;
   }
 
+  /// Empreinte du contenu saisi (sans les dates d'écriture, le statut ni
+  /// l'identité qui suit le profil actif).
+  String _contentKey() {
+    final m = Map<String, dynamic>.of(_buildReport(ReportStatus.draft).toMap());
+    for (final k in const [
+      'updated_at', 'created_at', 'status', 'report_number',
+      'technician_name', 'technician_id', 'company_id',
+    ]) {
+      m.remove(k);
+    }
+    return jsonEncode(m);
+  }
+
+  /// Rien à enregistrer tant que le contenu de départ n'a pas changé.
+  bool _hasChanges() {
+    if (!_hasAnyContent()) return false;
+    final base = _baseline;
+    return base == null || _contentKey() != base;
+  }
+
   Future<void> _autoSave() async {
     if (!mounted) return;
-    if (!_hasAnyContent()) return;
+    if (!_hasChanges()) return;
     // (A) Passe par le PROVIDER (et plus par un insert direct) → la liste des
     // rapports reflète le brouillon EN DIRECT, sans attendre un autre save.
     await ref
@@ -736,6 +773,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       signedRemotely: (_existing?.signedRemotely ?? false) &&
           _sigClientData == _existing?.signatureClientData,
       aiEnhanced: _existing?.aiEnhanced ?? false,
+      // (2026-10-19) Le commentaire du responsable disparaissait au premier
+      // enregistrement ; on le garde jusqu'au nouvel envoi.
+      rejectionComment:
+          status == ReportStatus.submitted ? null : _existing?.rejectionComment,
       createdAt: _existingCreatedAt ?? now,
       updatedAt: now,
     );
@@ -1012,7 +1053,11 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     );
     // Sync to team Firestore if in team mode
     final teamState = ref.read(teamStateProvider).valueOrNull;
-    if (teamState != null && teamState.hasTeam) {
+    // (2026-10-19) Seulement un rapport D'ÉQUIPE de CETTE équipe : un rapport
+    // PERSO (profil perso) partait aussi chez le responsable.
+    if (teamState != null &&
+        teamState.hasTeam &&
+        report.companyId == teamState.companyId) {
       try {
         await TeamService().syncReport(teamState.companyId!, report);
       } catch (_) {

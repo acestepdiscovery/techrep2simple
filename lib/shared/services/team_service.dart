@@ -70,6 +70,29 @@ class TeamService {
     );
   }
 
+  /// (2026-10-19) Recherche de l'équipe par code, SUR LE SERVEUR : hors ligne,
+  /// `get()` répondait avec le cache (vide) → « Code d'invitation incorrect »
+  /// au lieu d'un message réseau.
+  Future<QueryDocumentSnapshot<Map<String, dynamic>>?> _findByInviteCode(
+      String inviteCode) async {
+    final code = inviteCode.trim().toUpperCase();
+    if (code.isEmpty) return null;
+    final snap = await _db
+        .collection('companies_raptech1')
+        .where('invite_code', isEqualTo: code)
+        .limit(1)
+        .get(const GetOptions(source: Source.server))
+        .timeout(const Duration(seconds: 15));
+    return snap.docs.isEmpty ? null : snap.docs.first;
+  }
+
+  /// (2026-10-19) Vérifie un code AVANT de quitter l'équipe actuelle (avant :
+  /// une faute de frappe faisait quitter — voire dissoudre — son équipe).
+  Future<CompanyModel?> findCompanyByInviteCode(String inviteCode) async {
+    final doc = await _findByInviteCode(inviteCode);
+    return doc == null ? null : CompanyModel.fromMap(doc.id, doc.data());
+  }
+
   /// (#3) Rejoindre une équipe par CODE SEUL (plus de nom requis) : le code est
   /// unique, donc renommer l'équipe ne casse plus le flux de jointure.
   Future<CompanyModel?> joinCompany({
@@ -78,17 +101,8 @@ class TeamService {
     required String email,
     required String displayName,
   }) async {
-    final code = inviteCode.trim().toUpperCase();
-    if (code.isEmpty) return null;
-
-    final snap = await _db
-        .collection('companies_raptech1')
-        .where('invite_code', isEqualTo: code)
-        .limit(1)
-        .get();
-
-    if (snap.docs.isEmpty) return null;
-    final matched = snap.docs.first;
+    final matched = await _findByInviteCode(inviteCode);
+    if (matched == null) return null;
 
     // Seat limit check (best-effort, UX only).
     // (4h) Un non-membre ne peut PAS lister les membres (règles Firestore) :
@@ -137,14 +151,15 @@ class TeamService {
 
   Future<String> regenerateInviteCode(String companyId) async {
     final code = _generateCode();
-    await _db.collection('companies_raptech1').doc(companyId).update({'invite_code': code});
+    await _queued(
+        _db.collection('companies_raptech1').doc(companyId).update({'invite_code': code}));
     return code;
   }
 
   Future<void> updateCompanyName(String companyId, String newName) async {
-    await _db.collection('companies_raptech1').doc(companyId).update({
+    await _queued(_db.collection('companies_raptech1').doc(companyId).update({
       'name': newName.trim(),
-    });
+    }));
   }
 
   /// (identité équipe) Infos entreprise de l'ÉQUIPE (sur les PDF d'équipe).
@@ -156,7 +171,7 @@ class TeamService {
       for (final e in fields.entries) e.key: e.value.trim(),
     };
     if (data.isEmpty) return;
-    await _db.collection('companies_raptech1').doc(companyId).update(data);
+    await _queued(_db.collection('companies_raptech1').doc(companyId).update(data));
   }
 
   /// (e2) Seuil de rapports au-delà duquel le nom d'équipe se verrouille.
@@ -253,12 +268,12 @@ class TeamService {
       await approveMember(companyId, uid);
       return;
     }
-    await _db
+    await _queued(_db
         .collection('companies_raptech1')
         .doc(companyId)
         .collection('members_raptech1')
         .doc(uid)
-        .update({'status': 'disabled', 'active': false});
+        .update({'status': 'disabled', 'active': false}));
   }
 
   Future<void> setMemberPermissions(
@@ -271,12 +286,12 @@ class TeamService {
     if (canValidate != null) data['can_validate'] = canValidate;
     if (canInvite != null) data['can_invite'] = canInvite;
     if (data.isEmpty) return;
-    await _db
+    await _queued(_db
         .collection('companies_raptech1')
         .doc(companyId)
         .collection('members_raptech1')
         .doc(uid)
-        .update(data);
+        .update(data));
   }
 
   Stream<TeamMemberModel?> streamCurrentMember(String companyId, String uid) {
@@ -291,12 +306,12 @@ class TeamService {
   }
 
   Future<void> removeMember(String companyId, String uid) async {
-    await _db
+    await _queued(_db
         .collection('companies_raptech1')
         .doc(companyId)
         .collection('members_raptech1')
         .doc(uid)
-        .delete();
+        .delete());
   }
 
   Future<void> leaveCompany(String companyId, String uid) => removeMember(companyId, uid);
@@ -304,7 +319,7 @@ class TeamService {
   /// (#2/#3) Dissout l'équipe (supprime le doc company). À n'appeler que par un
   /// admin dont l'équipe n'a plus d'autres membres (les règles l'imposent).
   Future<void> dissolveCompany(String companyId) async {
-    await _db.collection('companies_raptech1').doc(companyId).delete();
+    await _queued(_db.collection('companies_raptech1').doc(companyId).delete());
   }
 
   // ─── Reports ──────────────────────────────────────────────────────────────
@@ -401,7 +416,7 @@ class TeamService {
         .update({
       'photo_request_by': adminName.isEmpty ? 'Admin' : adminName,
       'photo_request_at': FieldValue.serverTimestamp(),
-    });
+    }).timeout(const Duration(seconds: 8), onTimeout: () {});
   }
 
   Future<void> clearPhotoRequest(String companyId, String reportId) async {
@@ -413,7 +428,7 @@ class TeamService {
         .update({
       'photo_request_by': FieldValue.delete(),
       'photo_request_at': FieldValue.delete(),
-    });
+    }).timeout(const Duration(seconds: 8), onTimeout: () {});
   }
 
   Future<String?> getPhotoRequest(String companyId, String reportId) async {
@@ -436,18 +451,23 @@ class TeamService {
     String companyId, {
     String? technicianId,
   }) {
-    Query<Map<String, dynamic>> query = _db
+    final col = _db
         .collection('companies_raptech1')
         .doc(companyId)
-        .collection('reports_raptech1')
-        .orderBy('updated_at', descending: true);
-
-    if (technicianId != null) {
-      query = query.where('technician_id', isEqualTo: technicianId);
+        .collection('reports_raptech1');
+    if (technicianId == null) {
+      return col.orderBy('updated_at', descending: true).snapshots().map(
+            (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList(),
+          );
     }
-
-    return query.snapshots().map(
-          (snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList(),
-        );
+    // (2026-10-19) Filtre technicien + tri serveur = INDEX COMPOSITE Firestore
+    // obligatoire (sinon erreur « The query requires an index » à l'écran du
+    // technicien) → filtre seul côté serveur, tri ici (dates ISO = tri texte).
+    return col
+        .where('technician_id', isEqualTo: technicianId)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList()
+          ..sort((a, b) => '${b['updated_at'] ?? ''}'
+              .compareTo('${a['updated_at'] ?? ''}')));
   }
 }

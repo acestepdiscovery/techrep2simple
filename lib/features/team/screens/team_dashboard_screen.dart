@@ -89,6 +89,8 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
 
         final canValidate =
             team.isAdmin || (currentMember?.canValidate ?? false);
+        final canInvite = team.isAdmin || (currentMember?.canInvite ?? false);
+        final myUid = _currentUid();
         final seatLimit = ref.watch(companySeatLimitProvider);
         // (#7) Pastille de demandes en attente sur l'onglet « Gérer ».
         final pendingCount =
@@ -109,7 +111,9 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
                 // (#11) Les 2 icônes badge (rapports en attente / demandes) sont
                 // retirées : redondantes avec les onglets + la pastille du nav
                 // tab Équipe. On garde un seul bouton de partage du code d'invit.
-                if (team.inviteCode != null)
+                // (2026-10-19) Le droit « Peut inviter » n'avait aucun effet :
+                // tout membre voyait ce bouton. Responsable ou droit donné.
+                if (team.inviteCode != null && canInvite)
                   IconButton(
                     icon: const Icon(Icons.share_outlined),
                     tooltip: 'td_share_invite_code'.tr(),
@@ -147,6 +151,7 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
                 _TeamManageView(
                   companyId: team.companyId!,
                   isAdmin: team.isAdmin,
+                  canInvite: canInvite,
                   seatLimit: seatLimit,
                   inviteCode: team.inviteCode,
                   companyName: team.companyName,
@@ -159,13 +164,16 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
                       if (team.isAdmin) _AdminDashboardHint(),
                       _FilterBar(
                         selectedStatus: _filterStatus,
+                        canValidate: canValidate,
                         onStatus: (s) => setState(() => _filterStatus = s),
                       ),
                       Expanded(
                         child: StreamBuilder<List<Map<String, dynamic>>>(
                           stream: TeamService().streamTeamReports(
                             team.companyId!,
-                            technicianId: team.isAdmin ? null : _currentUid(),
+                            // (2026-10-19) Le droit « Peut valider » n'avait
+                            // aucun effet : ce membre ne voyait que SES rapports.
+                            technicianId: canValidate ? null : myUid,
                           ),
                           builder: (context, snap) {
                             if (snap.connectionState ==
@@ -176,7 +184,7 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
                             }
                             if (snap.hasError) {
                               return Center(
-                                  child: Text('common_error'.tr(args: ['${snap.error}'])));
+                                  child: Text('common_error'.tr(args: [errorText(snap.error!)])));
                             }
                             final allReports = snap.data ?? [];
                             final filtered = _filterStatus == 'all'
@@ -203,7 +211,11 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
                                           itemBuilder: (_, i) => _ReportTile(
                                             data: filtered[i],
                                             companyId: team.companyId!,
-                                            canValidate: canValidate,
+                                            // Pas de validation de SES PROPRES
+                                            // rapports (sauf le responsable).
+                                            canValidate: canValidate &&
+                                                (team.isAdmin ||
+                                                    filtered[i]['technician_id'] != myUid),
                                           ),
                                         ),
                                 ),
@@ -246,17 +258,25 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
 
 class _FilterBar extends StatelessWidget {
   final String selectedStatus;
+  final bool canValidate;
   final void Function(String) onStatus;
 
-  const _FilterBar({required this.selectedStatus, required this.onStatus});
+  const _FilterBar(
+      {required this.selectedStatus,
+      required this.canValidate,
+      required this.onStatus});
 
   @override
   Widget build(BuildContext context) {
+    // (2026-10-19) « À valider » filtrait le statut `pendingValidation`, que
+    // l'app n'attribue JAMAIS → liste toujours vide. Les rapports à valider
+    // sont les « envoyés » ; ajout du filtre « Rejetés » qui manquait.
     final options = [
       ('all', 'td_filter_all'.tr()),
-      ('submitted', 'td_filter_submitted'.tr()),
-      ('pendingValidation', 'td_filter_to_validate'.tr()),
+      ('submitted',
+          canValidate ? 'td_filter_to_validate'.tr() : 'td_filter_submitted'.tr()),
       ('validated', 'td_filter_validated'.tr()),
+      ('rejected', 'td_filter_rejected'.tr()),
     ];
     return Container(
       height: 44,
@@ -560,8 +580,10 @@ class _ValidateButtonState extends State<_ValidateButton> {
 class _RejectButton extends StatefulWidget {
   final String companyId;
   final String reportId;
+  final VoidCallback? onSuccess;
 
-  const _RejectButton({required this.companyId, required this.reportId});
+  const _RejectButton(
+      {required this.companyId, required this.reportId, this.onSuccess});
 
   @override
   State<_RejectButton> createState() => _RejectButtonState();
@@ -616,6 +638,7 @@ class _RejectButtonState extends State<_RejectButton> {
         widget.companyId, widget.reportId, 'rejected',
         rejectionComment: result.isEmpty ? null : result,
       );
+      widget.onSuccess?.call();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1049,6 +1072,7 @@ class _TeammateIdentityCardState extends ConsumerState<_TeammateIdentityCard> {
 class _TeamManageView extends ConsumerWidget {
   final String companyId;
   final bool isAdmin;
+  final bool canInvite;
   final int? seatLimit;
   final String? inviteCode;
   final String? companyName;
@@ -1056,6 +1080,7 @@ class _TeamManageView extends ConsumerWidget {
   const _TeamManageView({
     required this.companyId,
     required this.isAdmin,
+    this.canInvite = false,
     this.seatLimit,
     this.inviteCode,
     this.companyName,
@@ -1068,11 +1093,13 @@ class _TeamManageView extends ConsumerWidget {
       child: StreamBuilder<List<TeamMemberModel>>(
         stream: TeamService().streamMembers(companyId),
         builder: (_, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
+          // (2026-10-19) `!hasData` : chaque mise à jour de la page (demande
+          // acceptée…) remplaçait la liste par un rond de chargement.
+          if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Text('common_error'.tr(args: ['${snap.error}']));
+            return Text('common_error'.tr(args: [errorText(snap.error!)]));
           }
           final members = snap.data ?? [];
           final pending = members.where((m) => m.isPending).toList();
@@ -1131,7 +1158,7 @@ class _TeamManageView extends ConsumerWidget {
                           ),
                         ),
                       ],
-                      if (isAdmin && inviteCode != null) ...[
+                      if (canInvite && inviteCode != null) ...[
                         const SizedBox(height: 12),
                         _InviteCodeCard(
                             inviteCode: inviteCode!, companyName: companyName),
@@ -1305,7 +1332,19 @@ class _PendingMemberTileState extends State<_PendingMemberTile> {
       ),
     );
     if (ok != true) return;
-    await TeamService().removeMember(widget.companyId, widget.member.uid);
+    // (2026-10-19) Erreur avant non affichée (et aucun indicateur).
+    setState(() => _loading = true);
+    try {
+      await TeamService().removeMember(widget.companyId, widget.member.uid);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('common_error'.tr(args: [errorText(e)]))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -2008,9 +2047,13 @@ class _ReportDetailSheet extends StatelessWidget {
                               onSuccess: () => Navigator.pop(context),
                             )),
                         const SizedBox(width: 8),
+                        // (2026-10-19) La fiche restait ouverte, statut
+                        // « Envoyé » et boutons encore actifs après un renvoi.
                         Expanded(
                             child: _RejectButton(
-                                companyId: companyId, reportId: data['id'])),
+                                companyId: companyId,
+                                reportId: data['id'],
+                                onSuccess: () => Navigator.pop(context))),
                       ],
                     ),
                   ],

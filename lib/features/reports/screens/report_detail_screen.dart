@@ -188,8 +188,9 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       await LocalDbService().updateReport(updated);
       await ref.read(reportsProvider.notifier).refresh();
       final team = ref.read(teamStateProvider).valueOrNull;
-      if (team?.companyId != null) {
-        await TeamService().syncReport(team!.companyId!, updated);
+      // (2026-10-19) Rapport PERSO → jamais envoyé à l'équipe.
+      if (team?.companyId != null && updated.companyId == team!.companyId) {
+        await TeamService().syncReport(team.companyId!, updated);
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2892,8 +2893,9 @@ class _ResubmitButtonState extends ConsumerState<_ResubmitButton> {
       await ref.read(reportsProvider.notifier).submitReport(widget.report);
 
       final team = ref.read(teamStateProvider).valueOrNull;
-      if (team?.companyId != null) {
-        await TeamService().syncReport(team!.companyId!, submitted);
+      // (2026-10-19) Rapport PERSO → jamais envoyé à l'équipe.
+      if (team?.companyId != null && submitted.companyId == team!.companyId) {
+        await TeamService().syncReport(team.companyId!, submitted);
       }
 
       if (mounted) {

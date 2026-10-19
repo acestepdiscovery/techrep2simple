@@ -1328,5 +1328,8 @@
   "ex_transport_equip": "Furgoneta 3,5 t",
   "ex_transport_mat1": "Batería 12 V 95 Ah",
   "ex_transport_mat2": "Desplazamiento",
-  "ex_transport_load": "Paquetería (1,2 t)"
+  "ex_transport_load": "Paquetería (1,2 t)",
+  "td_filter_rejected": "Rechazados",
+  "ts_already_in_team": "Ya formas parte del equipo « {} ».",
+  "ts_paid_team_block": "Tu equipo « {} » tiene una suscripción mensual en curso. Disolverlo para unirte a otro equipo te haría perder esa suscripción, y la tienda la seguiría cobrando. Cancélala primero (Ajustes del equipo → Suscripción) y vuelve después."
 }

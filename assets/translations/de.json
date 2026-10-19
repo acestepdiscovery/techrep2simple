@@ -1328,5 +1328,8 @@
   "ex_transport_equip": "Transporter 3,5 t",
   "ex_transport_mat1": "Batterie 12 V 95 Ah",
   "ex_transport_mat2": "Anfahrtspauschale",
-  "ex_transport_load": "Paketsendungen (1,2 t)"
+  "ex_transport_load": "Paketsendungen (1,2 t)",
+  "td_filter_rejected": "Abgelehnt",
+  "ts_already_in_team": "Sie sind bereits Mitglied von „{}“.",
+  "ts_paid_team_block": "Ihr Team „{}“ hat ein laufendes Monatsabonnement. Wenn Sie es auflösen, um einem anderen Team beizutreten, verlieren Sie dieses Abonnement, während der Store es weiter abrechnet. Kündigen Sie es zuerst (Teameinstellungen → Abonnement) und kommen Sie dann zurück."
 }

@@ -1334,5 +1334,8 @@
   "ex_transport_equip": "Samochód dostawczy 3,5 t",
   "ex_transport_mat1": "Akumulator 12 V 95 Ah",
   "ex_transport_mat2": "Opłata za dojazd",
-  "ex_transport_load": "Przesyłki kurierskie (1,2 t)"
+  "ex_transport_load": "Przesyłki kurierskie (1,2 t)",
+  "td_filter_rejected": "Odrzucone",
+  "ts_already_in_team": "Już należysz do zespołu „{}”.",
+  "ts_paid_team_block": "Twój zespół „{}” ma aktywną subskrypcję miesięczną. Rozwiązanie go, aby dołączyć do innego zespołu, oznacza utratę tej subskrypcji, a sklep nadal będzie ją pobierał. Najpierw ją anuluj (Ustawienia zespołu → Subskrypcja), a potem wróć."
 }

@@ -1328,5 +1328,8 @@
   "ex_transport_equip": "Utilitaire 3,5 t",
   "ex_transport_mat1": "Batterie 12 V 95 Ah",
   "ex_transport_mat2": "Forfait déplacement",
-  "ex_transport_load": "Colis de messagerie (1,2 t)"
+  "ex_transport_load": "Colis de messagerie (1,2 t)",
+  "td_filter_rejected": "Rejetés",
+  "ts_already_in_team": "Vous faites déjà partie de l'équipe « {} ».",
+  "ts_paid_team_block": "Votre équipe « {} » a un abonnement mensuel en cours. La dissoudre pour rejoindre une autre équipe vous ferait perdre cet abonnement, alors que le store continuerait de le facturer. Annulez-le d'abord (Réglages équipe → Abonnement), puis revenez."
 }

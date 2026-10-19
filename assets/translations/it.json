@@ -1328,5 +1328,8 @@
   "ex_transport_equip": "Furgone 3,5 t",
   "ex_transport_mat1": "Batteria 12 V 95 Ah",
   "ex_transport_mat2": "Diritto di uscita",
-  "ex_transport_load": "Spedizioni pacchi (1,2 t)"
+  "ex_transport_load": "Spedizioni pacchi (1,2 t)",
+  "td_filter_rejected": "Respinti",
+  "ts_already_in_team": "Fai già parte del team «{}».",
+  "ts_paid_team_block": "Il tuo team «{}» ha un abbonamento mensile in corso. Scioglierlo per entrare in un altro team ti farebbe perdere l'abbonamento, che lo store continuerebbe ad addebitare. Annullalo prima (Impostazioni del team → Abbonamento), poi torna qui."
 }

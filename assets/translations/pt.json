@@ -1328,5 +1328,8 @@
   "ex_transport_equip": "Carrinha 3,5 t",
   "ex_transport_mat1": "Bateria 12 V 95 Ah",
   "ex_transport_mat2": "Deslocação",
-  "ex_transport_load": "Encomendas (1,2 t)"
+  "ex_transport_load": "Encomendas (1,2 t)",
+  "td_filter_rejected": "Recusados",
+  "ts_already_in_team": "Já faz parte da equipa «{}».",
+  "ts_paid_team_block": "A sua equipa «{}» tem uma subscrição mensal em curso. Dissolvê-la para entrar noutra equipa faria perder essa subscrição, que a loja continuaria a cobrar. Cancele-a primeiro (Definições da equipa → Subscrição) e depois volte."
 }

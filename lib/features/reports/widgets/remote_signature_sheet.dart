@@ -115,8 +115,9 @@ class _RemoteSignatureSheetState extends ConsumerState<RemoteSignatureSheet> {
       await ref.read(reportsProvider.notifier).refresh();
 
       final team = ref.read(teamStateProvider).valueOrNull;
-      if (team?.companyId != null) {
-        await TeamService().syncReport(team!.companyId!, updated);
+      // (2026-10-19) Rapport PERSO → jamais envoyé à l'équipe.
+      if (team?.companyId != null && updated.companyId == team!.companyId) {
+        await TeamService().syncReport(team.companyId!, updated);
       }
 
       if (mounted) {

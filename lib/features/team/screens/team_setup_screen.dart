@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../subscription/paywall_bottom_sheet.dart';
+import '../../subscription/subscription_provider.dart';
+import '../models/company_model.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/services/team_service.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -106,10 +108,59 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
   Future<void> _joinCompany() async {
     if (!_joinFormKey.currentState!.validate()) return;
 
+    // (2026-10-19) On VÉRIFIE le code AVANT de quitter l'équipe actuelle. Avant,
+    // une faute de frappe faisait quitter (voire DISSOUDRE) son équipe, puis
+    // affichait seulement « code incorrect ».
+    setState(() { _loading = true; _error = null; });
+    CompanyModel? target;
+    try {
+      target = await TeamService().findCompanyByInviteCode(_inviteCode.text);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'common_error'.tr(args: [errorText(e)]);
+          _loading = false;
+        });
+      }
+      return;
+    }
+    if (!mounted) return;
+    setState(() { _loading = false; });
+    if (target == null) {
+      setState(() { _error = 'ts_invalid_code'.tr(); });
+      return;
+    }
+
     // (#3) Déjà dans une équipe ? Rejoindre une autre = QUITTER l'actuelle.
     final current = ref.read(teamStateProvider).valueOrNull;
     if (current?.hasTeam ?? false) {
-      if (current!.isAdmin) {
+      // (2026-10-19) Code de SA PROPRE équipe : avant, le membre en sortait puis
+      // redevenait « en attente » (le responsable, lui, la dissolvait).
+      if (current!.companyId == target.id) {
+        setState(() { _error = 'ts_already_in_team'.tr(args: [target!.name]); });
+        return;
+      }
+      // (2026-10-19) Équipe avec un abonnement MENSUEL actif : la dissoudre
+      // ferait perdre l'abonnement que le store continue de facturer → bloqué
+      // (comme la suppression du compte).
+      final csub = ref.read(companySubscriptionProvider).valueOrNull;
+      if (current.isAdmin && csub.isActive && csub.isRecurring) {
+        await showDialog<void>(
+          context: context,
+          builder: (dlg) => AlertDialog(
+            icon: Icon(Icons.credit_card_off_outlined, color: Colors.orange.shade700),
+            title: Text('pw_you_are_admin'.tr()),
+            content: Text('ts_paid_team_block'.tr(args: [current.companyName ?? ''])),
+            actions: [
+              FilledButton(
+                  onPressed: () => Navigator.pop(dlg),
+                  child: Text('common_understood'.tr())),
+            ],
+          ),
+        );
+        return;
+      }
+      if (current.isAdmin) {
         // CEO : compter les autres membres.
         int others = 0;
         try {

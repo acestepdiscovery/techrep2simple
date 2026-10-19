@@ -1328,5 +1328,8 @@
   "ex_transport_equip": "Bestelwagen 3,5 t",
   "ex_transport_mat1": "Accu 12 V 95 Ah",
   "ex_transport_mat2": "Voorrijkosten",
-  "ex_transport_load": "Pakketzendingen (1,2 t)"
+  "ex_transport_load": "Pakketzendingen (1,2 t)",
+  "td_filter_rejected": "Afgewezen",
+  "ts_already_in_team": "Je bent al lid van ‘{}’.",
+  "ts_paid_team_block": "Je team ‘{}’ heeft een lopend maandabonnement. Als je het opheft om lid te worden van een ander team, verlies je dat abonnement terwijl de store het blijft afrekenen. Zeg het eerst op (Teaminstellingen → Abonnement) en kom daarna terug."
 }

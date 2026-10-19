@@ -60,7 +60,7 @@ final companyLifetimeSeatsProvider = StreamProvider<int>((ref) {
       .collection('companies_raptech1')
       .doc(companyId)
       .snapshots()
-      .map((snap) => (snap.data()?['lifetime_seats'] as int?) ?? 0);
+      .map((snap) => (snap.data()?['lifetime_seats'] as num?)?.toInt() ?? 0);
 });
 
 // ── Seat limit for this company (monthly seats + lifetime seats) ───────────────
@@ -68,7 +68,9 @@ final companyLifetimeSeatsProvider = StreamProvider<int>((ref) {
 final companySeatLimitProvider = Provider<int?>((ref) {
   final sub = ref.watch(companySubscriptionProvider).valueOrNull;
   final lifetimeSeats = ref.watch(companyLifetimeSeatsProvider).valueOrNull ?? 0;
-  final monthlySeats = sub.isActive ? (sub?['seat_limit'] as int? ?? 0) : 0;
+  // (2026-10-19) `num` : un nombre écrit « 5.0 » faisait planter la page Équipe.
+  final monthlySeats =
+      sub.isActive ? ((sub?['seat_limit'] as num?)?.toInt() ?? 0) : 0;
   final total = monthlySeats + lifetimeSeats;
   return total > 0 ? total : null;
 });
