@@ -362,11 +362,13 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
 class _ExportQuotaBanner extends ConsumerStatefulWidget {
   const _ExportQuotaBanner();
 
+  // (2026-10-19) MÊME règle que le blocage (appareil OU compte) : avant, seul
+  // l'appareil comptait → « 2 restants » affiché alors que l'export était refusé
+  // (exports faits avec le même compte sur un autre téléphone).
   static Future<int> _readUsed() async {
-    final prefs = await SharedPreferences.getInstance();
-    final now = DateTime.now();
-    final key = 'pdf_export_count_${now.year}_${now.month.toString().padLeft(2, '0')}';
-    return prefs.getInt(key) ?? 0;
+    final device = await SubscriptionService.getMonthlyExportCount();
+    final account = await SubscriptionService.getAccountMonthlyExportCount();
+    return account != null && account > device ? account : device;
   }
 
   @override
