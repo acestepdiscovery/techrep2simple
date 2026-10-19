@@ -138,7 +138,9 @@ class SetupScreen extends ConsumerWidget {
           _StepTile(
             index: 2,
             title: 'sc_step_company'.tr(),
-            done: companyName.isNotEmpty || techName.isNotEmpty,
+            // (2026-10-19) Le nom du technicien est PRÉ-REMPLI avec le nom du compte :
+            // il ne suffit plus à cocher « Mon entreprise » (comme dans Réglages).
+            done: companyName.isNotEmpty,
             subtitle: companyName.isNotEmpty
                 ? companyName
                 : techName.isNotEmpty
@@ -192,7 +194,7 @@ class SetupScreen extends ConsumerWidget {
                 : (ref.watch(activeActivationsCountProvider) / 8).clamp(0.0, 1.0),
           ),
           _StepTile(
-            index: 5,
+            index: kParrainageEnabled ? 5 : 4, // (2026-10-19) pas de « 4 » manquant
             title: 'nav_team'.tr(),
             done: team?.hasTeam ?? false,
             optional: true,
@@ -355,7 +357,9 @@ class SetupChecklistSheet extends ConsumerWidget {
           _StepTile(
             index: 2,
             title: 'sc_step_company'.tr(),
-            done: companyName.isNotEmpty || techName.isNotEmpty,
+            // (2026-10-19) Le nom du technicien est PRÉ-REMPLI avec le nom du compte :
+            // il ne suffit plus à cocher « Mon entreprise » (comme dans Réglages).
+            done: companyName.isNotEmpty,
             subtitle: companyName.isNotEmpty ? companyName : techName.isNotEmpty ? techName : 'sc_not_set'.tr(),
             actionLabel: 'sc_settings'.tr(),
             onAction: () { Navigator.pop(context); context.go('/settings'); },
@@ -380,7 +384,7 @@ class SetupChecklistSheet extends ConsumerWidget {
             onAction: () { Navigator.pop(context); context.push('/referral'); },
           ),
           _StepTile(
-            index: 5,
+            index: kParrainageEnabled ? 5 : 4, // (2026-10-19) pas de « 4 » manquant
             title: 'nav_team'.tr(),
             done: team?.hasTeam ?? false,
             optional: true,
