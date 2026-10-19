@@ -97,6 +97,65 @@ class ReportPreset {
         data: jsonDecode(m['data']) as Map<String, dynamic>,
         isArchived: (m['is_archived'] as int? ?? 0) == 1,
       );
+
+  /// (2026-10-19) Données d'un modèle AU FORMAT `ReportModel.toMap()`.
+  /// Deux formats existaient : le formulaire enregistrait des clés camelCase
+  /// (`clientName`…), la fiche du rapport `toMap()` (`client_name`…) — et chaque
+  /// écran n'en relisait qu'UN → le modèle s'ouvrait VIDE dans l'autre écran.
+  /// Les anciens modèles des deux formats restent lisibles.
+  static Map<String, dynamic> reportData(Map<String, dynamic> d) {
+    final camel = d.containsKey('clientName') ||
+        d.containsKey('sectorFields') ||
+        d.containsKey('interventionType');
+    if (!camel) return d;
+    String s(String k) => (d[k] ?? '').toString();
+    double? n(String k) => double.tryParse(s(k).replaceAll(',', '.').trim());
+    String? t(String h, String m) {
+      if (d[h] is! num) return null;
+      final now = DateTime.now();
+      return DateTime(now.year, now.month, now.day, (d[h] as num).toInt(),
+              (d[m] is num) ? (d[m] as num).toInt() : 0)
+          .toIso8601String();
+    }
+    return {
+      'client_name': s('clientName'),
+      'client_address': s('clientAddress'),
+      'client_phone': s('clientPhone'),
+      'client_contact': s('clientContact'),
+      'contract_number': s('contractNumber'),
+      'client_business_id': s('clientBusinessId'),
+      'intervention_type': s('interventionType'),
+      'sector': d['sector'] ?? 'generic',
+      'sector_fields': jsonEncode(d['sectorFields'] ?? const {}),
+      'description': s('description'),
+      'observations': s('observations'),
+      'equipment_type': s('equipmentType'),
+      'equipment_brand': s('equipmentBrand'),
+      'equipment_model': s('equipmentModel'),
+      'equipment_serial': s('equipmentSerial'),
+      'labor_hours': n('laborHours'),
+      'labor_rate': n('laborRate'),
+      'start_time': t('startTimeHour', 'startTimeMinute'),
+      'end_time': t('endTimeHour', 'endTimeMinute'),
+    };
+  }
+
+  /// (2026-10-19) Ce qu'on garde d'un rapport pour en faire un MODÈLE : pas son
+  /// identité (id, n°, statut, dates), ni ses signatures, photos, PDF, lien,
+  /// commentaire de renvoi (avant : tout était copié, signatures comprises).
+  static Map<String, dynamic> fromReport(ReportModel r) {
+    final m = Map<String, dynamic>.of(r.toMap());
+    for (final k in const [
+      'id', 'report_number', 'status', 'date', 'end_date', 'photos',
+      'signature_client_start_data', 'signature_tech_start_data',
+      'signature_client_data', 'signature_tech_data', 'pdf_local_path',
+      'cloud_url', 'rejection_comment', 'signed_remotely', 'ai_enhanced',
+      'technician_id', 'company_id', 'created_at', 'updated_at',
+    ]) {
+      m.remove(k);
+    }
+    return m;
+  }
 }
 
 // ─── Report Model ─────────────────────────────────────────────────────────────

@@ -240,10 +240,13 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     _baseline = _contentKey();
   }
 
-  void _fillFromTemplate(Map<String, dynamic> data) {
+  /// [resetBaseline] = false quand l'utilisateur charge un modèle dans un
+  /// rapport déjà ouvert : ce changement doit être enregistré (auto-save).
+  void _fillFromTemplate(Map<String, dynamic> data, {bool resetBaseline = true}) {
     final now = DateTime.now().toIso8601String();
     final r = ReportModel.fromMap({
-      ...data,
+      // (2026-10-19) Les 2 formats de modèles (formulaire / fiche du rapport).
+      ...ReportPreset.reportData(data),
       'id': _reportId,
       'date': now,
       'created_at': now,
@@ -278,6 +281,29 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       _sectorFields = Map.from(r.sectorFields);
       _clientId = r.clientId;
       _materials..clear()..addAll(r.materials);
+      // (2026-10-19) Aussi : horaires (reportés sur la date du rapport), « sous
+      // contrat », champs libres et taxe — avant, perdus avec un modèle.
+      DateTime? onDate(DateTime? t) => t == null
+          ? null
+          : DateTime(_date.year, _date.month, _date.day, t.hour, t.minute);
+      if (r.startTime != null) _startTime = onDate(r.startTime);
+      if (r.endTime != null) _endTime = onDate(r.endTime);
+      _sousContrat = r.sousContrat;
+      if (r.customFields.isNotEmpty) {
+        for (final row in _customRows) {
+          row.dispose();
+        }
+        _customRows.clear();
+        r.customFields.forEach((k, v) {
+          final row = _CFRow(k, v);
+          row.label.addListener(_onDirty);
+          row.value.addListener(_onDirty);
+          _customRows.add(row);
+        });
+      }
+      _taxRate ??= r.taxRate;
+      _taxLabel ??= r.taxLabel;
+      _taxMention ??= r.taxMention;
       _sectionExpanded[1] = r.clientName.isNotEmpty;
       _sectionExpanded[3] = r.equipmentType.isNotEmpty;
       _sectionExpanded[5] = r.description.isNotEmpty;
@@ -285,7 +311,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     });
     // (2026-10-19) Modèle / exemple ouvert puis abandonné sans rien changer →
     // plus de brouillon parasite dans la liste.
-    _baseline = _contentKey();
+    if (resetBaseline) _baseline = _contentKey();
   }
 
   @override
@@ -771,7 +797,13 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       taxRate: _taxRate,
       taxLabel: _taxLabel,
       taxMention: _taxMention,
-      technicianName: s['technician_name']?.toString(),
+      // (2026-10-19) Rapport d'ÉQUIPE : le nom de technicien PROPRE à l'équipe
+      // (Équipe → Réglages équipe), comme sur le PDF ; avant, le nom perso partait
+      // dans la liste du responsable et dans sa copie de validation.
+      technicianName: (inTeam &&
+              (s['team_technician_name'] ?? '').toString().trim().isNotEmpty)
+          ? s['team_technician_name'].toString().trim()
+          : s['technician_name']?.toString(),
       technicianId: inTeam ? ref.read(firebaseUserProvider).valueOrNull?.uid : null,
       companyId: inTeam ? teamState?.companyId : null,
       status: status,
@@ -1130,29 +1162,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
   // ─── Presets ────────────────────────────────────────────────────────────────
 
-  Map<String, dynamic> _currentPresetData() => {
-        'clientName': _clientName.text.trim(),
-        'clientAddress': _clientAddress.text.trim(),
-        'clientPhone': _clientPhone.text.trim(),
-        'clientContact': _clientContact.text.trim(),
-        'contractNumber': _contractNumber.text.trim(),
-        'clientBusinessId': _clientBusinessId.text.trim(),
-        'interventionType': _interventionType.text.trim(),
-        'sector': _sector.name,
-        'sectorFields': _sectorFields,
-        'description': _description.text.trim(),
-        'observations': _observations.text.trim(),
-        'equipmentType': _equipmentType.text.trim(),
-        'equipmentBrand': _equipmentBrand.text.trim(),
-        'equipmentModel': _equipmentModel.text.trim(),
-        'equipmentSerial': _equipmentSerial.text.trim(),
-        'laborHours': _laborHours.text.trim(),
-        'laborRate': _laborRate.text.trim(),
-        if (_startTime != null) 'startTimeHour': _startTime!.hour,
-        if (_startTime != null) 'startTimeMinute': _startTime!.minute,
-        if (_endTime != null) 'endTimeHour': _endTime!.hour,
-        if (_endTime != null) 'endTimeMinute': _endTime!.minute,
-      };
+  // (2026-10-19) _currentPresetData() (ancien format camelCase) retiré :
+  // les modèles utilisent ReportPreset.fromReport (relu par ReportPreset.reportData).
 
   // (C) Icône grisée + pastille « PRO » quand l'utilisateur n'est pas abonné.
   Widget _proIcon(IconData icon, bool isPro) {
@@ -1231,7 +1242,9 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       id: const Uuid().v4(),
       name: name.trim(),
       createdAt: DateTime.now(),
-      data: _currentPresetData(),
+      // (2026-10-19) Format unique (celui de la fiche du rapport) : relu partout,
+      // et garde aussi le matériel, les champs libres, « sous contrat ».
+      data: ReportPreset.fromReport(_buildReport(ReportStatus.draft)),
     );
     await LocalDbService().savePreset(preset);
     if (mounted) {
@@ -1276,36 +1289,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       ),
     );
     if (chosen == null) return;
-    final d = chosen.data;
-    final now = DateTime.now();
-    setState(() {
-      _clientName.text = d['clientName'] ?? '';
-      _clientAddress.text = d['clientAddress'] ?? '';
-      _clientPhone.text = d['clientPhone'] ?? '';
-      _clientContact.text = d['clientContact'] ?? '';
-      _contractNumber.text = d['contractNumber'] ?? '';
-      _clientBusinessId.text = d['clientBusinessId'] ?? '';
-      _interventionType.text = d['interventionType'] ?? '';
-      _description.text = d['description'] ?? '';
-      _observations.text = d['observations'] ?? '';
-      _equipmentType.text = d['equipmentType'] ?? '';
-      _equipmentBrand.text = d['equipmentBrand'] ?? '';
-      _equipmentModel.text = d['equipmentModel'] ?? '';
-      _equipmentSerial.text = d['equipmentSerial'] ?? '';
-      _laborHours.text = d['laborHours'] ?? '';
-      _laborRate.text = d['laborRate'] ?? '';
-      _sector = SectorTemplate.values.firstWhere(
-        (s) => s.name == d['sector'], orElse: () => SectorTemplate.generic);
-      _sectorFields = Map<String, dynamic>.from(d['sectorFields'] ?? {});
-      if (d['startTimeHour'] != null) {
-        _startTime = DateTime(now.year, now.month, now.day,
-            d['startTimeHour'] as int, d['startTimeMinute'] as int);
-      }
-      if (d['endTimeHour'] != null) {
-        _endTime = DateTime(now.year, now.month, now.day,
-            d['endTimeHour'] as int, d['endTimeMinute'] as int);
-      }
-    });
+    // (2026-10-19) Lecture unique, les 2 formats (avant : seuls les modèles du
+    // formulaire se chargeaient ici ; ceux de la fiche du rapport : formulaire vide).
+    _fillFromTemplate(chosen.data, resetBaseline: false);
+    _scheduleAutoSave();
   }
 
   // ─── Section nav ─────────────────────────────────────────────────────────────

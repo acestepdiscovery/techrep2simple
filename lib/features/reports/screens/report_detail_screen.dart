@@ -665,7 +665,8 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
                 id: const Uuid().v4(),
                 name: name,
                 createdAt: DateTime.now(),
-                data: report.toMap(),
+                // (2026-10-19) sans signatures / photos / identité du rapport.
+                data: ReportPreset.fromReport(report),
               );
               await LocalDbService().savePreset(preset);
               if (context.mounted) {

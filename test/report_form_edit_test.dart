@@ -76,7 +76,7 @@ void main() {
     return r;
   }
 
-  Future<void> openForm(WidgetTester tester, String? id) async {
+  Future<void> openForm(WidgetTester tester, String? id, {ReportPreset? preset}) async {
     // Écran très haut : toutes les sections sont construites (liste paresseuse).
     tester.view.physicalSize = const Size(1200, 24000);
     tester.view.devicePixelRatio = 1;
@@ -100,7 +100,7 @@ void main() {
             locale: context.locale,
             supportedLocales: context.supportedLocales,
             localizationsDelegates: context.localizationDelegates,
-            home: CreateReportScreen(reportId: id),
+            home: CreateReportScreen(reportId: id, templatePreset: preset),
           ),
         ),
       ),
@@ -164,5 +164,51 @@ void main() {
     expect(added, hasLength(1));
     expect(added.single.toMap().values.contains('Tapé puis parti'), isTrue);
     expect(added.single.status, ReportStatus.draft);
+  });
+
+  // (2026-10-19) Modèles : 2 anciens formats coexistaient et chaque écran n'en
+  // lisait qu'un → formulaire VIDE. Les deux doivent remplir le formulaire.
+  testWidgets('modèle enregistré depuis le FORMULAIRE (ancien format) → champs remplis',
+      (tester) async {
+    final preset = ReportPreset(
+      id: 'p1', name: 'Entretien chaudière', createdAt: DateTime(2026, 10, 1),
+      data: {
+        'clientName': 'Résidence Les Tilleuls', 'interventionType': 'Entretien annuel',
+        'description': 'Nettoyage du brûleur', 'sector': 'plomberie',
+        'sectorFields': {'type_fluide': 'eau'}, 'laborHours': '1,5',
+        'startTimeHour': 8, 'startTimeMinute': 30,
+      },
+    );
+    await openForm(tester, null, preset: preset);
+    Finder field(String text) => find.byWidgetPredicate(
+        (w) => w is TextFormField && w.controller?.text == text);
+    expect(field('Résidence Les Tilleuls'), findsOneWidget);
+    expect(field('Entretien annuel'), findsOneWidget);
+    expect(field('Nettoyage du brûleur'), findsOneWidget);
+    expect(field('1.5'), findsOneWidget, reason: 'heures');
+    await closeForm(tester);
+  });
+
+  testWidgets('modèle enregistré depuis la FICHE du rapport → champs remplis, sans signatures',
+      (tester) async {
+    final source = ReportModel(
+      id: 'src', clientName: 'Cabinet Lefort', description: 'Remplacement du switch',
+      date: DateTime(2026, 9, 1), status: ReportStatus.validated,
+      signatureClientData: 'AAAA', photosPaths: const ['/x/a.jpg'],
+      customFields: const {'Bâtiment': 'B'},
+      createdAt: DateTime(2026, 9, 1), updatedAt: DateTime(2026, 9, 1),
+    );
+    final data = ReportPreset.fromReport(source);
+    expect(data.containsKey('signature_client_data'), isFalse);
+    expect(data.containsKey('photos'), isFalse);
+    expect(data.containsKey('status'), isFalse);
+    await openForm(tester, null,
+        preset: ReportPreset(id: 'p2', name: 'IT', createdAt: DateTime(2026), data: data));
+    expect(find.byWidgetPredicate(
+        (w) => w is TextFormField && w.controller?.text == 'Cabinet Lefort'), findsOneWidget);
+    expect(find.byWidgetPredicate(
+        (w) => w is TextField && w.controller?.text == 'Bâtiment'), findsOneWidget,
+        reason: 'champ libre gardé');
+    await closeForm(tester);
   });
 }
