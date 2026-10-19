@@ -540,7 +540,18 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
   }
 
   Future<void> _generateInvoice() async {
-    if (!ref.read(effectiveSubscriptionProvider)) {
+    // (2026-10-19) MÊME règle que l'export PDF : facture d'un rapport d'ÉQUIPE =
+    // abonnement d'équipe + siège actif ; rapport perso = abonnement solo. Avant,
+    // « Pro tout court » : un membre sans siège mais avec un Pro perso éditait des
+    // factures au nom de l'équipe (export PDF du même rapport, lui, refusé).
+    final coverage = exportCoverage(
+      isTeamReport: widget.report.companyId != null,
+      companySub: ref.read(companySubscriptionProvider).valueOrNull,
+      lifetimeSeats: ref.read(companyLifetimeSeatsProvider).valueOrNull ?? 0,
+      memberActive: ref.read(memberActiveProvider).valueOrNull ?? true,
+      personalSub: ref.read(subscriptionProvider).valueOrNull,
+    );
+    if (coverage != ExportCoverage.covered) {
       await PaywallBottomSheet.show(
         context,
         reason: 'rd_invoice_pro'.tr(),
