@@ -146,7 +146,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (user != null) await _ensureUserDoc(user, 'email');
       await _afterSignIn();
     } on FirebaseAuthException catch (e) {
-      setState(() { _error = _friendlyError(e.code); });
+      if (mounted) setState(() { _error = _friendlyError(e.code); });
     } finally {
       if (mounted) setState(() { _loading = false; });
     }
@@ -169,7 +169,7 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       }
     } on FirebaseAuthException catch (e) {
-      setState(() { _error = _friendlyError(e.code); });
+      if (mounted) setState(() { _error = _friendlyError(e.code); });
     }
   }
 
@@ -181,7 +181,7 @@ class _AuthScreenState extends State<AuthScreen> {
       final googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
         // User cancelled
-        setState(() { _loading = false; });
+        if (mounted) setState(() { _loading = false; });
         return;
       }
       final googleAuth = await googleUser.authentication;
@@ -195,9 +195,9 @@ class _AuthScreenState extends State<AuthScreen> {
       if (user != null) await _ensureUserDoc(user, 'google');
       await _afterSignIn();
     } on FirebaseAuthException catch (e) {
-      setState(() { _error = _friendlyError(e.code); });
+      if (mounted) setState(() { _error = _friendlyError(e.code); });
     } catch (e) {
-      setState(() { _error = 'auth_google_failed'.tr(); });
+      if (mounted) setState(() { _error = 'auth_google_failed'.tr(); });
     } finally {
       if (mounted) setState(() { _loading = false; });
     }
@@ -242,12 +242,12 @@ class _AuthScreenState extends State<AuthScreen> {
       await _afterSignIn();
     } on SignInWithAppleAuthorizationException catch (e) {
       if (e.code != AuthorizationErrorCode.canceled) {
-        setState(() { _error = 'auth_apple_failed'.tr(); });
+        if (mounted) setState(() { _error = 'auth_apple_failed'.tr(); });
       }
     } on FirebaseAuthException catch (e) {
-      setState(() { _error = _friendlyError(e.code); });
+      if (mounted) setState(() { _error = _friendlyError(e.code); });
     } catch (e) {
-      setState(() { _error = 'auth_apple_failed'.tr(); });
+      if (mounted) setState(() { _error = 'auth_apple_failed'.tr(); });
     } finally {
       if (mounted) setState(() { _loading = false; });
     }
