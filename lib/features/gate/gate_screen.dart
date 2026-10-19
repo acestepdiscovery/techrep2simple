@@ -91,7 +91,15 @@ class _GateScreenState extends State<GateScreen> {
     // Route based on persisted state (existing logic)
     final prefs = await SharedPreferences.getInstance();
     final mode = prefs.getString('app_mode');
-    final onboardingDone = prefs.getBool('onboarding_done') ?? false;
+    var onboardingDone = prefs.getBool('onboarding_done') ?? false;
+    // (2026-10-19) Déjà connecté avec un vrai compte = accueil terminé (les
+    // personnes connectées via « J'ai déjà un compte » revoyaient la page de
+    // bienvenue à chaque ouverture).
+    final signedIn = FirebaseAuth.instance.currentUser;
+    if (!onboardingDone && signedIn != null && !signedIn.isAnonymous) {
+      await prefs.setBool('onboarding_done', true);
+      onboardingDone = true;
+    }
 
     if (mode == 'offline' || (mode == null && onboardingDone)) {
       if (mode == null) await prefs.setString('app_mode', 'offline');

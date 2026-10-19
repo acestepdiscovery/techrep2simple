@@ -56,6 +56,14 @@ class _AuthScreenState extends State<AuthScreen> {
         FirebaseAuth.instance.currentUser?.uid);
     if (!mounted) return;
     final prefs = await SharedPreferences.getInstance();
+    // (2026-10-19) Accueil terminé dès qu'on est connecté : avant, se connecter
+    // directement (« J'ai déjà un compte ») ne le notait pas → l'écran de
+    // bienvenue revenait à CHAQUE ouverture de l'app (nouveau téléphone…).
+    await prefs.setBool('onboarding_done', true);
+    if (prefs.getString('app_mode') == null) {
+      await prefs.setString('app_mode', 'offline');
+    }
+    if (!mounted) return;
     final teamIntent = prefs.getString('team_intent');
     if (!mounted) return;
     if (teamIntent != null) {
