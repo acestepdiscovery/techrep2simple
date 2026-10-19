@@ -63,7 +63,7 @@
   "onboarding_step3_body": "Podyktuj raport na głos lub sfotografuj papierowy formularz. AI wypełni pola za Ciebie. (Funkcja Pro)",
   "onboarding_start": "Zaczynamy",
   "welcome_note_title": "Aplikacja, która dopasowuje się do Ciebie",
-  "welcome_note_body1": "Tworzymy Compte Rendu Technique IA ramię w ramię z fachowcami z terenu. Brakuje Ci jakiegoś pola? Potrzebujesz specjalnego formatu PDF dla swojej branży? Napisz do nas: dopasujemy aplikację do Twojej działalności.",
+  "welcome_note_body1": "Tworzymy Raport serwisowy AI ramię w ramię z fachowcami z terenu. Brakuje Ci jakiegoś pola? Potrzebujesz specjalnego formatu PDF dla swojej branży? Napisz do nas: dopasujemy aplikację do Twojej działalności.",
   "welcome_note_body2": "Jesteśmy szybkim i uważnym zespołem: każda Twoja opinia bezpośrednio wpływa na kolejne aktualizacje. Twoje zdanie się liczy — naprawdę.",
 
   "gate_block_default_reason": "Korzystanie niezgodne z warunkami użytkowania.",
@@ -614,7 +614,7 @@
   "td_comment_for_tech": "Komentarz dla technika (opcjonalnie):",
   "td_reject_hint": "Np.: brak podpisu klienta...",
   "td_return": "Zwróć",
-  "td_invite_share_text": "Dołącz do {} w Compte Rendu Technique IA!\nKod zaproszenia: {}",
+  "td_invite_share_text": "Dołącz do {} w Raport serwisowy AI!\nKod zaproszenia: {}",
   "td_invite_share_my_team": "mojego zespołu „{}”",
   "td_invite_share_our_team": "naszego zespołu",
   "td_invite_to_team": "Zaproś do zespołu",
@@ -695,8 +695,8 @@
   "td_view_validation_pdf": "Zobacz raport zatwierdzenia (PDF)",
   "td_validation_pdf_note": "Wierny podgląd metadanych przesłanych przez technika. Zdjęcia zostają na jego urządzeniu (nie są przesyłane) — w PDF widoczne są jako zarezerwowane miejsca. Użyj przycisków +/−, aby powiększyć podgląd.",
   "td_invite_ios_line": "🍎 iOS: {}",
-  "td_invite_ios_fallback": "🍎 iOS: wyszukaj „Compte Rendu Technique IA” w App Store",
-  "td_invite_full_share": "Dołącz do {} w Compte Rendu Technique IA!\nKod zaproszenia: {}\n\n1. Pobierz aplikację:\n📱 Android: {}\n{}\n\n2. Po instalacji otwórz ten link lub wpisz kod ręcznie:\n{}",
+  "td_invite_ios_fallback": "🍎 iOS: wyszukaj „Raport serwisowy AI” w App Store",
+  "td_invite_full_share": "Dołącz do {} w Raport serwisowy AI!\nKod zaproszenia: {}\n\n1. Pobierz aplikację:\n📱 Android: {}\n{}\n\n2. Po instalacji otwórz ten link lub wpisz kod ręcznie:\n{}",
   "td_share_link": "Udostępnij link",
   "td_admin_hint": "Raporty Twojego zespołu — pojawiają się tu wszystkie raporty wysłane przez Twoich techników.",
 
@@ -1343,5 +1343,7 @@
   "td_cancel_request": "Anuluj moją prośbę",
   "td_left_team": "Opuszczono zespół.",
   "photo_access_denied": "Odmówiono dostępu do zdjęć lub aparatu. Zezwól na niego w ustawieniach telefonu.",
-  "tax_rate_invalid": "Stawka od 0 do 100%"
+  "tax_rate_invalid": "Stawka od 0 do 100%",
+  "app_brand": "Raport serwisowy AI",
+  "common_link_failed": "Nie udało się otworzyć linku."
 }

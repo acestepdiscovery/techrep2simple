@@ -63,7 +63,7 @@
   "onboarding_step3_body": "Dite o relatório em voz alta ou fotografe um formulário em papel. A IA preenche os campos por si. (Funcionalidade Pro)",
   "onboarding_start": "Começar",
   "welcome_note_title": "Uma app que se adapta a si",
-  "welcome_note_body1": "Desenvolvemos a Compte Rendu Technique IA lado a lado com profissionais no terreno. Falta-lhe um campo? Precisa de um formato de PDF específico para a sua atividade? Escreva-nos: adaptamos a app ao seu negócio.",
+  "welcome_note_body1": "Desenvolvemos a Relatório de Intervenção IA lado a lado com profissionais no terreno. Falta-lhe um campo? Precisa de um formato de PDF específico para a sua atividade? Escreva-nos: adaptamos a app ao seu negócio.",
   "welcome_note_body2": "Somos uma equipa rápida e atenta: cada comentário seu orienta diretamente as próximas atualizações. A sua opinião conta — a sério.",
 
   "gate_block_default_reason": "Utilização não conforme com os termos de utilização.",
@@ -614,7 +614,7 @@
   "td_comment_for_tech": "Comentário para o técnico (opcional):",
   "td_reject_hint": "Ex.: falta a assinatura do cliente...",
   "td_return": "Devolver",
-  "td_invite_share_text": "Junte-se a {} na Compte Rendu Technique IA!\nCódigo de convite: {}",
+  "td_invite_share_text": "Junte-se a {} na Relatório de Intervenção IA!\nCódigo de convite: {}",
   "td_invite_share_my_team": "a minha equipa «{}»",
   "td_invite_share_our_team": "a nossa equipa",
   "td_invite_to_team": "Convidar para a equipa",
@@ -695,8 +695,8 @@
   "td_view_validation_pdf": "Ver o relatório de aprovação (PDF)",
   "td_validation_pdf_note": "Pré-visualização fiel dos metadados enviados pelo técnico. As fotos ficam no dispositivo do técnico (não são transmitidas) — aparecem como espaços reservados no PDF. Use os botões +/− para ampliar a pré-visualização.",
   "td_invite_ios_line": "🍎 iOS: {}",
-  "td_invite_ios_fallback": "🍎 iOS: procure «Compte Rendu Technique IA» na App Store",
-  "td_invite_full_share": "Junte-se a {} na Compte Rendu Technique IA!\nCódigo de convite: {}\n\n1. Descarregue a app:\n📱 Android: {}\n{}\n\n2. Depois de instalada, abra este link ou introduza o código manualmente:\n{}",
+  "td_invite_ios_fallback": "🍎 iOS: procure «Relatório de Intervenção IA» na App Store",
+  "td_invite_full_share": "Junte-se a {} na Relatório de Intervenção IA!\nCódigo de convite: {}\n\n1. Descarregue a app:\n📱 Android: {}\n{}\n\n2. Depois de instalada, abra este link ou introduza o código manualmente:\n{}",
   "td_share_link": "Partilhar o link",
   "td_admin_hint": "Relatórios da sua equipa — todos os relatórios submetidos pelos seus técnicos aparecem aqui.",
 
@@ -1337,5 +1337,7 @@
   "td_cancel_request": "Cancelar o meu pedido",
   "td_left_team": "Saiu da equipa.",
   "photo_access_denied": "Acesso às fotos ou à câmara recusado. Autorize-o nas definições do telemóvel.",
-  "tax_rate_invalid": "Taxa entre 0 e 100 %"
+  "tax_rate_invalid": "Taxa entre 0 e 100 %",
+  "app_brand": "Relatório de Intervenção IA",
+  "common_link_failed": "Não foi possível abrir a ligação."
 }

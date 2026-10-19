@@ -596,7 +596,9 @@ class PdfService {
         child: pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text('Compte Rendu Technique IA',
+            // (2026-10-19) Nom de l'app DANS la langue (comme sur les stores) :
+            // avant, « Compte Rendu Technique IA » en français sur tous les PDF.
+            pw.Text('app_brand'.tr(),
                 style: const pw.TextStyle(
                     color: _grey, fontSize: 8)),
             pw.Text(

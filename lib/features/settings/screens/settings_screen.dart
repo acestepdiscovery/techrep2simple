@@ -53,7 +53,7 @@ Future<void> _openLegal(BuildContext context, String url) async {
       mode: LaunchMode.externalApplication);
   if (!ok && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Impossible d'ouvrir le lien.")),
+      SnackBar(content: Text('common_link_failed'.tr())),
     );
   }
 }

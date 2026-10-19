@@ -2242,6 +2242,10 @@ class _InviteCodeCardState extends State<_InviteCodeCard> {
 
   static const _fallbackAndroid =
       'https://play.google.com/store/apps/details?id=com.tec.reportnew1cld';
+  // (2026-10-19) Lien App Store direct (id public 6777192500) : avant, sans lien
+  // configuré, le message disait de chercher « Compte Rendu Technique IA » — or
+  // l'app s'appelle autrement sur l'App Store → introuvable pour l'invité.
+  static const _fallbackIos = 'https://apps.apple.com/app/id6777192500';
 
   @override
   void initState() {
@@ -2265,10 +2269,8 @@ class _InviteCodeCardState extends State<_InviteCodeCard> {
     final android = _storeUrlAndroid ?? _fallbackAndroid;
     final iosUrl = _storeUrlIos != null && _storeUrlIos!.isNotEmpty
         ? _storeUrlIos!
-        : null;
-    final iosLine = iosUrl != null
-        ? 'td_invite_ios_line'.tr(args: [iosUrl])
-        : 'td_invite_ios_fallback'.tr();
+        : _fallbackIos;
+    final iosLine = 'td_invite_ios_line'.tr(args: [iosUrl]);
     final teamLabel = widget.companyName != null
         ? 'td_invite_share_my_team'.tr(args: [widget.companyName!])
         : 'td_invite_share_our_team'.tr();

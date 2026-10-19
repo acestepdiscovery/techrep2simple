@@ -375,7 +375,8 @@ class _TechReportAppState extends ConsumerState<TechReportApp>
     });
 
     return MaterialApp.router(
-      title: 'Compte Rendu Technique IA',
+      // (2026-10-19) Nom (écran des apps récentes Android) dans la langue.
+      onGenerateTitle: (_) => 'app_brand'.tr(),
       theme: AppTheme.light,
       routerConfig: _router,
       debugShowCheckedModeBanner: false,

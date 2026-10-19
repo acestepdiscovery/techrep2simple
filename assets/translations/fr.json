@@ -63,7 +63,7 @@
   "onboarding_step3_body": "Dictez votre rapport à voix haute ou photographiez un formulaire papier. L'IA remplit les champs pour vous. (Fonctionnalité Pro)",
   "onboarding_start": "Commencer",
   "welcome_note_title": "Une application qui s'adapte à vous",
-  "welcome_note_body1": "Nous concevons Compte Rendu Technique IA main dans la main avec des professionnels du terrain. Il vous manque un champ ? Vous avez besoin d'un format de PDF particulier pour votre métier ? Écrivez-nous : nous adaptons l'application à votre activité.",
+  "welcome_note_body1": "Nous concevons Rapport Technique IA main dans la main avec des professionnels du terrain. Il vous manque un champ ? Vous avez besoin d'un format de PDF particulier pour votre métier ? Écrivez-nous : nous adaptons l'application à votre activité.",
   "welcome_note_body2": "Nous sommes une équipe réactive et à l'écoute : chacun de vos retours oriente directement nos prochaines mises à jour. Votre avis compte — vraiment.",
 
   "gate_block_default_reason": "Usage non conforme aux conditions d'utilisation.",
@@ -614,7 +614,7 @@
   "td_comment_for_tech": "Commentaire pour le technicien (optionnel) :",
   "td_reject_hint": "Ex : Signature client manquante...",
   "td_return": "Retourner",
-  "td_invite_share_text": "Rejoignez {} sur Compte Rendu Technique IA !\nCode d'invitation : {}",
+  "td_invite_share_text": "Rejoignez {} sur Rapport Technique IA !\nCode d'invitation : {}",
   "td_invite_share_my_team": "mon équipe « {} »",
   "td_invite_share_our_team": "notre équipe",
   "td_invite_to_team": "Inviter dans l'équipe",
@@ -695,8 +695,8 @@
   "td_view_validation_pdf": "Voir le rapport de validation (PDF)",
   "td_validation_pdf_note": "Aperçu fidèle des métadonnées soumises par le technicien. Les photos restent sur son appareil (non transmises) — elles apparaissent en emplacements réservés dans le PDF. Utilisez les boutons +/− pour zoomer dans l'aperçu.",
   "td_invite_ios_line": "🍎 iOS : {}",
-  "td_invite_ios_fallback": "🍎 iOS : cherchez « Compte Rendu Technique IA » sur l'App Store",
-  "td_invite_full_share": "Rejoignez {} sur Compte Rendu Technique IA !\nCode d'invitation : {}\n\n1. Téléchargez l'app :\n📱 Android : {}\n{}\n\n2. Une fois installée, ouvrez ce lien ou entrez le code manuellement :\n{}",
+  "td_invite_ios_fallback": "🍎 iOS : cherchez « Rapport Technique IA » sur l'App Store",
+  "td_invite_full_share": "Rejoignez {} sur Rapport Technique IA !\nCode d'invitation : {}\n\n1. Téléchargez l'app :\n📱 Android : {}\n{}\n\n2. Une fois installée, ouvrez ce lien ou entrez le code manuellement :\n{}",
   "td_share_link": "Partager le lien",
   "td_admin_hint": "Rapports de votre équipe — tous les rapports soumis par vos techniciens apparaissent ici.",
 
@@ -1337,5 +1337,7 @@
   "td_cancel_request": "Annuler ma demande",
   "td_left_team": "Vous avez quitté l'équipe.",
   "photo_access_denied": "Accès aux photos ou à l'appareil photo refusé. Autorisez-le dans les réglages du téléphone.",
-  "tax_rate_invalid": "Taux entre 0 et 100 %"
+  "tax_rate_invalid": "Taux entre 0 et 100 %",
+  "app_brand": "Rapport Technique IA",
+  "common_link_failed": "Impossible d'ouvrir le lien."
 }

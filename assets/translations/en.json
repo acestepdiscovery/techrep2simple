@@ -63,7 +63,7 @@
   "onboarding_step3_body": "Dictate your report out loud or photograph a paper form. AI fills in the fields for you. (Pro feature)",
   "onboarding_start": "Get started",
   "welcome_note_title": "An app that adapts to you",
-  "welcome_note_body1": "We design Compte Rendu Technique IA hand in hand with field professionals. Missing a field? Need a specific PDF format for your trade? Write to us: we adapt the app to your business.",
+  "welcome_note_body1": "We design Service Report AI hand in hand with field professionals. Missing a field? Need a specific PDF format for your trade? Write to us: we adapt the app to your business.",
   "welcome_note_body2": "We're a responsive team that listens: each piece of feedback directly shapes our next updates. Your opinion matters — truly.",
 
   "gate_block_default_reason": "Use that does not comply with the terms of service.",
@@ -614,7 +614,7 @@
   "td_comment_for_tech": "Comment for the technician (optional):",
   "td_reject_hint": "E.g. Missing client signature...",
   "td_return": "Return",
-  "td_invite_share_text": "Join {} on Compte Rendu Technique IA!\nInvitation code: {}",
+  "td_invite_share_text": "Join {} on Service Report AI!\nInvitation code: {}",
   "td_invite_share_my_team": "my team « {} »",
   "td_invite_share_our_team": "our team",
   "td_invite_to_team": "Invite to the team",
@@ -695,8 +695,8 @@
   "td_view_validation_pdf": "View the validation report (PDF)",
   "td_validation_pdf_note": "Faithful preview of the metadata submitted by the technician. Photos stay on their device (not transmitted) — they appear as reserved placeholders in the PDF. Use the +/− buttons to zoom in the preview.",
   "td_invite_ios_line": "🍎 iOS: {}",
-  "td_invite_ios_fallback": "🍎 iOS: search « Compte Rendu Technique IA » on the App Store",
-  "td_invite_full_share": "Join {} on Compte Rendu Technique IA!\nInvitation code: {}\n\n1. Download the app:\n📱 Android: {}\n{}\n\n2. Once installed, open this link or enter the code manually:\n{}",
+  "td_invite_ios_fallback": "🍎 iOS: search « Service Report AI » on the App Store",
+  "td_invite_full_share": "Join {} on Service Report AI!\nInvitation code: {}\n\n1. Download the app:\n📱 Android: {}\n{}\n\n2. Once installed, open this link or enter the code manually:\n{}",
   "td_share_link": "Share the link",
   "td_admin_hint": "Your team's reports — all reports submitted by your technicians appear here.",
 
@@ -1337,5 +1337,7 @@
   "td_cancel_request": "Cancel my request",
   "td_left_team": "You left the team.",
   "photo_access_denied": "Access to photos or the camera was denied. Allow it in your phone settings.",
-  "tax_rate_invalid": "Rate between 0 and 100%"
+  "tax_rate_invalid": "Rate between 0 and 100%",
+  "app_brand": "Service Report AI",
+  "common_link_failed": "Couldn't open the link."
 }

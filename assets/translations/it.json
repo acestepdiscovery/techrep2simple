@@ -63,7 +63,7 @@
   "onboarding_step3_body": "Detta il rapporto a voce o fotografa un modulo cartaceo. L'IA compila i campi per te. (Funzione Pro)",
   "onboarding_start": "Inizia",
   "welcome_note_title": "Un'app che si adatta a te",
-  "welcome_note_body1": "Sviluppiamo Compte Rendu Technique IA fianco a fianco con i professionisti sul campo. Ti manca un campo? Ti serve un formato PDF particolare per il tuo mestiere? Scrivici: adattiamo l'app alla tua attività.",
+  "welcome_note_body1": "Sviluppiamo Rapportino di Intervento IA fianco a fianco con i professionisti sul campo. Ti manca un campo? Ti serve un formato PDF particolare per il tuo mestiere? Scrivici: adattiamo l'app alla tua attività.",
   "welcome_note_body2": "Siamo un team reattivo e attento: ogni tuo feedback orienta direttamente i prossimi aggiornamenti. La tua opinione conta — davvero.",
 
   "gate_block_default_reason": "Utilizzo non conforme alle condizioni d'uso.",
@@ -614,7 +614,7 @@
   "td_comment_for_tech": "Commento per il tecnico (facoltativo):",
   "td_reject_hint": "Es.: manca la firma del cliente...",
   "td_return": "Rimanda",
-  "td_invite_share_text": "Unisciti a {} su Compte Rendu Technique IA!\nCodice d'invito: {}",
+  "td_invite_share_text": "Unisciti a {} su Rapportino di Intervento IA!\nCodice d'invito: {}",
   "td_invite_share_my_team": "il mio team «{}»",
   "td_invite_share_our_team": "il nostro team",
   "td_invite_to_team": "Invita nel team",
@@ -695,8 +695,8 @@
   "td_view_validation_pdf": "Vedi il rapporto di approvazione (PDF)",
   "td_validation_pdf_note": "Anteprima fedele dei metadati inviati dal tecnico. Le foto restano sul suo dispositivo (non trasmesse) — compaiono come spazi riservati nel PDF. Usa i pulsanti +/− per ingrandire l'anteprima.",
   "td_invite_ios_line": "🍎 iOS: {}",
-  "td_invite_ios_fallback": "🍎 iOS: cerca «Compte Rendu Technique IA» sull'App Store",
-  "td_invite_full_share": "Unisciti a {} su Compte Rendu Technique IA!\nCodice d'invito: {}\n\n1. Scarica l'app:\n📱 Android: {}\n{}\n\n2. Una volta installata, apri questo link o inserisci il codice manualmente:\n{}",
+  "td_invite_ios_fallback": "🍎 iOS: cerca «Rapportino di Intervento IA» sull'App Store",
+  "td_invite_full_share": "Unisciti a {} su Rapportino di Intervento IA!\nCodice d'invito: {}\n\n1. Scarica l'app:\n📱 Android: {}\n{}\n\n2. Una volta installata, apri questo link o inserisci il codice manualmente:\n{}",
   "td_share_link": "Condividi il link",
   "td_admin_hint": "Rapporti del tuo team — qui compaiono tutti i rapporti inviati dai tuoi tecnici.",
 
@@ -1337,5 +1337,7 @@
   "td_cancel_request": "Annulla la mia richiesta",
   "td_left_team": "Hai lasciato il team.",
   "photo_access_denied": "Accesso alle foto o alla fotocamera negato. Consentilo nelle impostazioni del telefono.",
-  "tax_rate_invalid": "Aliquota tra 0 e 100%"
+  "tax_rate_invalid": "Aliquota tra 0 e 100%",
+  "app_brand": "Rapportino di Intervento IA",
+  "common_link_failed": "Impossibile aprire il link."
 }

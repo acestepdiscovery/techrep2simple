@@ -63,7 +63,7 @@
   "onboarding_step3_body": "Dicta tu informe en voz alta o fotografía un formulario en papel. La IA rellena los campos por ti. (Función Pro)",
   "onboarding_start": "Empezar",
   "welcome_note_title": "Una aplicación que se adapta a ti",
-  "welcome_note_body1": "Desarrollamos Compte Rendu Technique IA mano a mano con profesionales de campo. ¿Te falta un campo? ¿Necesitas un formato de PDF concreto para tu oficio? Escríbenos: adaptamos la aplicación a tu actividad.",
+  "welcome_note_body1": "Desarrollamos Parte de Trabajo IA mano a mano con profesionales de campo. ¿Te falta un campo? ¿Necesitas un formato de PDF concreto para tu oficio? Escríbenos: adaptamos la aplicación a tu actividad.",
   "welcome_note_body2": "Somos un equipo ágil y atento: cada comentario tuyo orienta directamente nuestras próximas actualizaciones. Tu opinión cuenta, de verdad.",
 
   "gate_block_default_reason": "Uso no conforme con las condiciones de uso.",
@@ -614,7 +614,7 @@
   "td_comment_for_tech": "Comentario para el técnico (opcional):",
   "td_reject_hint": "Ej.: Falta la firma del cliente...",
   "td_return": "Devolver",
-  "td_invite_share_text": "¡Únete a {} en Compte Rendu Technique IA!\nCódigo de invitación: {}",
+  "td_invite_share_text": "¡Únete a {} en Parte de Trabajo IA!\nCódigo de invitación: {}",
   "td_invite_share_my_team": "mi equipo « {} »",
   "td_invite_share_our_team": "nuestro equipo",
   "td_invite_to_team": "Invitar al equipo",
@@ -695,8 +695,8 @@
   "td_view_validation_pdf": "Ver el informe de validación (PDF)",
   "td_validation_pdf_note": "Vista previa fiel de los metadatos enviados por el técnico. Las fotos permanecen en su dispositivo (no se transmiten): aparecen como marcadores de posición en el PDF. Usa los botones +/− para ampliar la vista previa.",
   "td_invite_ios_line": "🍎 iOS: {}",
-  "td_invite_ios_fallback": "🍎 iOS: busca « Compte Rendu Technique IA » en la App Store",
-  "td_invite_full_share": "¡Únete a {} en Compte Rendu Technique IA!\nCódigo de invitación: {}\n\n1. Descarga la app:\n📱 Android: {}\n{}\n\n2. Una vez instalada, abre este enlace o introduce el código manualmente:\n{}",
+  "td_invite_ios_fallback": "🍎 iOS: busca « Parte de Trabajo IA » en la App Store",
+  "td_invite_full_share": "¡Únete a {} en Parte de Trabajo IA!\nCódigo de invitación: {}\n\n1. Descarga la app:\n📱 Android: {}\n{}\n\n2. Una vez instalada, abre este enlace o introduce el código manualmente:\n{}",
   "td_share_link": "Compartir el enlace",
   "td_admin_hint": "Informes de tu equipo: todos los informes enviados por tus técnicos aparecen aquí.",
 
@@ -1337,5 +1337,7 @@
   "td_cancel_request": "Cancelar mi solicitud",
   "td_left_team": "Has abandonado el equipo.",
   "photo_access_denied": "Acceso a las fotos o a la cámara denegado. Permítelo en los ajustes del teléfono.",
-  "tax_rate_invalid": "Tipo entre 0 y 100 %"
+  "tax_rate_invalid": "Tipo entre 0 y 100 %",
+  "app_brand": "Parte de Trabajo IA",
+  "common_link_failed": "No se ha podido abrir el enlace."
 }

@@ -63,7 +63,7 @@
   "onboarding_step3_body": "Spreek je werkbon in of fotografeer een papieren formulier. AI vult de velden voor je in. (Pro-functie)",
   "onboarding_start": "Beginnen",
   "welcome_note_title": "Een app die zich aan jou aanpast",
-  "welcome_note_body1": "We ontwikkelen Compte Rendu Technique IA samen met vakmensen uit de praktijk. Mis je een veld? Heb je een speciaal pdf-formaat nodig voor je vak? Schrijf ons: we passen de app aan jouw bedrijf aan.",
+  "welcome_note_body1": "We ontwikkelen Werkbon AI samen met vakmensen uit de praktijk. Mis je een veld? Heb je een speciaal pdf-formaat nodig voor je vak? Schrijf ons: we passen de app aan jouw bedrijf aan.",
   "welcome_note_body2": "We zijn een snel en betrokken team: elke reactie van jou bepaalt direct onze volgende updates. Jouw mening telt — echt.",
 
   "gate_block_default_reason": "Gebruik in strijd met de gebruiksvoorwaarden.",
@@ -614,7 +614,7 @@
   "td_comment_for_tech": "Opmerking voor de monteur (optioneel):",
   "td_reject_hint": "Bijv.: handtekening van de klant ontbreekt...",
   "td_return": "Terugsturen",
-  "td_invite_share_text": "Word lid van {} op Compte Rendu Technique IA!\nUitnodigingscode: {}",
+  "td_invite_share_text": "Word lid van {} op Werkbon AI!\nUitnodigingscode: {}",
   "td_invite_share_my_team": "mijn team ‘{}’",
   "td_invite_share_our_team": "ons team",
   "td_invite_to_team": "Uitnodigen voor het team",
@@ -695,8 +695,8 @@
   "td_view_validation_pdf": "Goedkeuringsrapport bekijken (pdf)",
   "td_validation_pdf_note": "Getrouw voorbeeld van de metadata die de monteur heeft ingediend. De foto's blijven op zijn of haar toestel (niet verzonden) — ze verschijnen als gereserveerde vakken in de pdf. Gebruik de knoppen +/− om in te zoomen.",
   "td_invite_ios_line": "🍎 iOS: {}",
-  "td_invite_ios_fallback": "🍎 iOS: zoek ‘Compte Rendu Technique IA’ in de App Store",
-  "td_invite_full_share": "Word lid van {} op Compte Rendu Technique IA!\nUitnodigingscode: {}\n\n1. Download de app:\n📱 Android: {}\n{}\n\n2. Open na installatie deze link of voer de code handmatig in:\n{}",
+  "td_invite_ios_fallback": "🍎 iOS: zoek ‘Werkbon AI’ in de App Store",
+  "td_invite_full_share": "Word lid van {} op Werkbon AI!\nUitnodigingscode: {}\n\n1. Download de app:\n📱 Android: {}\n{}\n\n2. Open na installatie deze link of voer de code handmatig in:\n{}",
   "td_share_link": "Link delen",
   "td_admin_hint": "Werkbonnen van je team — alle werkbonnen die je monteurs indienen, verschijnen hier.",
 
@@ -1337,5 +1337,7 @@
   "td_cancel_request": "Mijn verzoek annuleren",
   "td_left_team": "Je hebt het team verlaten.",
   "photo_access_denied": "Toegang tot foto's of camera geweigerd. Sta het toe in de instellingen van je telefoon.",
-  "tax_rate_invalid": "Tarief tussen 0 en 100%"
+  "tax_rate_invalid": "Tarief tussen 0 en 100%",
+  "app_brand": "Werkbon AI",
+  "common_link_failed": "De link kon niet worden geopend."
 }
