@@ -73,7 +73,9 @@ class _AuthScreenState extends State<AuthScreen> {
       final ref = FirebaseFirestore.instance
           .collection('users_raptech1')
           .doc(user.uid);
-      final snap = await ref.get();
+      // (2026-10-19) Délais : sur un réseau qui pend, la connexion restait
+      // bloquée sur le rond de chargement (l'écriture attend le réseau).
+      final snap = await ref.get().timeout(const Duration(seconds: 10));
       if (!snap.exists) {
         final now = DateTime.now();
         await ref.set({
@@ -91,12 +93,12 @@ class _AuthScreenState extends State<AuthScreen> {
           'marketing_consent_at':
               _marketing ? FieldValue.serverTimestamp() : null,
           'created_at': FieldValue.serverTimestamp(),
-        });
+        }).timeout(const Duration(seconds: 8), onTimeout: () {});
       } else {
         await ref.update({
           'email': user.email ?? '',
           'display_name': user.displayName ?? '',
-        });
+        }).timeout(const Duration(seconds: 8), onTimeout: () {});
       }
     } catch (_) {
       // Non-fatal — subscription check will create doc lazily if needed
@@ -143,7 +145,8 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _resetPassword() async {
-    if (_email.text.trim().isEmpty) {
+    // (2026-10-19) Même nettoyage que la connexion (espaces invisibles collés).
+    if (_cleanEmail.isEmpty) {
       setState(() {
         _error = 'auth_reset_need_email'.tr();
       });
@@ -151,7 +154,7 @@ class _AuthScreenState extends State<AuthScreen> {
     }
     try {
       await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: _email.text.trim());
+          .sendPasswordResetEmail(email: _cleanEmail);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('auth_reset_sent'.tr())),

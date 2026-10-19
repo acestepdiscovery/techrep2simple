@@ -99,6 +99,19 @@ describe('✅ ce que fait l\'app', () => {
     await assertSucceeds(deleteDoc(doc(db, 'users_raptech1/u1')));
   });
 
+  test('inscription : fiche créée par l\'écran de connexion, puis mise à jour', async () => {
+    const db = as('newacc');
+    // Exactement ce qu'écrit _ensureUserDoc (auth_screen.dart).
+    await assertSucceeds(setDoc(doc(db, 'users_raptech1/newacc'), {
+      subscription_tier: 'free', subscription_platform: null, subscription_expires_at: null,
+      monthly_exports_used: 0, monthly_exports_reset: new Date(2026, 9, 1),
+      email: 'n@x.fr', display_name: 'N', auth_provider: 'email',
+      marketing_consent: false, marketing_consent_at: null, created_at: serverTimestamp(),
+    }));
+    await assertSucceeds(updateDoc(doc(db, 'users_raptech1/newacc'),
+      { email: 'n2@x.fr', display_name: 'N2' }));
+  });
+
   test('compteur d\'exports gratuits du compte', async () => {
     const db = as('u1');
     await assertSucceeds(setDoc(doc(db, 'quota_raptech1/u1'),
