@@ -25,7 +25,8 @@ class _ClientHistoryScreenState extends State<ClientHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _reportsFuture = LocalDbService().getReportsByClient(widget.clientId);
+    _reportsFuture = LocalDbService()
+        .getReportsByClient(widget.clientId, clientName: widget.clientName);
   }
 
   @override

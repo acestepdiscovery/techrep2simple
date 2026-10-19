@@ -344,16 +344,31 @@ class LocalDbService {
     return maps.map(ReportModel.fromMap).toList();
   }
 
-  Future<List<ReportModel>> getReportsByClient(String clientId) async {
+  /// (2026-10-19) + les rapports SANS lien dont le nom de client est le même
+  /// (nom tapé à la main au lieu de choisir dans l'annuaire) : avant, ils
+  /// n'apparaissaient jamais dans l'historique du client.
+  Future<List<ReportModel>> getReportsByClient(String clientId,
+      {String? clientName}) async {
+    final name = (clientName ?? '').trim().toLowerCase();
     if (kIsWeb) {
       return _webReports
-          .where((r) => r['client_id'] == clientId)
+          .where((r) =>
+              r['client_id'] == clientId ||
+              (name.isNotEmpty &&
+                  r['client_id'] == null &&
+                  (r['client_name'] ?? '').toString().trim().toLowerCase() == name))
           .map(ReportModel.fromMap)
           .toList();
     }
     final database = await db;
-    final maps = await database.query('reports',
-        where: 'client_id = ?', whereArgs: [clientId], orderBy: 'updated_at DESC');
+    final maps = name.isEmpty
+        ? await database.query('reports',
+            where: 'client_id = ?', whereArgs: [clientId], orderBy: 'updated_at DESC')
+        : await database.query('reports',
+            where: "client_id = ? OR ((client_id IS NULL OR client_id = '') "
+                'AND LOWER(TRIM(client_name)) = ?)',
+            whereArgs: [clientId, name],
+            orderBy: 'updated_at DESC');
     return maps.map(ReportModel.fromMap).toList();
   }
 

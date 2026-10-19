@@ -1150,6 +1150,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       updatedAt: now,
     );
     await ref.read(clientsProvider.notifier).saveClient(client);
+    // (2026-10-19) Le rapport est rattaché au client créé : avant, il restait
+    // sans lien → l'historique de ce client n'affichait pas ce rapport.
+    if (mounted) setState(() => _clientId = client.id);
+    _scheduleAutoSave();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
