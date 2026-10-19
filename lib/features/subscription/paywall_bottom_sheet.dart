@@ -89,9 +89,12 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
   // vienne d'un nouvel abonné (effectiveSubscription transitionne false→true) ou
   // d'un user DÉJÀ Pro qui ajoute un abo (pas de transition → signal purchaseSuccess).
   bool _closed = false;
+  // (2026-10-19) Seulement après un achat lancé ICI : sinon un abonnement qui
+  // finissait de se charger fermait la feuille avec « Pro activé » à tort.
+  bool _buyStarted = false;
   void _onPurchaseSuccess() => _closeWithSuccess();
   void _closeWithSuccess() {
-    if (_closed || !mounted) return;
+    if (_closed || !mounted || !_buyStarted) return;
     _closed = true;
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
@@ -145,6 +148,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
       if (mounted) await InstanceTokenGuard.showBlockedDialog(context, tokenMsg);
       return;
     }
+    _buyStarted = true;
     await _iap.buy(product, companyId: companyId);
     // Success → CF writes `subscription` → effectiveSubscriptionProvider flips →
     // the listener below closes the sheet. Errors surface via _iap.lastError.
@@ -185,7 +189,8 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
     final isNonAdminMember = hasTeam && !isAdmin;
     final companySub = ref.watch(companySubscriptionProvider).valueOrNull;
     final companyActive = companySub.isActive;
-    final companySeatLimit = (companySub?['seat_limit'] as int?) ?? 0;
+    // (2026-10-19) `num` : « 5.0 » faisait planter l'écran d'abonnement.
+    final companySeatLimit = (companySub?['seat_limit'] as num?)?.toInt() ?? 0;
     // (déjà abonné solo) Produit solo perso actuellement actif → on le marque
     // « Actif » et on indique qu'on peut CHANGER d'offre (sans bloquer).
     final userSub = ref.watch(subscriptionProvider).valueOrNull;
@@ -365,9 +370,11 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                               icon: Icons.group_outlined,
                               label: p.displayLabel,
                               // Prix par siège calculé depuis le prix RÉEL du store
-                              // (devise de l'utilisateur) ; repli euros sinon.
+                              // (devise de l'utilisateur). (2026-10-19) « — » tant
+                              // que le store n'a pas répondu (avant : « 3,00 € »
+                              // en euros, même pour un Polonais hors ligne).
                               subtitle: 'iap_per_seat'.tr(
-                                  args: [_iap.perSeatPrice(p) ?? p.subtitle]),
+                                  args: [_iap.perSeatPrice(p) ?? '—']),
                               price: _iap.priceLabel(p.id),
                               selected: _selectedTeamId == p.id,
                               onTap: () =>
@@ -518,7 +525,12 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                     const SizedBox(height: 12),
                     // Mandatory "Restore purchases" (Apple Review 3.1.1).
                     TextButton.icon(
-                      onPressed: busy ? null : () => _iap.restore(),
+                      onPressed: busy
+                          ? null
+                          : () {
+                              _buyStarted = true; // restaurer = aussi « devenir Pro »
+                              _iap.restore();
+                            },
                       icon: const Icon(Icons.restore, size: 16),
                       label: Text('pw_restore'.tr()),
                     ),
@@ -982,10 +994,12 @@ class _NoTeamInfoCard extends ConsumerWidget {
                       fontSize: 14)),
             ],
           ),
-          const SizedBox(height: 4),
-          Text('pw_team_from_price'.tr(args: [
-                  IapService.instance.storePrice('team_upto_2') ?? '5,99 €']),
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+          // (2026-10-19) Prix du store seulement (avant : « 5,99 € » en dur).
+          if (IapService.instance.storePrice('team_upto_2') case final price?) ...[
+            const SizedBox(height: 4),
+            Text('pw_team_from_price'.tr(args: [price]),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+          ],
           const SizedBox(height: 10),
           Text(
             'pw_no_team_desc'.tr(),

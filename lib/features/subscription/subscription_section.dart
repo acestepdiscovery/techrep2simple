@@ -42,14 +42,25 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
     try {
       final user = ref.read(firebaseUserProvider).valueOrNull;
       if (user == null) return;
-      // Force a Firestore read — the stream will update automatically
-      final doc = await FirebaseFirestore.instance
-          .collection('users_raptech1')
-          .doc(user.uid)
-          .get();
-      final sub = doc.data()?['subscription'] as Map<String, dynamic>?;
+      // (2026-10-19) 1) Vraie restauration auprès du STORE (exigée par Apple) :
+      // le store renvoie les achats → validés par le serveur. Avant, on relisait
+      // seulement la base. 2) Puis relecture de l'abonnement (même règle que
+      // partout : « à vie » compris — avant : « aucun abonnement » aux clients à vie).
+      await IapService.instance.restore();
+      await Future<void>.delayed(const Duration(seconds: 2));
+      Map<String, dynamic>? sub;
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users_raptech1')
+            .doc(user.uid)
+            .get()
+            .timeout(const Duration(seconds: 10));
+        sub = doc.data()?['subscription'] as Map<String, dynamic>?;
+      } catch (_) {
+        sub = ref.read(subscriptionProvider).valueOrNull; // hors ligne : cache
+      }
       if (!mounted) return;
-      if (sub != null && sub['status'] == 'active') {
+      if (sub.isActive) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('ss_restored'.tr()),
@@ -582,7 +593,10 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
     final companySub = companySubAsync.valueOrNull;
     // Flags RÉELS (pour les cross-sells) + flags SCOPÉS (pour l'affichage selon
     // l'onglet : Réglages = solo, onglet Équipe = équipe).
-    final realCompanyActive = companySub.isActive;
+    // (2026-10-19) Sièges à VIE (code cadeau) sans abonnement = équipe Pro aussi
+    // (comme partout ailleurs) ; avant, cette section l'affichait « gratuite ».
+    final lifetimeSeats = ref.watch(companyLifetimeSeatsProvider).valueOrNull ?? 0;
+    final realCompanyActive = companySub.isActive || lifetimeSeats > 0;
     final realPersonalActive = userSub.isActive;
     final isCompanyActive = realCompanyActive && widget.scope == SubScope.team;
     final isPersonalActive =
@@ -611,24 +625,28 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
     // Abonnement actif — company prend priorité sur perso
     final activeSub = isCompanyActive ? companySub : userSub;
     final isCompany = isCompanyActive;
-    final label = isCompany ? 'ss_team_prefix'.tr(args: [activeSub.planLabel]) : activeSub.planLabel;
+    final seatsOnly = isCompany && !companySub.isActive; // sièges à vie seuls
+    final label = isCompany
+        ? 'ss_team_prefix'.tr(
+            args: [seatsOnly ? 'plan_team_lifetime'.tr() : activeSub.planLabel])
+        : activeSub.planLabel;
     final end = activeSub.periodEnd;
-    final isLifetime = activeSub.isLifetime;
+    final isLifetime = seatsOnly || activeSub.isLifetime;
     final canManage = !isCompany
         ? activeSub.isRecurring
         : (team?.isAdmin ?? false) && activeSub.isRecurring;
 
     String statusText = label;
     if (!isLifetime && end != null) {
-      final d = end.day.toString().padLeft(2, '0');
-      final m = end.month.toString().padLeft(2, '0');
+      // (2026-10-19) Date au format du pays (avant : toujours JJ/MM/AAAA).
+      final date = DateFormat.yMd().format(end);
       // (annulation) Si le renouvellement auto est coupé (flag écrit par la CF sur
       // la notif store CANCELED), on affiche « expire le… » au lieu de
       // « renouvellement le… » — l'accès reste actif jusqu'à cette date.
       final canceled = activeSub?['cancel_at_period_end'] == true;
       statusText += canceled
-          ? 'ss_expires_on'.tr(args: ['$d/$m/${end.year}'])
-          : 'ss_renews_on'.tr(args: ['$d/$m/${end.year}']);
+          ? 'ss_expires_on'.tr(args: [date])
+          : 'ss_renews_on'.tr(args: [date]);
     }
     // (double Pro) On affiche l'équipe (prioritaire) MAIS l'utilisateur a AUSSI un
     // abo SOLO perso actif → on l'indique. Les deux couvrent des choses différentes :
