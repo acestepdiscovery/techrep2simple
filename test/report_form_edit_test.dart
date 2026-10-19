@@ -211,4 +211,22 @@ void main() {
         reason: 'champ libre gardé');
     await closeForm(tester);
   });
+
+  testWidgets('total de facturation recalculé pendant la saisie', (tester) async {
+    await openForm(tester, null);
+    TextEditingController ctl(String labelKey) => tester
+        .widget<TextField>(find.byWidgetPredicate((w) =>
+            w is TextField &&
+            (w.decoration?.labelText ?? '').startsWith(labelKey.tr().split('(').first.trim())))
+        .controller!;
+    ctl('cr_labor_hours').text = '2';
+    await tester.pump();
+    ctl('cr_hourly_rate').text = '45';
+    await tester.pump();
+    expect(find.textContaining(RegExp(r'90[,.]00')), findsWidgets, reason: '2 h × 45 = 90');
+    ctl('cr_hourly_rate').text = '50';
+    await tester.pump();
+    expect(find.textContaining(RegExp(r'100[,.]00')), findsWidgets, reason: 'suit la 2e saisie');
+    await closeForm(tester);
+  });
 }

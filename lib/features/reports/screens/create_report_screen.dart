@@ -1896,14 +1896,22 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                       },
                     );
                   }),
-                  if (_laborHours.text.isNotEmpty || _materials.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    _TotalPreview(
-                      hours: parseLocalNumber(_laborHours.text) ?? 0,
-                      rate: parseLocalNumber(_laborRate.text) ?? 0,
-                      materials: _materials,
-                    ),
-                  ],
+                  // (2026-10-19) Recalculé à CHAQUE frappe (heures / taux) : avant,
+                  // le total ne suivait que la 1re lettre tapée (pas de rebuild).
+                  ListenableBuilder(
+                    listenable: Listenable.merge([_laborHours, _laborRate]),
+                    builder: (context, _) =>
+                        (_laborHours.text.isNotEmpty || _materials.isNotEmpty)
+                            ? Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: _TotalPreview(
+                                  hours: parseLocalNumber(_laborHours.text) ?? 0,
+                                  rate: parseLocalNumber(_laborRate.text) ?? 0,
+                                  materials: _materials,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                  ),
                 ],
               ),
             ),
@@ -2129,10 +2137,12 @@ class _TotalPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labor = hours * rate;
+    // (2026-10-19) Mêmes arrondis que la facture (PdfService.invoiceTotals) :
+    // sinon 1 centime d'écart possible entre l'aperçu et la facture.
+    final labor = roundMoney(hours * rate);
     final matTotal =
-        materials.fold<double>(0, (acc, m) => acc + m.total);
-    final total = labor + matTotal;
+        materials.fold<double>(0, (acc, m) => acc + roundMoney(m.total));
+    final total = roundMoney(labor + matTotal);
 
     return Container(
       padding: const EdgeInsets.all(12),
