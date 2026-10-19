@@ -1110,6 +1110,14 @@ class _ImproveSheetState extends State<_ImproveSheet> {
 
 // ─── Fields preview sheet ─────────────────────────────────────────────────────
 
+String _localDate(String ddmmyyyy) {
+  final p = ddmmyyyy.trim().split('/');
+  if (p.length != 3) return ddmmyyyy;
+  final d = int.tryParse(p[0]), m = int.tryParse(p[1]), y = int.tryParse(p[2]);
+  if (d == null || m == null || y == null) return ddmmyyyy;
+  return DateFormat.yMd().format(DateTime(y, m, d));
+}
+
 class _FieldsPreviewSheet extends StatelessWidget {
   final Map<String, String> fields;
   final VoidCallback onCreateReport;
@@ -1185,7 +1193,8 @@ class _FieldsPreviewSheet extends StatelessWidget {
                               color: Colors.grey.shade500,
                               fontWeight: FontWeight.w500)),
                       const SizedBox(height: 2),
-                      Text(e.value,
+                      // (2026-10-19) Date au format du pays (l'IA répond en JJ/MM/AAAA).
+                      Text(e.key == 'date' ? _localDate(e.value) : e.value,
                           style: const TextStyle(fontSize: 14)),
                     ],
                   ),
