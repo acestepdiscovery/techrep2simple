@@ -446,11 +446,23 @@ class PdfService {
         ],
         if (photoImages.isNotEmpty) ...[
           pw.SizedBox(height: 20),
-          pw.Text('pdf_photos'.tr(),
-              style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)),
-          pw.SizedBox(height: 8),
-          ..._profPhotosGrid(photoImages),
+          // (2026-10-20) Titre + 1re rangée de photos INSÉPARABLES : avant, le
+          // titre « PHOTO(S) » pouvait rester seul en bas de page, les photos
+          // partant sur la page suivante (vu sur l'exemple « Sécurité incendie »).
+          // (Column seule = sécable entre pages ; Inseparable = bloc entier.)
+          pw.Inseparable(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('pdf_photos'.tr(),
+                    style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)),
+                pw.SizedBox(height: 8),
+                _profPhotosGrid(photoImages).first,
+              ],
+            ),
+          ),
+          ..._profPhotosGrid(photoImages).skip(1),
         ],
       ],
     ));
