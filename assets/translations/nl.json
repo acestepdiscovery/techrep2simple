@@ -774,6 +774,7 @@
   "ai_analyzing_file": "Bezig met analyseren van ‘{}’…",
   "ai_select_file": "Bestand kiezen (TXT, pdf)",
   "ai_formats_note": "Ondersteunde formaten: .txt, .pdf\nMaximale grootte: 7 MB",
+  "ai_retry_kept": "Er is niets verloren: tik nogmaals op de knop om het opnieuw te proberen.",
 
   "cl_delete_q": "Deze klant verwijderen?",
   "cl_delete_desc": "{} wordt definitief verwijderd.",

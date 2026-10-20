@@ -774,6 +774,7 @@
   "ai_analyzing_file": "A analisar «{}»…",
   "ai_select_file": "Selecionar um ficheiro (TXT, PDF)",
   "ai_formats_note": "Formatos suportados: .txt, .pdf\nTamanho máximo: 7 MB",
+  "ai_retry_kept": "Nada se perdeu: toque novamente no botão para tentar de novo.",
 
   "cl_delete_q": "Eliminar este cliente?",
   "cl_delete_desc": "O cliente {} será eliminado definitivamente.",

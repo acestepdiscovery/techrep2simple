@@ -774,6 +774,7 @@
   "ai_analyzing_file": "Analyzing « {} »…",
   "ai_select_file": "Select a file (TXT, PDF)",
   "ai_formats_note": "Supported formats: .txt, .pdf\nMaximum size: 7 MB",
+  "ai_retry_kept": "Nothing is lost: tap the button again to retry.",
 
   "cl_delete_q": "Delete this client?",
   "cl_delete_desc": "{} will be permanently deleted.",

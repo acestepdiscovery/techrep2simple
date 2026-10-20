@@ -23,6 +23,12 @@ class AiActionResult {
   bool get needsSubscription => error == 'subscription_required';
   bool get isNetworkError => error != null && error!.startsWith('network_error');
 
+  /// (2026-10-20) Échec qu'un nouvel essai peut résoudre (réseau, service IA
+  /// momentanément indisponible) — PAS quota atteint, abonnement manquant ou
+  /// compte déconnecté. Sert à garder la dictée / la photo pour réessayer.
+  bool get isRetryable =>
+      !isSuccess && !isQuotaExceeded && !needsSubscription && error != 'not_authenticated';
+
   String get errorMessage {
     if (isQuotaExceeded) return 'ai_err_quota'.tr(args: ['$used', '$quota']);
     if (needsSubscription) return 'ai_err_subscription'.tr();

@@ -443,6 +443,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
   bool _loading = false;
   bool _playing = false;
   String? _recordedPath;
+  String? _error;
   Duration _elapsed = Duration.zero;
   Timer? _timer;
   static const _kMaxRecording = Duration(minutes: 15);
@@ -497,6 +498,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
         _recording = true;
         _elapsed = Duration.zero;
         _recordedPath = null;
+        _error = null;
       });
       _timer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (!mounted) return;
@@ -514,7 +516,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
 
   Future<void> _analyse() async {
     if (_recordedPath == null || _loading) return;
-    setState(() => _loading = true);
+    setState(() { _loading = true; _error = null; });
     try {
       final bytes = await File(_recordedPath!).readAsBytes();
       final b64 = base64Encode(bytes);
@@ -524,9 +526,22 @@ class _VoiceSheetState extends State<_VoiceSheet> {
         companyId: widget.companyId,
         note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
       );
-      if (mounted) Navigator.pop(context, result);
+      if (!mounted) return;
+      // (2026-10-20) Échec réessayable (réseau, IA indisponible) : la feuille RESTE
+      // ouverte avec l'enregistrement → « Analyser » à nouveau. Avant : fermée, la
+      // dictée (jusqu'à 15 min) était perdue et il fallait tout redicter.
+      if (result.isRetryable) {
+        setState(() { _loading = false; _error = result.errorMessage; });
+        return;
+      }
+      Navigator.pop(context, result);
     } catch (e) {
-      if (mounted) Navigator.pop(context, AiActionResult(error: 'network_error: $e'));
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = AiActionResult(error: 'network_error: $e').errorMessage;
+        });
+      }
     }
   }
 
@@ -616,6 +631,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
               style: const TextStyle(fontSize: 13),
             ),
             const SizedBox(height: 16),
+            if (_error != null && !_recording) _SheetRetryError(_error!),
             if (_recordedPath != null && !_recording)
               FilledButton.icon(
                 onPressed: _loading ? null : _analyse,
@@ -655,6 +671,7 @@ class _ImageSheet extends StatefulWidget {
 class _ImageSheetState extends State<_ImageSheet> {
   XFile? _image;
   bool _loading = false;
+  String? _error;
   final _noteController = TextEditingController();
 
   @override
@@ -666,12 +683,12 @@ class _ImageSheetState extends State<_ImageSheet> {
   Future<void> _pick(ImageSource source) async {
     final picked = await pickImageSafe(context,
         source: source, imageQuality: 85, maxWidth: 1600);
-    if (picked != null && mounted) setState(() => _image = picked);
+    if (picked != null && mounted) setState(() { _image = picked; _error = null; });
   }
 
   Future<void> _analyse() async {
     if (_image == null || _loading) return;
-    setState(() => _loading = true);
+    setState(() { _loading = true; _error = null; });
     try {
       final bytes = await _image!.readAsBytes();
       final b64 = base64Encode(bytes);
@@ -684,9 +701,20 @@ class _ImageSheetState extends State<_ImageSheet> {
         companyId: widget.companyId,
         note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
       );
-      if (mounted) Navigator.pop(context, result);
+      if (!mounted) return;
+      // (2026-10-20) Échec réessayable : la feuille reste ouverte avec la photo.
+      if (result.isRetryable) {
+        setState(() { _loading = false; _error = result.errorMessage; });
+        return;
+      }
+      Navigator.pop(context, result);
     } catch (e) {
-      if (mounted) Navigator.pop(context, AiActionResult(error: 'network_error: $e'));
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = AiActionResult(error: 'network_error: $e').errorMessage;
+        });
+      }
     }
   }
 
@@ -777,6 +805,7 @@ class _ImageSheetState extends State<_ImageSheet> {
               style: const TextStyle(fontSize: 13),
             ),
             const SizedBox(height: 12),
+            if (_error != null) _SheetRetryError(_error!),
             FilledButton.icon(
               onPressed: _loading ? null : _analyse,
               icon: _loading
@@ -1235,6 +1264,30 @@ class _FieldsPreviewSheet extends StatelessWidget {
 }
 
 // ─── Shared widgets ───────────────────────────────────────────────────────────
+
+/// (2026-10-20) Erreur affichée DANS la feuille (dictée / photo conservée) +
+/// « Rien n'est perdu : appuyez à nouveau pour réessayer ».
+class _SheetRetryError extends StatelessWidget {
+  final String message;
+  const _SheetRetryError(this.message);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Text('$message\n${'ai_retry_kept'.tr()}',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.red.shade800, fontSize: 13)),
+    );
+  }
+}
 
 class _SheetHandle extends StatelessWidget {
   const _SheetHandle();
