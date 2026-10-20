@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:image_picker/image_picker.dart' show XFile;
 
 import 'currency_options.dart';
 import 'report_model.dart';
@@ -22,6 +23,18 @@ class SampleReports {
     SectorTemplate.btp,
     SectorTemplate.transport,
   ];
+
+  /// (2026-10-20) 2 photos par métier (vue générale + détail) : images
+  /// FICTIVES générées par IA (fournies par le user), JPEG 1024×768 ≈ 100 Ko
+  /// (14 photos ≈ 1,4 Mo dans l'app). Sources : tool/sample_photos_sources.txt.
+  static Future<List<XFile>> photos(SectorTemplate s) async => [
+        for (final i in [1, 2])
+          XFile.fromData(
+            (await rootBundle.load('assets/samples/photo_${s.name}_$i.jpg')).buffer.asUint8List(),
+            mimeType: 'image/jpeg',
+            name: 'photo_${s.name}_$i.jpg',
+          ),
+      ];
 
   static Future<String> _asset(String name) async =>
       base64Encode((await rootBundle.load('assets/samples/$name')).buffer.asUint8List());

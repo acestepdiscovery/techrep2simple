@@ -61,6 +61,8 @@ Future<void> showSampleReports(BuildContext context) async {
     if (!context.mounted) return;
     final bytes = await PdfService().generateReport(
       report,
+      // (2026-10-20) Photos d'exemple (vue générale + détail).
+      photos: await SampleReports.photos(sector),
       companyName: 'ex_company'.tr(),
       technicianName: 'ex_technician'.tr(),
       pdfTemplate: settings['pdf_template'] ?? 'professionnel',

@@ -44,8 +44,10 @@ void main() {
         }
         expect(r.signatureClientData, isNotEmpty);
         final missing = <String>{};
+        final photos = await SampleReports.photos(s);
         final bytes = await runZoned(
           () => PdfService().generateReport(r,
+              photos: photos,
               companyName: 'ex_company'.tr(),
               technicianName: 'ex_technician'.tr(),
               pdfTemplate: s.index.isEven ? 'professionnel' : 'simple',
@@ -60,6 +62,15 @@ void main() {
         if (dump != null && dump.isNotEmpty) {
           Directory(dump).createSync(recursive: true);
           File('$dump/ex_${lang}_${s.name}.pdf').writeAsBytesSync(bytes);
+        }
+      }
+      // (2026-10-20) 2 photos par métier, légères (l'app reste petite).
+      for (final s in SampleReports.sectors) {
+        final p = await SampleReports.photos(s);
+        expect(p, hasLength(2), reason: s.name);
+        for (final x in p) {
+          final n = (await x.readAsBytes()).length;
+          expect(n, inInclusiveRange(20 * 1024, 220 * 1024), reason: '${x.name} : $n octets');
         }
       }
       // Point de départ : métier + type, rien de fictif dans le client.
