@@ -1,5 +1,15 @@
 import '../reports/models/currency_options.dart';
 
+/// (2026-10-20) Champs extraits par l'IA, non vides, dans l'ordre [order] (celui du
+/// formulaire) ; les clés inconnues à la fin. L'IA renvoie les clés par ordre
+/// alphabétique (Adresse, Client, Description, Fin…), peu lisible.
+List<MapEntry<String, String>> orderedAiFields(Map<String, String> fields, List<String> order) => [
+      for (final k in order)
+        if ((fields[k] ?? '').trim().isNotEmpty) MapEntry(k, fields[k]!),
+      for (final e in fields.entries)
+        if (!order.contains(e.key) && e.value.trim().isNotEmpty) e,
+    ];
+
 /// (2026-10-20) « Améliorer un rapport » avec une note (écrite ou audio) : l'IA peut
 /// y trouver le contact sur place, le n° de contrat, la durée ou les horaires.
 /// Avant, l'app ignorait ces champs. Ils sont repris dans la copie améliorée

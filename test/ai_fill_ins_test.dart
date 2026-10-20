@@ -48,6 +48,20 @@ void main() {
     expect(m['start_time'], start);
   });
 
+  test("champs extraits affichés dans l'ordre du formulaire (pas alphabétique)", () {
+    final ai = {
+      'client_address': '2 rue de la Gare', 'client_name': 'Pharmacie Centrale',
+      'description': 'Compresseur remplacé', 'end_time': '11:00', 'equipment_brand': 'Carrier',
+      'start_time': '08:00', 'client_phone': '', 'extra': 'x',
+    };
+    final keys = orderedAiFields(ai, const [
+      'client_name', 'client_address', 'client_phone', 'start_time', 'end_time',
+      'description', 'equipment_brand',
+    ]).map((e) => e.key).toList();
+    expect(keys, ['client_name', 'client_address', 'start_time', 'end_time', 'description',
+      'equipment_brand', 'extra']);
+  });
+
   test('valeurs IA vides ou invalides : rien ne change', () {
     final m = base();
     applyImproveFillIns(m, {'client_contact': '  ', 'labor_hours': 'deux', 'start_time': '25:00', 'end_time': ''});

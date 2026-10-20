@@ -1139,27 +1139,28 @@ class _FieldsPreviewSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // (2026-10-20) Ordre du FORMULAIRE (client → date/horaires → intervention →
+    // équipement). Avant : ordre de la réponse de l'IA = alphabétique des clés
+    // (Adresse, Client, Description, Fin, Marque…), peu lisible.
     final labels = {
       'client_name': 'ai_lbl_client'.tr(),
       'client_address': 'field_address'.tr(),
       'client_phone': 'cr_phone'.tr(),
       'client_contact': 'ai_lbl_contact'.tr(),
       'contract_number': 'ai_lbl_contract'.tr(),
-      'intervention_type': 'ai_lbl_intervention'.tr(),
       'date': 'td_f_date'.tr(),
+      'start_time': 'ai_lbl_start'.tr(),
+      'end_time': 'ai_lbl_end'.tr(),
+      'labor_hours': 'ai_lbl_labor'.tr(),
+      'intervention_type': 'ai_lbl_intervention'.tr(),
       'description': 'td_f_description'.tr(),
       'observations': 'td_f_observations'.tr(),
       'equipment_type': 'ai_lbl_equip_type'.tr(),
       'equipment_brand': 'ai_lbl_brand'.tr(),
       'equipment_model': 'ai_lbl_model'.tr(),
       'equipment_serial': 'ai_lbl_serial'.tr(),
-      'start_time': 'ai_lbl_start'.tr(),
-      'end_time': 'ai_lbl_end'.tr(),
-      'labor_hours': 'ai_lbl_labor'.tr(),
     };
-    final filled = fields.entries
-        .where((e) => e.value.trim().isNotEmpty)
-        .toList();
+    final filled = orderedAiFields(fields, labels.keys.toList());
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
