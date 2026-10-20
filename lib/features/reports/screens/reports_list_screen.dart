@@ -152,6 +152,14 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
   @override
   Widget build(BuildContext context) {
     final reportsAsync = ref.watch(reportsProvider);
+    // (2026-10-20) Juste après une connexion, l'équipe n'est pas encore chargée
+    // quand l'écran s'ouvre → la synchro des statuts (validé / renvoyé) ne se
+    // faisait qu'au prochain retour dans l'app : le technicien voyait « Envoyé »
+    // alors que le responsable avait renvoyé le rapport (vu au test sur émulateur).
+    ref.listen(teamStateProvider, (prev, next) {
+      final had = prev?.valueOrNull?.hasTeam ?? false;
+      if (!had && (next.valueOrNull?.hasTeam ?? false)) _syncTeamStatuses();
+    });
 
     // (Profil) On n'aligne PLUS automatiquement la vue Rapports sur le profil
     // actif : à l'ouverture, on reste sur « Mes rapports » (perso), même avec

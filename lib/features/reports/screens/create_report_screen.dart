@@ -1080,6 +1080,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         if (clientErr) _sectionExpanded[1] = true;
         if (travauxErr) _sectionExpanded[5] = true;
       });
+      // (2026-10-20) Défile jusqu'au 1er champ manquant : avant, l'écran restait
+      // où il était → « Envoyer » semblait ne rien faire quand la description
+      // (plus bas) était vide (vu au test équipe sur émulateur).
+      if (clientErr || travauxErr) _scrollToNav(clientErr ? 1 : 5);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('cr_required_fields_missing'.tr()),

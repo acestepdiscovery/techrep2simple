@@ -247,6 +247,41 @@ void main() {
     await closeForm(tester);
   });
 
+  // (2026-10-20) Vu au test équipe sur émulateur : « Soumettre » avec la
+  // description des travaux (plus bas) vide → message de 3 s, écran immobile →
+  // le bouton semblait ne rien faire. Désormais : défilement jusqu'au champ.
+  testWidgets("soumettre sans description : l'écran défile jusqu'au champ manquant (téléphone)",
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'instance_token_last_check_ms': DateTime.now().millisecondsSinceEpoch,
+      'instance_token_blocked': false,
+    });
+    // Police de test (glyphes carrés, plus larges que les vraies) : en largeur
+    // téléphone, une ligne « déborde » dans le test seulement — rien de tel sur
+    // l'émulateur (vérifié aux captures). On ignore CE type d'erreur ici.
+    final previous = FlutterError.onError;
+    FlutterError.onError = (d) {
+      if (d.exceptionAsString().contains('overflowed')) return;
+      previous?.call(d);
+    };
+    addTearDown(() => FlutterError.onError = previous);
+    await openForm(tester, null,
+        preset: ReportPreset(
+            id: 'p-desc', name: 'x', createdAt: DateTime(2026, 10, 20),
+            data: const {'client_name': 'Résidence Les Pins', 'intervention_type': 'Dépannage'}),
+        phone: true);
+    final desc = find.text('Description des travaux *'); // section repliée au départ
+    await tester.tap(find.text('Soumettre le rapport'));
+    for (var i = 0; i < 6; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    expect(find.text('Requis'), findsOneWidget, reason: 'seule la description manque');
+    final r = tester.getRect(desc);
+    expect(r.top >= 0 && r.bottom <= 915, isTrue, reason: 'champ manquant amené à l\'écran (top ${r.top})');
+    await closeForm(tester);
+  });
+
   // (2026-10-20) Sur un vrai téléphone, les boutons de section (Travaux,
   // Signatures…) ne faisaient rien : la liste ne construisait pas les sections
   // lointaines. Corrigé par un cacheExtent large, VÉRIFIÉ SUR ÉMULATEUR (le moteur
