@@ -773,7 +773,7 @@
   "ai_doc_sheet_desc": "Importieren Sie eine TXT- oder PDF-Datei, die den Einsatz beschreibt. Die KI darf nichts erfinden — nur der Inhalt des Dokuments wird verwendet.",
   "ai_analyzing_file": "Analyse von „{}“ läuft…",
   "ai_select_file": "Eine Datei auswählen (TXT, PDF)",
-  "ai_formats_note": "Unterstützte Formate: .txt, .pdf\nEmpfohlene max. Datei: 10 Seiten / 50 KB",
+  "ai_formats_note": "Unterstützte Formate: .txt, .pdf\nMaximale Größe: 7 MB",
 
   "cl_delete_q": "Diesen Kunden löschen?",
   "cl_delete_desc": "{} wird endgültig gelöscht.",

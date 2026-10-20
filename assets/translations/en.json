@@ -773,7 +773,7 @@
   "ai_doc_sheet_desc": "Import a TXT or PDF file describing the job. The AI must not make things up — only the document's content is used.",
   "ai_analyzing_file": "Analyzing « {} »…",
   "ai_select_file": "Select a file (TXT, PDF)",
-  "ai_formats_note": "Supported formats: .txt, .pdf\nRecommended max file: 10 pages / 50 KB",
+  "ai_formats_note": "Supported formats: .txt, .pdf\nMaximum size: 7 MB",
 
   "cl_delete_q": "Delete this client?",
   "cl_delete_desc": "{} will be permanently deleted.",

@@ -1276,7 +1276,10 @@ class _DocumentSheetState extends State<_DocumentSheet> {
     if (file.bytes == null) return;
     // (2026-10-14) Le serveur refuse les envois > 32 Mo (le PDF grossit d'un tiers
     // une fois encodé) → refus clair AVANT l'envoi, au lieu d'une « erreur réseau ».
-    const maxMb = 15;
+    // (2026-10-20) 15 → 7 Mo : un gros PDF passe par le stockage de kie.ai, dont
+    // l'envoi est conseillé sous 10 Mo une fois encodé (+33 %). Texte affiché
+    // (ai_formats_note) aligné : il annonçait « 10 pages / 50 Ko ».
+    const maxMb = 7;
     if (file.size > maxMb * 1024 * 1024) {
       setState(() => _error = 'ai_err_file_too_big'.tr(args: ['$maxMb']));
       return;

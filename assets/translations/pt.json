@@ -773,7 +773,7 @@
   "ai_doc_sheet_desc": "Importe um ficheiro TXT ou PDF que descreva a intervenção. A IA não deve inventar nada — só é usado o conteúdo do documento.",
   "ai_analyzing_file": "A analisar «{}»…",
   "ai_select_file": "Selecionar um ficheiro (TXT, PDF)",
-  "ai_formats_note": "Formatos suportados: .txt, .pdf\nFicheiro máximo recomendado: 10 páginas / 50 KB",
+  "ai_formats_note": "Formatos suportados: .txt, .pdf\nTamanho máximo: 7 MB",
 
   "cl_delete_q": "Eliminar este cliente?",
   "cl_delete_desc": "O cliente {} será eliminado definitivamente.",

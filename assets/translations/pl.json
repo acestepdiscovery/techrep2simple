@@ -775,7 +775,7 @@
   "ai_doc_sheet_desc": "Zaimportuj plik TXT lub PDF opisujący zlecenie. AI nie może niczego wymyślać — wykorzystywana jest wyłącznie treść dokumentu.",
   "ai_analyzing_file": "Analizowanie pliku „{}”…",
   "ai_select_file": "Wybierz plik (TXT, PDF)",
-  "ai_formats_note": "Obsługiwane formaty: .txt, .pdf\nZalecany maks. rozmiar: 10 stron / 50 KB",
+  "ai_formats_note": "Obsługiwane formaty: .txt, .pdf\nMaksymalny rozmiar: 7 MB",
 
   "cl_delete_q": "Usunąć tego klienta?",
   "cl_delete_desc": "Klient {} zostanie trwale usunięty.",

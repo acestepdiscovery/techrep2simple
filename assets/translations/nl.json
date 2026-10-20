@@ -773,7 +773,7 @@
   "ai_doc_sheet_desc": "Importeer een TXT- of pdf-bestand dat de opdracht beschrijft. AI mag niets verzinnen — alleen de inhoud van het document wordt gebruikt.",
   "ai_analyzing_file": "Bezig met analyseren van ‘{}’…",
   "ai_select_file": "Bestand kiezen (TXT, pdf)",
-  "ai_formats_note": "Ondersteunde formaten: .txt, .pdf\nAanbevolen maximum: 10 pagina's / 50 kB",
+  "ai_formats_note": "Ondersteunde formaten: .txt, .pdf\nMaximale grootte: 7 MB",
 
   "cl_delete_q": "Deze klant verwijderen?",
   "cl_delete_desc": "{} wordt definitief verwijderd.",
