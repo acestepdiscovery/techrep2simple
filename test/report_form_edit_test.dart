@@ -13,6 +13,7 @@ import 'package:reportnew1cld/features/auth/providers/auth_provider.dart';
 import 'package:reportnew1cld/features/reports/models/report_model.dart';
 import 'package:reportnew1cld/features/reports/screens/create_report_screen.dart';
 import 'package:reportnew1cld/features/settings/providers/settings_provider.dart';
+import 'package:reportnew1cld/features/subscription/subscription_provider.dart';
 import 'package:reportnew1cld/shared/services/local_db_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -76,7 +77,8 @@ void main() {
     return r;
   }
 
-  Future<void> openForm(WidgetTester tester, String? id, {ReportPreset? preset}) async {
+  Future<void> openForm(WidgetTester tester, String? id,
+      {ReportPreset? preset, bool pro = false}) async {
     // Écran très haut : toutes les sections sont construites (liste paresseuse).
     tester.view.physicalSize = const Size(1200, 24000);
     tester.view.devicePixelRatio = 1;
@@ -94,6 +96,7 @@ void main() {
           firebaseUserProvider.overrideWith((ref) => Stream.value(null)),
           teamStateProvider.overrideWith(_NoTeam.new),
           settingsProvider.overrideWith(_Settings.new),
+          effectiveSubscriptionProvider.overrideWith((ref) => pro),
         ],
         child: Builder(
           builder: (context) => MaterialApp(
@@ -189,7 +192,7 @@ void main() {
     await closeForm(tester);
   });
 
-  testWidgets('modèle enregistré depuis la FICHE du rapport → champs remplis, sans signatures',
+  testWidgets('modèle enregistré depuis la FICHE du rapport → contenu repris, sans client ni signatures',
       (tester) async {
     final source = ReportModel(
       id: 'src', clientName: 'Cabinet Lefort', description: 'Remplacement du switch',
@@ -204,11 +207,42 @@ void main() {
     expect(data.containsKey('status'), isFalse);
     await openForm(tester, null,
         preset: ReportPreset(id: 'p2', name: 'IT', createdAt: DateTime(2026), data: data));
+    // (2026-10-20) Un modèle ne reprend plus le client (annoncé par la fenêtre
+    // « Enregistrer comme modèle ») — mais bien le contenu.
     expect(find.byWidgetPredicate(
-        (w) => w is TextFormField && w.controller?.text == 'Cabinet Lefort'), findsOneWidget);
+        (w) => w is TextFormField && w.controller?.text == 'Cabinet Lefort'), findsNothing);
+    expect(find.byWidgetPredicate(
+        (w) => w is TextFormField && w.controller?.text == 'Remplacement du switch'), findsOneWidget);
     expect(find.byWidgetPredicate(
         (w) => w is TextField && w.controller?.text == 'Bâtiment'), findsOneWidget,
         reason: 'champ libre gardé');
+    await closeForm(tester);
+  });
+
+  // (2026-10-20) Charger un modèle dans un rapport commencé : le modèle n'a plus
+  // d'infos client → le client déjà saisi doit RESTER (avant le correctif, le
+  // formulaire remplaçait tous les champs, client compris).
+  testWidgets('charger un modèle dans un rapport commencé : le client saisi reste', (tester) async {
+    final r = (await tester.runAsync(() => seed('r-preset')))!;
+    final old = ReportModel(
+      id: 'old', clientName: 'Client du Modèle', clientPhone: '0611',
+      interventionType: 'Entretien annuel', description: 'Nettoyage complet',
+      date: DateTime(2026, 9, 1), createdAt: DateTime(2026, 9, 1), updatedAt: DateTime(2026, 9, 1),
+    );
+    // Modèle enregistré AVANT le correctif : il contient encore le client.
+    await tester.runAsync(() => LocalDbService().savePreset(ReportPreset(
+        id: 'p-old', name: 'Entretien', createdAt: DateTime(2026, 9, 1), data: old.toMap())));
+    await openForm(tester, r.id, pro: true);
+    await tester.tap(find.byTooltip('cr_load_template'.tr()));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('Entretien'));
+    await tester.pump(const Duration(milliseconds: 300));
+    Finder field(String text) => find.byWidgetPredicate(
+        (w) => w is TextFormField && w.controller?.text == text);
+    expect(field('Client Test'), findsOneWidget, reason: 'client du rapport gardé');
+    expect(field('Client du Modèle'), findsNothing, reason: 'client du modèle ignoré');
+    expect(field('Nettoyage complet'), findsOneWidget, reason: 'contenu du modèle chargé');
     await closeForm(tester);
   });
 

@@ -567,7 +567,14 @@ class _NewReportSheetState extends State<_NewReportSheet> {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {
                         Navigator.pop(context);
-                        context.push('/create-report', extra: t);
+                        // (2026-10-20) Modèle enregistré → sans les infos du
+                        // client d'origine (l'IA et les exemples passent ailleurs).
+                        context.push('/create-report',
+                            extra: ReportPreset(
+                                id: t.id,
+                                name: t.name,
+                                createdAt: t.createdAt,
+                                data: ReportPreset.forNewReport(t.data)));
                       },
                     );
                   },

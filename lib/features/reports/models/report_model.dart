@@ -151,7 +151,29 @@ class ReportPreset {
       'signature_client_data', 'signature_tech_data', 'pdf_local_path',
       'cloud_url', 'rejection_comment', 'signed_remotely', 'ai_enhanced',
       'technician_id', 'company_id', 'created_at', 'updated_at',
+      ..._clientKeys,
     ]) {
+      m.remove(k);
+    }
+    return m;
+  }
+
+  /// (2026-10-20) Infos propres au CLIENT : un modèle sert pour d'autres
+  /// clients. La fenêtre « Enregistrer comme modèle » annonce depuis juin que
+  /// les infos client ne sont pas copiées, mais elles l'étaient (vu au test sur
+  /// émulateur : nom, adresse, téléphone du client précédent pré-remplis).
+  /// + n° de série : celui de l'appareil du client précédent.
+  static const _clientKeys = [
+    'client_id', 'client_name', 'client_address', 'client_phone',
+    'client_contact', 'contract_number', 'client_business_id',
+    'equipment_serial',
+  ];
+
+  /// Données d'un modèle prêtes à pré-remplir un NOUVEAU rapport : format
+  /// unique + infos client retirées (aussi pour les modèles déjà enregistrés).
+  static Map<String, dynamic> forNewReport(Map<String, dynamic> d) {
+    final m = Map<String, dynamic>.of(reportData(d));
+    for (final k in _clientKeys) {
       m.remove(k);
     }
     return m;

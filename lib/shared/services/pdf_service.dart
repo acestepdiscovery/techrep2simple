@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:image_picker/image_picker.dart';
@@ -320,6 +320,8 @@ class PdfService {
                       _profRow('pdf_lbl_address'.tr(), report.clientAddress),
                     if (f(report.clientContact))
                       _profRow('pdf_lbl_contact'.tr(), report.clientContact),
+                    for (final (label, value) in proExtraInfoRows(report))
+                      _profRow(label, value),
                     if (f(technicianName)) _profRow('pdf_lbl_technician'.tr(), technicianName!),
                     // Début = 1er jour, fin = dernier jour (avant : « Du 3/10 au
                     // 4/10 08:30 » sur les deux lignes pour un chantier multi-jours).
@@ -402,6 +404,18 @@ class PdfService {
           pw.SizedBox(height: 6),
           ...report.customFields.entries.map((e) => _profRow(e.key, e.value)),
         ],
+        // ── INTERVENTION / ÉQUIPEMENT / champs du métier (2026-10-20) ──────────
+        for (final (title, rows) in proDetailBlocks(report)) ...[
+          pw.SizedBox(height: 16),
+          pw.Text(title,
+              style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)),
+          pw.SizedBox(height: 6),
+          pw.Wrap(
+            spacing: 18,
+            children: [for (final (label, value) in rows) _profRow(label, value)],
+          ),
+        ],
         pw.SizedBox(height: 16),
         // ── MOTIFS ──────────────────────────────────────────────────────────
         pw.Text('pdf_motifs'.tr(),
@@ -442,6 +456,40 @@ class PdfService {
     ));
 
     return doc.save();
+  }
+
+  /// (2026-10-20) Présentation « professionnelle » (celle par défaut) : elle
+  /// reprenait le modèle d'un concurrent et n'affichait NI le téléphone, NI le
+  /// n° de contrat, NI le titre de l'intervention, NI l'équipement, NI les
+  /// champs du métier — pourtant saisis dans le formulaire (vu au test sur
+  /// émulateur). Lignes ajoutées au bloc INFOS :
+  @visibleForTesting
+  static List<(String, String)> proExtraInfoRows(ReportModel r) => [
+        if (r.clientPhone.trim().isNotEmpty) ('pdf_lbl_phone'.tr(), r.clientPhone),
+        if (r.contractNumber.trim().isNotEmpty) ('pdf_lbl_contract'.tr(), r.contractNumber),
+      ];
+
+  /// … et blocs sous INFOS | SIGNATURES (titre, lignes libellé / valeur).
+  @visibleForTesting
+  static List<(String, List<(String, String)>)> proDetailBlocks(ReportModel r) {
+    bool f(String v) => v.trim().isNotEmpty;
+    final sector = [
+      for (final e in r.sectorFields.entries)
+        if (e.value != null && e.value.toString().trim().isNotEmpty)
+          (sectorFieldLabel(e.key), sectorValueLabel(e.value.toString())),
+    ];
+    final equipment = [
+      if (f(r.equipmentType)) ('pdf_lbl_type'.tr(), r.equipmentType),
+      if (f(r.equipmentBrand)) ('pdf_lbl_brand'.tr(), r.equipmentBrand),
+      if (f(r.equipmentModel)) ('pdf_lbl_model'.tr(), r.equipmentModel),
+      if (f(r.equipmentSerial)) ('pdf_lbl_serial'.tr(), r.equipmentSerial),
+    ];
+    return [
+      if (f(r.interventionType))
+        ('pdf_sec_intervention'.tr(), [('pdf_lbl_type'.tr(), r.interventionType)]),
+      if (equipment.isNotEmpty) ('pdf_sec_equipment'.tr(), equipment),
+      if (sector.isNotEmpty) (r.sector.label.toUpperCase(), sector),
+    ];
   }
 
   pw.Widget _profRow(String label, String value) => pw.Padding(

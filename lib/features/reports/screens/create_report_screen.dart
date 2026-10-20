@@ -249,9 +249,14 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     // (2026-10-19) Date détectée par l'IA (« ai_date ») ; un modèle, lui, prend
     // toujours la date du jour.
     final aiDate = DateTime.tryParse('${data['ai_date'] ?? ''}');
+    // (2026-10-20) Un modèle n'a plus d'infos client (ReportPreset.forNewReport) :
+    // on ne remplace un champ client QUE s'il est fourni — sinon charger un modèle
+    // dans un rapport commencé effaçait le client déjà saisi.
+    final given = ReportPreset.reportData(data);
+    bool has(String k) => given.containsKey(k);
     final r = ReportModel.fromMap({
       // (2026-10-19) Les 2 formats de modèles (formulaire / fiche du rapport).
-      ...ReportPreset.reportData(data),
+      ...given,
       'id': _reportId,
       'date': aiDate?.toIso8601String() ?? now,
       'created_at': now,
@@ -266,17 +271,17 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       'signature_tech_start_data': null,
       'photos': '[]',
     });
-    _clientName.text = r.clientName;
-    _clientAddress.text = r.clientAddress;
-    _clientPhone.text = r.clientPhone;
-    _clientContact.text = r.clientContact;
-    _contractNumber.text = r.contractNumber;
-    _clientBusinessId.text = r.clientBusinessId;
+    if (has('client_name')) _clientName.text = r.clientName;
+    if (has('client_address')) _clientAddress.text = r.clientAddress;
+    if (has('client_phone')) _clientPhone.text = r.clientPhone;
+    if (has('client_contact')) _clientContact.text = r.clientContact;
+    if (has('contract_number')) _contractNumber.text = r.contractNumber;
+    if (has('client_business_id')) _clientBusinessId.text = r.clientBusinessId;
     _interventionType.text = r.interventionType;
     _equipmentType.text = r.equipmentType;
     _equipmentBrand.text = r.equipmentBrand;
     _equipmentModel.text = r.equipmentModel;
-    _equipmentSerial.text = r.equipmentSerial;
+    if (has('equipment_serial')) _equipmentSerial.text = r.equipmentSerial;
     _description.text = r.description;
     _observations.text = r.observations;
     if (r.laborHours != null) _laborHours.text = r.laborHours!.toString();
@@ -284,7 +289,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     setState(() {
       _sector = r.sector;
       _sectorFields = Map.from(r.sectorFields);
-      _clientId = r.clientId;
+      if (has('client_id')) _clientId = r.clientId;
       _materials..clear()..addAll(r.materials);
       if (aiDate != null) _date = aiDate;
       _aiEnhanced = _aiEnhanced || r.aiEnhanced;
@@ -1302,7 +1307,8 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     if (chosen == null) return;
     // (2026-10-19) Lecture unique, les 2 formats (avant : seuls les modèles du
     // formulaire se chargeaient ici ; ceux de la fiche du rapport : formulaire vide).
-    _fillFromTemplate(chosen.data, resetBaseline: false);
+    // (2026-10-20) Sans les infos du client du modèle (on garde celles saisies).
+    _fillFromTemplate(ReportPreset.forNewReport(chosen.data), resetBaseline: false);
     _scheduleAutoSave();
   }
 
