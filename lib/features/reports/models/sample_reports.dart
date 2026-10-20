@@ -26,7 +26,7 @@ class SampleReports {
 
   /// (2026-10-20) 2 photos par métier (vue générale + détail) : images
   /// FICTIVES générées par IA (fournies par le user), JPEG 1024×768 ≈ 100 Ko
-  /// (14 photos ≈ 1,4 Mo dans l'app). Sources : tool/sample_photos_sources.txt.
+  /// (14 photos ≈ 1,4 Mo dans l'app). Sources : tool/sample_photos_sources.md.
   static Future<List<XFile>> photos(SectorTemplate s) async => [
         for (final i in [1, 2])
           XFile.fromData(
