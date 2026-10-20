@@ -356,8 +356,9 @@ class _ShareAppTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
-            onTap: () =>
-                Share.share('settings_share_text'.tr(), sharePositionOrigin: shareOrigin(context)),
+            // (2026-10-20) Sur iPhone, pas de mention d'Android (règle Apple 2.3.10).
+            onTap: () => Share.share((Platform.isIOS ? 'settings_share_text_ios' : 'settings_share_text').tr(),
+                sharePositionOrigin: shareOrigin(context)),
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(children: [

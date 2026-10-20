@@ -546,8 +546,10 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                     const SizedBox(height: 8),
                     // (Apple Review 3.1.2 + Google) Mention d'abonnement OBLIGATOIRE
                     // près du bouton d'achat + liens CGU/Confidentialité fonctionnels.
+                    // (2026-10-20) Sur iPhone : « App Store » seulement (règle
+                    // Apple 2.3.10 : pas de mention d'une autre plateforme).
                     Text(
-                      'pw_sub_mention'.tr(),
+                      (Platform.isIOS ? 'pw_sub_mention_ios' : 'pw_sub_mention').tr(),
                       textAlign: TextAlign.center,
                       style:
                           TextStyle(fontSize: 11, color: Colors.grey.shade500),
@@ -594,7 +596,7 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
   }
 
   void _copyShareMessage(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: 'settings_share_text'.tr()));
+    Clipboard.setData(ClipboardData(text: (Platform.isIOS ? 'settings_share_text_ios' : 'settings_share_text').tr()));
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text('pw_message_copied'.tr())));
   }
@@ -1079,7 +1081,7 @@ class _ShareAppCard extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              Clipboard.setData(ClipboardData(text: 'settings_share_text'.tr()));
+              Clipboard.setData(ClipboardData(text: (Platform.isIOS ? 'settings_share_text_ios' : 'settings_share_text').tr()));
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text('pw_message_copied_clipboard'.tr())));
             },

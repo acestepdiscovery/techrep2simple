@@ -1344,5 +1344,8 @@
   "rd_call": "Bellen",
   "rd_directions": "Route",
   "rd_value_copied": "Gekopieerd: {}",
-  "rd_copy_value": "Kopiëren"
+  "rd_copy_value": "Kopiëren",
+  "pw_sub_mention_ios": "Automatisch verlengend abonnement. De betaling wordt bij bevestiging van de aankoop via de App Store afgeschreven. Tenzij je uiterlijk 24 uur voor het einde van de lopende periode opzegt, wordt het abonnement automatisch verlengd tegen hetzelfde tarief. Beheer of zeg op wanneer je wilt in de abonnementsinstellingen van je account (App Store). Maandabonnementen zijn zonder verplichting; de ‘levenslang’-aankoop is een eenmalige, niet-terugkerende betaling.",
+  "ss_team_portal_info_ios": "Je beheert dit in de abonnementsinstellingen van je store (App Store). Daar kun je:\n\n•  je betaalmethode wijzigen,\n•  je factuurgeschiedenis bekijken,\n•  het abonnement opzeggen.\n\nDe Pro-toegang van je monteurs blijft actief zolang het abonnement niet is opgezegd.",
+  "settings_share_text_ios": "Ik gebruik ‘Rapport Technique IA’ voor mijn werkbonnen — snel, professioneel, pdf met één klik. Beschikbaar in de App Store. Echt het proberen waard!"
 }

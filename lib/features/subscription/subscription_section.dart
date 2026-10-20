@@ -403,7 +403,8 @@ class _SubscriptionSectionState extends ConsumerState<SubscriptionSection> {
             color: AppColors.primary),
         title: Text('ss_manage_team_sub'.tr()),
         content: Text(
-          'ss_team_portal_info'.tr(),
+          // (2026-10-20) iPhone : « App Store » seulement (règle Apple 2.3.10).
+          (Platform.isIOS ? 'ss_team_portal_info_ios' : 'ss_team_portal_info').tr(),
           style: const TextStyle(fontSize: 13, height: 1.4),
         ),
         actions: [

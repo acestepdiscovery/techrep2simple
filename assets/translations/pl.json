@@ -1350,5 +1350,8 @@
   "rd_call": "Zadzwoń",
   "rd_directions": "Trasa",
   "rd_value_copied": "Skopiowano: {}",
-  "rd_copy_value": "Kopiuj"
+  "rd_copy_value": "Kopiuj",
+  "pw_sub_mention_ios": "Subskrypcja odnawiana automatycznie. Płatność jest pobierana przez App Store po potwierdzeniu zakupu. Jeśli nie anulujesz subskrypcji co najmniej 24 godziny przed końcem bieżącego okresu, odnowi się ona automatycznie w tej samej cenie. Możesz nią zarządzać lub ją anulować w dowolnym momencie w ustawieniach subskrypcji swojego konta (App Store). Plany miesięczne są bez zobowiązań; zakup „dożywotni” to jednorazowa, niecykliczna płatność.",
+  "ss_team_portal_info_ios": "Zarządzanie odbywa się w ustawieniach subskrypcji Twojego sklepu (App Store). Możesz tam:\n\n•  zmienić metodę płatności,\n•  zobaczyć historię rozliczeń,\n•  anulować subskrypcję.\n\nDostęp Pro Twoich techników pozostaje aktywny, dopóki subskrypcja nie zostanie anulowana.",
+  "settings_share_text_ios": "Używam „Rapport Technique IA” do raportów serwisowych — szybko, profesjonalnie, PDF jednym kliknięciem. Dostępna w App Store. Koniecznie wypróbuj!"
 }

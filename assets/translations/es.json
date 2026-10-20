@@ -1344,5 +1344,8 @@
   "rd_call": "Llamar",
   "rd_directions": "Cómo llegar",
   "rd_value_copied": "Copiado: {}",
-  "rd_copy_value": "Copiar"
+  "rd_copy_value": "Copiar",
+  "pw_sub_mention_ios": "Suscripción de renovación automática. El pago se cobra a través de App Store al confirmar la compra. Salvo cancelación al menos 24 h antes del fin del periodo en curso, la suscripción se renueva automáticamente al mismo precio. Gestiónala o cancélala cuando quieras en los ajustes de suscripción de tu cuenta (App Store). Los planes mensuales son sin compromiso; la compra « de por vida » es un pago único no recurrente.",
+  "ss_team_portal_info_ios": "La gestión se realiza en los ajustes de suscripción de tu tienda (App Store). Podrás:\n\n•  cambiar el método de pago,\n•  ver el historial de facturación,\n•  cancelar la suscripción.\n\nEl acceso Pro de tus técnicos sigue activo mientras no se cancele la suscripción.",
+  "settings_share_text_ios": "Uso « Rapport Technique IA » para mis partes de intervención: rápido, profesional, PDF con un clic. Disponible en App Store. ¡Hay que probarla!"
 }

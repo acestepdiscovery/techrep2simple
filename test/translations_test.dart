@@ -81,4 +81,23 @@ void main() {
     }
     expect(bad, isEmpty);
   });
+
+  // (2026-10-20) Règle Apple 2.3.10 : sur iPhone, aucun texte ne doit citer une
+  // autre plateforme. Les clés « _ios » (affichées seulement sur iPhone) ne
+  // parlent ni d'Android ni de Google Play, et existent avec leur version normale.
+  test('textes iPhone (_ios) : jamais « Android » ni « Google Play »', () {
+    final ios = fr.keys.where((k) => k.endsWith('_ios')).toList();
+    expect(ios, containsAll(['pw_sub_mention_ios', 'ss_team_portal_info_ios',
+        'settings_share_text_ios']));
+    final bad = <String>[];
+    for (final k in ios) {
+      if (!fr.containsKey(k.substring(0, k.length - 4))) bad.add('$k : pas de version normale');
+      for (final l in langs) {
+        if (_texts(all[l]![k]).any((t) => t.contains('Android') || t.contains('Google Play'))) {
+          bad.add('$l/$k');
+        }
+      }
+    }
+    expect(bad, isEmpty);
+  });
 }
