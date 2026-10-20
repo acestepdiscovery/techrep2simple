@@ -2390,10 +2390,15 @@ class _LanguageTileState extends State<_LanguageTile> {
   Future<void> _showPicker() async {
     await showModalBottomSheet<void>(
       context: context,
+      // (2026-10-20) La fenêtre était limitée à ~56 % de l'écran et ne défilait
+      // pas : « Polski » et « Português » étaient COUPÉS, impossibles à choisir
+      // (vu sur émulateur Pixel 9). Elle peut grandir et défile si besoin.
+      isScrollControlled: true,
       builder: (sheetCtx) {
         final activeCode = context.locale.languageCode;
         return SafeArea(
-          child: Column(
+          child: SingleChildScrollView(
+           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -2442,6 +2447,7 @@ class _LanguageTileState extends State<_LanguageTile> {
                 ),
               const SizedBox(height: 8),
             ],
+           ),
           ),
         );
       },
