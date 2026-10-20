@@ -417,8 +417,11 @@ class PdfService {
           ),
         ],
         pw.SizedBox(height: 16),
-        // ── MOTIFS ──────────────────────────────────────────────────────────
-        pw.Text('pdf_motifs'.tr(),
+        // ── TRAVAUX RÉALISÉS ────────────────────────────────────────────────
+        // (2026-10-20) Titre « MOTIFS » (EN « REASONS ») remplacé par celui du
+        // modèle classique : ce bloc contient la description des travaux, le motif
+        // (type d'intervention) est déjà affiché plus haut. Clé pdf_motifs gardée.
+        pw.Text('pdf_sec_work'.tr(),
             style:
                 pw.TextStyle(fontWeight: pw.FontWeight.bold, fontFallback: PdfFonts.boldFirst, fontSize: 11)),
         pw.SizedBox(height: 6),
