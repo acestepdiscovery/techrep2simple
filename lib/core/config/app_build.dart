@@ -15,7 +15,10 @@
 // crue périmée. Désormais vérifié par test/app_build_number_test.dart.
 // const int kAppBuildNumber = 20;   (build 20 = test interne Play du 20/10)
 // (2026-10-20) 21 : correctifs trouvés au test sur émulateur (PDF pro, modèles).
-const int kAppBuildNumber = 21;
+// const int kAppBuildNumber = 21;
+// (2026-10-20 soir) 22 : IA — dictée plus légère (32 kbit/s), attente 240 s (dictées
+// longues), « améliorer » reprend contact/contrat/horaires/durée apportés par une note.
+const int kAppBuildNumber = 22;
 
 // Unique token baked into this specific build.
 // Change this value for each distinct distribution (demo, beta, prod release, etc.)

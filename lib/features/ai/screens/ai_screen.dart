@@ -22,6 +22,7 @@ import '../../reports/providers/reports_provider.dart';
 import '../../subscription/paywall_bottom_sheet.dart';
 import '../../subscription/subscription_provider.dart';
 import '../../../shared/utils/error_text.dart';
+import '../ai_fill_ins.dart';
 
 class AiScreen extends ConsumerStatefulWidget {
   const AiScreen({super.key});
@@ -491,7 +492,7 @@ class _VoiceSheetState extends State<_VoiceSheet> {
       final path =
           '${dir.path}/ai_record_${DateTime.now().millisecondsSinceEpoch}.m4a';
       await _recorder.start(
-          const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 64000, numChannels: 1), path: path);
+          kAiRecordConfig, path: path);
       setState(() {
         _recording = true;
         _elapsed = Duration.zero;
@@ -636,6 +637,13 @@ class _VoiceSheetState extends State<_VoiceSheet> {
 }
 
 // ─── Image sheet ──────────────────────────────────────────────────────────────
+
+/// (2026-10-20) Réglages d'enregistrement des dictées : 32 kbit/s, 16 kHz, mono
+/// (avant 64 kbit/s, 44,1 kHz). L'IA (Gemini) ramène de toute façon l'audio à
+/// 16 kHz : même compréhension, fichier 2× plus léger → envoi plus rapide en 4G
+/// (15 min ≈ 3,6 Mo au lieu de 7,2 Mo).
+const kAiRecordConfig =
+    RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 32000, sampleRate: 16000, numChannels: 1);
 
 class _ImageSheet extends StatefulWidget {
   final String? companyId;
@@ -842,7 +850,7 @@ class _ImproveSheetState extends State<_ImproveSheet> {
       if (!hasPermission) return;
       final dir = await getTemporaryDirectory();
       final path = '${dir.path}/ai_note_${DateTime.now().millisecondsSinceEpoch}.m4a';
-      await _audioRecorder.start(const RecordConfig(encoder: AudioEncoder.aacLc, bitRate: 64000, numChannels: 1), path: path);
+      await _audioRecorder.start(kAiRecordConfig, path: path);
       setState(() { _recordingNote = true; _noteElapsed = Duration.zero; _noteAudioPath = null; });
       _noteTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted) setState(() => _noteElapsed += const Duration(seconds: 1));
@@ -935,6 +943,10 @@ class _ImproveSheetState extends State<_ImproveSheet> {
     if (f['equipment_brand']?.isNotEmpty == true) map['equipment_brand'] = f['equipment_brand'];
     if (f['equipment_model']?.isNotEmpty == true) map['equipment_model'] = f['equipment_model'];
     if (f['equipment_serial']?.isNotEmpty == true) map['equipment_serial'] = f['equipment_serial'];
+    // (2026-10-20) Infos apportées par la note (écrite ou audio) : contact sur
+    // place, n° de contrat, durée, horaires. Avant : ignorées. Reprises SEULEMENT
+    // si le champ était vide dans l'original (jamais d'écrasement).
+    applyImproveFillIns(map, f);
     final newReport = ReportModel.fromMap(map);
 
     await LocalDbService().insertReport(newReport);

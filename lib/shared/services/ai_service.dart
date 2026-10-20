@@ -54,7 +54,10 @@ class AiService {
             },
             body: jsonEncode(body),
           )
-          .timeout(const Duration(seconds: 90));
+          // (2026-10-20) 90 s → 240 s : une dictée de 15 min (maximum de l'app)
+          // prend 40 à 60 s côté IA, + l'envoi du fichier, + un éventuel 2e essai
+          // en cas d'erreur passagère de kie.ai.
+          .timeout(const Duration(seconds: 240));
 
       final data = jsonDecode(resp.body) as Map<String, dynamic>;
 
