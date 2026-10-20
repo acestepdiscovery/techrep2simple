@@ -775,6 +775,7 @@
   "ai_select_file": "Eine Datei auswählen (TXT, PDF)",
   "ai_formats_note": "Unterstützte Formate: .txt, .pdf\nMaximale Größe: 7 MB",
   "ai_retry_kept": "Nichts geht verloren: Tippen Sie erneut auf die Schaltfläche, um es noch einmal zu versuchen.",
+  "rd_invoice_need_billing": "Um eine Rechnung zu erstellen, fügen Sie zuerst Arbeitsstunden oder Material im Abschnitt „Abrechnung“ des Berichts hinzu (Schaltfläche Bearbeiten).",
 
   "cl_delete_q": "Diesen Kunden löschen?",
   "cl_delete_desc": "{} wird endgültig gelöscht.",

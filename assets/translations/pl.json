@@ -777,6 +777,7 @@
   "ai_select_file": "Wybierz plik (TXT, PDF)",
   "ai_formats_note": "Obsługiwane formaty: .txt, .pdf\nMaksymalny rozmiar: 7 MB",
   "ai_retry_kept": "Nic nie zostało utracone: naciśnij przycisk ponownie, aby spróbować jeszcze raz.",
+  "rd_invoice_need_billing": "Aby utworzyć fakturę, najpierw dodaj godziny pracy lub materiały w sekcji „Rozliczenie” raportu (przycisk Edytuj).",
 
   "cl_delete_q": "Usunąć tego klienta?",
   "cl_delete_desc": "Klient {} zostanie trwale usunięty.",

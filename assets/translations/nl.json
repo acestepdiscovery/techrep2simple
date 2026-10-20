@@ -775,6 +775,7 @@
   "ai_select_file": "Bestand kiezen (TXT, pdf)",
   "ai_formats_note": "Ondersteunde formaten: .txt, .pdf\nMaximale grootte: 7 MB",
   "ai_retry_kept": "Er is niets verloren: tik nogmaals op de knop om het opnieuw te proberen.",
+  "rd_invoice_need_billing": "Om een factuur te maken, voegt u eerst arbeidsuren of materiaal toe in het onderdeel 'Facturering' van het rapport (knop Bewerken).",
 
   "cl_delete_q": "Deze klant verwijderen?",
   "cl_delete_desc": "{} wordt definitief verwijderd.",

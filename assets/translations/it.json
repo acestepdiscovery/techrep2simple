@@ -775,6 +775,7 @@
   "ai_select_file": "Seleziona un file (TXT, PDF)",
   "ai_formats_note": "Formati supportati: .txt, .pdf\nDimensione massima: 7 MB",
   "ai_retry_kept": "Non è andato perso nulla: tocca di nuovo il pulsante per riprovare.",
+  "rd_invoice_need_billing": "Per creare una fattura, aggiungi prima ore di manodopera o materiali nella sezione «Fatturazione» del rapporto (pulsante Modifica).",
 
   "cl_delete_q": "Eliminare questo cliente?",
   "cl_delete_desc": "{} verrà eliminato definitivamente.",

@@ -2193,11 +2193,17 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
           ),
           const SizedBox(height: 8),
           // Visible to all; free users hit paywall on tap.
-          // Disabled (grayed) when no billing data entered.
+          // (2026-10-20) Sans heures ni matériel : avant, bouton GRISÉ sans
+          // explication (le badge PRO faisait croire à un verrou d'abonnement, vu
+          // au test). Désormais cliquable : il explique quoi renseigner.
           OutlinedButton.icon(
-            onPressed: (report.laborHours != null || report.materials.isNotEmpty)
-                ? (_isGeneratingInvoice ? null : _generateInvoice)
-                : null,
+            onPressed: _isGeneratingInvoice
+                ? null
+                : (report.laborHours != null || report.materials.isNotEmpty)
+                    ? _generateInvoice
+                    : () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('rd_invoice_need_billing'.tr()),
+                        duration: const Duration(seconds: 5))),
             icon: _isGeneratingInvoice
                 ? const SizedBox(
                     width: 16,
