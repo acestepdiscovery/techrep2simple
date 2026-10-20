@@ -195,7 +195,8 @@ class _ReportDetailViewState extends ConsumerState<_ReportDetailView> {
       final team = ref.read(teamStateProvider).valueOrNull;
       // (2026-10-19) Rapport PERSO → jamais envoyé à l'équipe.
       if (team?.companyId != null && updated.companyId == team!.companyId) {
-        await TeamService().syncReport(team.companyId!, updated);
+        // (2026-10-20) Seulement la signature (rapport envoyé = instantané verrouillé).
+        await TeamService().pushRemoteSignature(team.companyId!, updated);
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

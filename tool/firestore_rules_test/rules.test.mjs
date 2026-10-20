@@ -301,6 +301,18 @@ describe('🚫 attaques refusées', () => {
       { snapshot: { client_name: 'Truqué' } }));
   });
 
+  // (2026-10-20) Vu au test à 2 émulateurs : la signature à distance arrive APRÈS l'envoi ;
+  // l'app réécrivait tout le rapport (nouvelle copie figée) → « permission-denied ».
+  // Désormais l'app n'ajoute QUE la signature (TeamService.pushRemoteSignature).
+  test('signature à distance après l\'envoi : ajout de la signature seule accepté', async () => {
+    const db = as('tech');
+    await assertSucceeds(updateDoc(doc(db, `${CO}/reports_raptech1/r_tech`),
+      { signature_client_data: 'iVBORw0KGgo=', signed_remotely: 1, synced_at: serverTimestamp() }));
+    // L'ancienne façon (réécriture complète avec une copie figée modifiée) reste refusée.
+    await assertFails(setDoc(doc(db, `${CO}/reports_raptech1/r_tech`), report('tech', 'submitted',
+      { signature_client_data: 'iVBORw0KGgo=', snapshot: { client_name: 'Client', photo_count: 2, sig: 1 } })));
+  });
+
   test('« Peut valider » : pas SON rapport, pas un brouillon, pas le contenu', async () => {
     const db = as('valid');
     await assertFails(updateDoc(doc(db, `${CO}/reports_raptech1/r_valid`), { status: 'validated' }));

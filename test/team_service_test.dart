@@ -190,4 +190,33 @@ void main() {
       expect(l1.photosPaths, hasLength(2), reason: 'rien d\'autre ne change');
     });
   });
+
+  // (2026-10-20) Signature à distance reçue APRÈS l'envoi : seule la signature est
+  // ajoutée (la copie figée d'un rapport envoyé est verrouillée par les règles —
+  // la réécriture complète était refusée : « permission-denied » vu au test).
+  test('signature à distance après envoi : signature ajoutée, copie figée intacte', () async {
+    final r = _report('r_sig');
+    await team.syncReport(_co, r);
+    Future<Map<String, dynamic>> read() async => (await db
+            .collection('companies_raptech1').doc(_co)
+            .collection('reports_raptech1').doc('r_sig').get())
+        .data()!;
+    final before = await read();
+    await team.pushRemoteSignature(
+        _co, r.copyWith(signatureClientData: 'iVBORw0KGgo=', signedRemotely: true));
+    final after = await read();
+    expect(after['signature_client_data'], 'iVBORw0KGgo=');
+    expect(after['signed_remotely'], 1);
+    expect(after['snapshot'], before['snapshot'], reason: 'copie figée inchangée');
+    expect(after['status'], 'submitted');
+  });
+
+  test('signature à distance : rapport absent côté équipe → envoi complet', () async {
+    final r = _report('r_absent').copyWith(signatureClientData: 'iVBORw0KGgo=', signedRemotely: true);
+    await team.pushRemoteSignature(_co, r);
+    final d = (await db.collection('companies_raptech1').doc(_co)
+            .collection('reports_raptech1').doc('r_absent').get()).data();
+    expect(d?['signature_client_data'], 'iVBORw0KGgo=');
+    expect(d?['client_name'], 'Client r_absent');
+  });
 }

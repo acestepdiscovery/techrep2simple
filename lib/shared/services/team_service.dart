@@ -355,6 +355,31 @@ class TeamService {
     }
   }
 
+  /// (2026-10-20) Signature à distance reçue APRÈS l'envoi du rapport (c'est le
+  /// parcours normal) : l'« instantané » d'un rapport envoyé est verrouillé par
+  /// les règles → la réécriture complète (syncReport) était REFUSÉE
+  /// (permission-denied, vu au test à 2 émulateurs) et l'équipe ne recevait pas
+  /// la signature. On n'ajoute donc QUE la signature. Rapport absent côté équipe
+  /// (jamais synchronisé) → envoi complet.
+  Future<void> pushRemoteSignature(String companyId, ReportModel report) async {
+    final ref = _db
+        .collection('companies_raptech1')
+        .doc(companyId)
+        .collection('reports_raptech1')
+        .doc(report.id);
+    final m = report.toMap();
+    try {
+      await _queued(ref.update({
+        'signature_client_data': m['signature_client_data'],
+        'signed_remotely': m['signed_remotely'],
+        'synced_at': FieldValue.serverTimestamp(),
+      }));
+    } on FirebaseException catch (e) {
+      if (e.code != 'not-found') rethrow;
+      await syncReport(companyId, report);
+    }
+  }
+
   /// (2026-10-14) Hors ligne, Firestore met l'écriture en file d'attente et ne
   /// la confirme qu'au RETOUR DU RÉSEAU : on n'attend pas plus de 8 s (elle
   /// partira toute seule). Avant, « Soumettre » tournait sans fin dans une cave.
