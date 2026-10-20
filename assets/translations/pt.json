@@ -1347,5 +1347,11 @@
   "rd_copy_value": "Copiar",
   "pw_sub_mention_ios": "Subscrição com renovação automática. O pagamento é debitado através da App Store na confirmação da compra. Salvo cancelamento pelo menos 24 horas antes do fim do período em curso, a subscrição é renovada automaticamente pelo mesmo preço. Gira ou cancele a qualquer momento nas definições de subscrição da sua conta (App Store). Os planos mensais não têm fidelização; a compra «vitalícia» é um pagamento único, não recorrente.",
   "ss_team_portal_info_ios": "A gestão faz-se nas definições de subscrição da sua loja (App Store). Poderá:\n\n•  alterar o método de pagamento,\n•  ver o histórico de faturação,\n•  cancelar a subscrição.\n\nO acesso Pro dos seus técnicos continua ativo enquanto a subscrição não for cancelada.",
-  "settings_share_text_ios": "Uso a «Rapport Technique IA» para os meus relatórios de intervenção — rápida, profissional, PDF num clique. Disponível na App Store. Vale mesmo a pena experimentar!"
+  "settings_share_text_ios": "Uso a «Rapport Technique IA» para os meus relatórios de intervenção — rápida, profissional, PDF num clique. Disponível na App Store. Vale mesmo a pena experimentar!",
+  "pw_feat_ai": "Assistente de IA",
+  "pw_feat_ai_sub": "Ditado por voz, foto → relatório, texto melhorado",
+  "pw_feat_invoice": "Faturas em PDF",
+  "pw_feat_invoice_sub": "Geradas a partir do relatório, com o IVA do seu país",
+  "pw_feat_all_solo_sub_v2": "Exportações ilimitadas, IA, faturas, assinatura à distância — para CADA membro",
+  "bar_go_pro_v2": "Passe a Pro — IA, exportações ilimitadas, faturas, assinatura à distância →"
 }

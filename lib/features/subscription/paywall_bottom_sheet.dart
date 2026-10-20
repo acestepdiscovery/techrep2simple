@@ -323,17 +323,22 @@ class _PaywallBottomSheetState extends ConsumerState<PaywallBottomSheet> {
                             ],
                           ),
                         ),
+                      // (2026-10-20) L'IA et les factures sont Pro mais n'étaient pas
+                      // citées ; « Sauvegarde cloud » l'était alors qu'elle marche
+                      // aussi en gratuit (dans le quota) → remplacée. IA en tête.
+                      _FeatureRow(Icons.auto_awesome_outlined, 'pw_feat_ai'.tr(),
+                          'pw_feat_ai_sub'.tr()),
                       _FeatureRow(Icons.picture_as_pdf_outlined,
                           'pw_feat_pdf'.tr(),
                           'pw_feat_pdf_sub'.tr()),
+                      _FeatureRow(Icons.receipt_long_outlined, 'pw_feat_invoice'.tr(),
+                          'pw_feat_invoice_sub'.tr()),
                       _FeatureRow(Icons.draw_outlined,
                           'pw_feat_sig'.tr(),
                           'pw_feat_sig_sub'.tr()),
-                      _FeatureRow(Icons.cloud_outlined, 'pw_feat_cloud'.tr(),
-                          'pw_feat_cloud_sub'.tr()),
                     ] else ...[
                       _FeatureRow(Icons.all_inclusive, 'pw_feat_all_solo'.tr(),
-                          'pw_feat_all_solo_sub'.tr(),
+                          'pw_feat_all_solo_sub_v2'.tr(),
                           color: Colors.indigo),
                       _FeatureRow(Icons.fact_check_outlined,
                           'pw_feat_validate'.tr(),

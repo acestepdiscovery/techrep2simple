@@ -1347,5 +1347,11 @@
   "rd_copy_value": "Kopieren",
   "pw_sub_mention_ios": "Automatisch verlängerbares Abonnement. Die Zahlung wird bei Kaufbestätigung über den App Store abgebucht. Sofern nicht mindestens 24 Stunden vor Ende des laufenden Zeitraums gekündigt wird, verlängert sich das Abonnement automatisch zum gleichen Preis. Verwalten oder kündigen Sie es jederzeit in den Abonnementeinstellungen Ihres Kontos (App Store). Monatliche Tarife sind ohne Bindung; der Kauf „lebenslang“ ist eine einmalige, nicht wiederkehrende Zahlung.",
   "ss_team_portal_info_ios": "Die Verwaltung erfolgt in den Abonnementeinstellungen Ihres Stores (App Store). Sie können:\n\n•  das Zahlungsmittel ändern,\n•  den Rechnungsverlauf einsehen,\n•  das Abonnement kündigen.\n\nDer Pro-Zugang Ihrer Techniker bleibt aktiv, solange das Abonnement nicht gekündigt ist.",
-  "settings_share_text_ios": "Ich nutze „Rapport Technique IA“ für meine Einsatzberichte — schnell, professionell, PDF mit einem Klick. Verfügbar im App Store. Unbedingt ausprobieren!"
+  "settings_share_text_ios": "Ich nutze „Rapport Technique IA“ für meine Einsatzberichte — schnell, professionell, PDF mit einem Klick. Verfügbar im App Store. Unbedingt ausprobieren!",
+  "pw_feat_ai": "KI-Assistent",
+  "pw_feat_ai_sub": "Sprachdiktat, Foto → Bericht, verbesserter Text",
+  "pw_feat_invoice": "PDF-Rechnungen",
+  "pw_feat_invoice_sub": "Direkt aus dem Bericht, mit der Steuer Ihres Landes",
+  "pw_feat_all_solo_sub_v2": "Unbegrenzte Exporte, KI, Rechnungen, Fernsignatur — für JEDES Mitglied",
+  "bar_go_pro_v2": "Werden Sie Pro — KI, unbegrenzte Exporte, Rechnungen, Fernsignatur →"
 }

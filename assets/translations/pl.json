@@ -1353,5 +1353,11 @@
   "rd_copy_value": "Kopiuj",
   "pw_sub_mention_ios": "Subskrypcja odnawiana automatycznie. Płatność jest pobierana przez App Store po potwierdzeniu zakupu. Jeśli nie anulujesz subskrypcji co najmniej 24 godziny przed końcem bieżącego okresu, odnowi się ona automatycznie w tej samej cenie. Możesz nią zarządzać lub ją anulować w dowolnym momencie w ustawieniach subskrypcji swojego konta (App Store). Plany miesięczne są bez zobowiązań; zakup „dożywotni” to jednorazowa, niecykliczna płatność.",
   "ss_team_portal_info_ios": "Zarządzanie odbywa się w ustawieniach subskrypcji Twojego sklepu (App Store). Możesz tam:\n\n•  zmienić metodę płatności,\n•  zobaczyć historię rozliczeń,\n•  anulować subskrypcję.\n\nDostęp Pro Twoich techników pozostaje aktywny, dopóki subskrypcja nie zostanie anulowana.",
-  "settings_share_text_ios": "Używam „Rapport Technique IA” do raportów serwisowych — szybko, profesjonalnie, PDF jednym kliknięciem. Dostępna w App Store. Koniecznie wypróbuj!"
+  "settings_share_text_ios": "Używam „Rapport Technique IA” do raportów serwisowych — szybko, profesjonalnie, PDF jednym kliknięciem. Dostępna w App Store. Koniecznie wypróbuj!",
+  "pw_feat_ai": "Asystent AI",
+  "pw_feat_ai_sub": "Dyktowanie, zdjęcie → protokół, poprawiony tekst",
+  "pw_feat_invoice": "Faktury PDF",
+  "pw_feat_invoice_sub": "Tworzone z protokołu, z VAT Twojego kraju",
+  "pw_feat_all_solo_sub_v2": "Nielimitowane eksporty, AI, faktury, podpis zdalny — dla KAŻDEGO członka",
+  "bar_go_pro_v2": "Przejdź na Pro — AI, nielimitowane eksporty, faktury, podpis zdalny →"
 }

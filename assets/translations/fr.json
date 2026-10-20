@@ -1347,5 +1347,11 @@
   "rd_copy_value": "Copier",
   "pw_sub_mention_ios": "Abonnement à renouvellement automatique. Le paiement est débité via l'App Store à la confirmation de l'achat. Sauf résiliation au moins 24 h avant la fin de la période en cours, l'abonnement se renouvelle automatiquement au même tarif. Gérez ou résiliez à tout moment dans les réglages d'abonnement de votre compte (App Store). Les formules mensuelles sont sans engagement ; l'achat « à vie » est un paiement unique non récurrent.",
   "ss_team_portal_info_ios": "La gestion se fait dans les réglages d'abonnement de votre store (App Store). Vous pourrez :\n\n•  changer le moyen de paiement,\n•  voir l'historique de facturation,\n•  résilier l'abonnement.\n\nL'accès Pro de vos techniciens reste actif tant que l'abonnement n'est pas résilié.",
-  "settings_share_text_ios": "J'utilise « Rapport Technique IA » pour mes bons d'intervention — rapide, professionnel, PDF en un clic. Disponible sur l'App Store. À tester absolument !"
+  "settings_share_text_ios": "J'utilise « Rapport Technique IA » pour mes bons d'intervention — rapide, professionnel, PDF en un clic. Disponible sur l'App Store. À tester absolument !",
+  "pw_feat_ai": "Assistant IA",
+  "pw_feat_ai_sub": "Dictée vocale, photo → rapport, texte amélioré",
+  "pw_feat_invoice": "Factures PDF",
+  "pw_feat_invoice_sub": "Générées depuis le rapport, avec la TVA de votre pays",
+  "pw_feat_all_solo_sub_v2": "Exports illimités, IA, factures, signature distante — pour CHAQUE membre",
+  "bar_go_pro_v2": "Passez Pro — IA, exports illimités, factures, signature distante →"
 }

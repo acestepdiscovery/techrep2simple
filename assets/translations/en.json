@@ -1347,5 +1347,11 @@
   "rd_copy_value": "Copy",
   "pw_sub_mention_ios": "Auto-renewing subscription. Payment is charged via the App Store on purchase confirmation. Unless cancelled at least 24 h before the end of the current period, the subscription renews automatically at the same price. Manage or cancel anytime in your account's subscription settings (App Store). Monthly plans are commitment-free; the « lifetime » purchase is a one-time, non-recurring payment.",
   "ss_team_portal_info_ios": "Management is done in your store's subscription settings (App Store). You can:\n\n•  change the payment method,\n•  view billing history,\n•  cancel the subscription.\n\nYour technicians' Pro access stays active as long as the subscription is not cancelled.",
-  "settings_share_text_ios": "I use « Rapport Technique IA » for my work orders — fast, professional, PDF in one tap. Available on the App Store. You have to try it!"
+  "settings_share_text_ios": "I use « Rapport Technique IA » for my work orders — fast, professional, PDF in one tap. Available on the App Store. You have to try it!",
+  "pw_feat_ai": "AI assistant",
+  "pw_feat_ai_sub": "Voice dictation, photo → report, improved text",
+  "pw_feat_invoice": "PDF invoices",
+  "pw_feat_invoice_sub": "Generated from the report, with your country's tax",
+  "pw_feat_all_solo_sub_v2": "Unlimited exports, AI, invoices, remote signature — for EACH member",
+  "bar_go_pro_v2": "Go Pro — AI, unlimited exports, invoices, remote signature →"
 }

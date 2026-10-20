@@ -395,7 +395,7 @@ class _SetupStatusBar extends ConsumerWidget {
             Expanded(
               child: Text(
                 isLoggedIn
-                    ? 'bar_go_pro'.tr()
+                    ? 'bar_go_pro_v2'.tr()
                     : 'bar_login_all_features'.tr(),
                 style: const TextStyle(color: Colors.white, fontSize: 11),
                 maxLines: 1,
