@@ -375,6 +375,11 @@ class _TechReportAppState extends ConsumerState<TechReportApp>
     });
 
     return MaterialApp.router(
+      // (2026-10-20) Clé = langue : changer la langue dans Réglages reconstruit
+      // TOUTE l'app. Avant, les onglets gardés en mémoire (StatefulShellRoute)
+      // restaient à moitié dans l'ancienne langue jusqu'au redémarrage (vu au
+      // test sur émulateur : « My reports », « New report » après passage en FR).
+      key: ValueKey(context.locale.toLanguageTag()),
       // (2026-10-19) Nom (écran des apps récentes Android) dans la langue.
       onGenerateTitle: (_) => 'app_brand'.tr(),
       theme: AppTheme.light,

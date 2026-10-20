@@ -13,7 +13,9 @@
 // (2026-10-14) Resté à 14 depuis juin alors que pubspec était passé à +15/+16/+20 :
 // avec min_build/latest_build réglés à 20 dans config/app_control, la 1.2.0 se serait
 // crue périmée. Désormais vérifié par test/app_build_number_test.dart.
-const int kAppBuildNumber = 20;
+// const int kAppBuildNumber = 20;   (build 20 = test interne Play du 20/10)
+// (2026-10-20) 21 : correctifs trouvés au test sur émulateur (PDF pro, modèles).
+const int kAppBuildNumber = 21;
 
 // Unique token baked into this specific build.
 // Change this value for each distinct distribution (demo, beta, prod release, etc.)
