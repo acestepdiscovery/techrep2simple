@@ -78,9 +78,10 @@ void main() {
   }
 
   Future<void> openForm(WidgetTester tester, String? id,
-      {ReportPreset? preset, bool pro = false}) async {
+      {ReportPreset? preset, bool pro = false, bool phone = false}) async {
     // Écran très haut : toutes les sections sont construites (liste paresseuse).
-    tester.view.physicalSize = const Size(1200, 24000);
+    // (2026-10-20) `phone` : vraie taille de téléphone (412 × 915).
+    tester.view.physicalSize = phone ? const Size(412, 915) : const Size(1200, 24000);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(EasyLocalization(
@@ -243,6 +244,17 @@ void main() {
     expect(field('Client Test'), findsOneWidget, reason: 'client du rapport gardé');
     expect(field('Client du Modèle'), findsNothing, reason: 'client du modèle ignoré');
     expect(field('Nettoyage complet'), findsOneWidget, reason: 'contenu du modèle chargé');
+    await closeForm(tester);
+  });
+
+  // (2026-10-20) Sur un vrai téléphone, les boutons de section (Travaux,
+  // Signatures…) ne faisaient rien : la liste ne construisait pas les sections
+  // lointaines. Corrigé par un cacheExtent large, VÉRIFIÉ SUR ÉMULATEUR (le moteur
+  // de test ne reproduit pas ce défilement) ; ce test garde la correction.
+  testWidgets('formulaire : toutes les sections sont construites (cacheExtent large)', (tester) async {
+    await openForm(tester, null, phone: true);
+    final list = tester.widget<ListView>(find.byType(ListView).first);
+    expect(list.cacheExtent, greaterThanOrEqualTo(10000));
     await closeForm(tester);
   });
 

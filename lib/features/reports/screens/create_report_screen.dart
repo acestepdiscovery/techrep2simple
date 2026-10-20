@@ -612,6 +612,9 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   }
 
   Future<void> _pickTime(bool isStart) async {
+    // (2026-10-20) Sinon, à la fermeture du sélecteur, le focus revient au
+    // dernier champ texte et l'écran saute vers lui.
+    FocusManager.instance.primaryFocus?.unfocus();
     final now = DateTime.now();
     final initial = TimeOfDay.fromDateTime(
       isStart ? (_startTime ?? now) : (_endTime ?? now),
@@ -1361,6 +1364,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   }
 
   void _scrollToNav(int keyIdx) {
+    // (2026-10-20) Un champ texte resté actif (clavier fermé) ramenait l'écran
+    // vers lui juste après le défilement : le bouton de section « ne marchait
+    // pas » (vu au test sur émulateur : « Travaux », « Signatures »).
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _visibleNavSet = {keyIdx};
       _sectionExpanded[keyIdx] = true;
@@ -1556,6 +1563,12 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         key: _formKey,
         child: ListView(
           controller: _scroll,
+          // (2026-10-20) Toutes les sections construites d'emblée (≈ 10, léger) :
+          // une ListView ne construit que ce qui est près de l'écran → les
+          // boutons de section vers une section lointaine (Travaux, Signatures…)
+          // ne trouvaient pas leur cible et ne faisaient rien, et la validation
+          // ignorait les champs des sections non construites. Vu sur émulateur.
+          cacheExtent: 100000,
           padding: const EdgeInsets.all(16),
           children: [
             // (#8) Sélecteur d'identité réactivé — RÉUTILISE le système existant
@@ -2437,6 +2450,7 @@ class _DateTile extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.w500),
         ),
         onTap: () async {
+          FocusManager.instance.primaryFocus?.unfocus(); // (2026-10-20) idem heures
           final first = firstDate ?? DateTime(2020);
           final picked = await showDatePicker(
             context: context,
