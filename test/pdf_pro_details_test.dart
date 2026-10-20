@@ -69,4 +69,23 @@ void main() {
     final dir = Platform.environment['PDF_DUMP_DIR'];
     if (dir != null) File('$dir/pro_details.pdf').writeAsBytesSync(bytes);
   });
+
+  // (2026-10-20) Durée remplie par l'IA mais aucun prix : le PDF du client
+  // affichait « 2,25 h × 0,00 €/h = 0,00 € » et « TOTAL : 0,00 € ».
+  test('facturation : sans aucun prix, seulement les heures (pas de 0,00 ni de total)', () async {
+    ReportModel r({double? rate, List<MaterialItem> mats = const []}) => ReportModel(
+        id: 'b', clientName: 'X', laborHours: 2.25, laborRate: rate, materials: mats,
+        date: DateTime(2026), createdAt: DateTime(2026), updatedAt: DateTime(2026));
+    expect(PdfService.billingHasPrices(r()), isFalse);
+    expect(PdfService.billingHasPrices(r(rate: 0)), isFalse);
+    expect(PdfService.billingHasPrices(r(rate: 45)), isTrue);
+    expect(PdfService.billingHasPrices(r(mats: const [
+      MaterialItem(reference: 'J1', label: 'Joint', quantity: 2, unitPrice: 3.5)])), isTrue);
+    for (final (name, report) in [('heures_sans_prix', r()), ('heures_avec_taux', r(rate: 45))]) {
+      final bytes = await PdfService().generateReport(report, pdfTemplate: 'professionnel');
+      expect(bytes.length, greaterThan(1000));
+      final dir = Platform.environment['PDF_DUMP_DIR'];
+      if (dir != null) File('$dir/$name.pdf').writeAsBytesSync(bytes);
+    }
+  });
 }

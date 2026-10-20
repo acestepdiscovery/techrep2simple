@@ -805,15 +805,22 @@ class PdfService {
     final matsTotal = report.materials
         .fold<double>(0, (a, m) => a + roundMoney(m.total));
     final total = roundMoney(labor + matsTotal);
+    // (2026-10-20) Aucun prix saisi (ni taux horaire, ni prix de matériel) : on
+    // n'affiche que les heures / quantités. Avant : « 2,25 h × 0,00 €/h = 0,00 € »
+    // et « TOTAL : 0,00 € » sur le document du client — fréquent depuis que l'IA
+    // remplit la durée à partir des horaires dictés (vu au test sur émulateur).
+    final priced = billingHasPrices(report);
 
     final rows = <pw.TableRow>[];
 
     if (report.laborHours != null && report.laborHours! > 0) {
       rows.add(_tableRow(
         'pdf_lbl_labor'.tr(),
-        '${formatQuantity(report.laborHours!)} h × '
-            '${_money(report.laborRate ?? 0)}/h = '
-            '${_money(labor)}',
+        priced
+            ? '${formatQuantity(report.laborHours!)} h × '
+                '${_money(report.laborRate ?? 0)}/h = '
+                '${_money(labor)}'
+            : '${formatQuantity(report.laborHours!)} h',
         baseStyle,
         boldStyle,
       ));
@@ -822,8 +829,10 @@ class PdfService {
     for (final m in report.materials) {
       rows.add(_tableRow(
         m.label,
-        '${formatQuantity(m.quantity)} × ${_money(m.unitPrice)} = '
-            '${_money(roundMoney(m.total))}',
+        priced
+            ? '${formatQuantity(m.quantity)} × ${_money(m.unitPrice)} = '
+                '${_money(roundMoney(m.total))}'
+            : formatQuantity(m.quantity),
         baseStyle,
         boldStyle,
       ));
@@ -831,18 +840,20 @@ class PdfService {
 
     final content = <pw.Widget>[
       pw.Table(children: rows),
-      pw.Divider(color: _divider),
-      pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.end,
-        children: [
-          pw.Text('pdf_total_ht'.tr(),
-              style: boldStyle.copyWith(
-                  color: _blue, fontSize: 10)),
-          pw.Text(_money(total),
-              style: boldStyle.copyWith(
-                  color: _blue, fontSize: 11)),
-        ],
-      ),
+      if (priced) ...[
+        pw.Divider(color: _divider),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.end,
+          children: [
+            pw.Text('pdf_total_ht'.tr(),
+                style: boldStyle.copyWith(
+                    color: _blue, fontSize: 10)),
+            pw.Text(_money(total),
+                style: boldStyle.copyWith(
+                    color: _blue, fontSize: 11)),
+          ],
+        ),
+      ],
     ];
     if (rows.length > _boxMaxRows) {
       return _openSection('pdf_sec_billing'.tr(), content);
@@ -1140,6 +1151,12 @@ class PdfService {
   bool _hasBilling(ReportModel r) =>
       (r.laborHours != null && r.laborHours! > 0) ||
       r.materials.isNotEmpty;
+
+  /// (2026-10-20) Au moins un prix saisi (taux horaire ou prix de matériel) →
+  /// montants et total affichés ; sinon seulement les heures / quantités.
+  @visibleForTesting
+  static bool billingHasPrices(ReportModel r) =>
+      (r.laborRate ?? 0) > 0 || r.materials.any((m) => m.unitPrice > 0);
 
   // Heure locale-aware : 24 h (fr/de/es…) ou 12 h AM/PM (en-US/AU) selon la locale.
   String _timeStr(DateTime dt) => DateFormat.jm().format(dt);
