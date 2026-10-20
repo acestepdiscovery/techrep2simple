@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart' show Intl;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/config/cf_config.dart';
 
@@ -146,7 +147,7 @@ class NotificationService {
 
   // Rattache le token au compte courant côté serveur (admin SDK), en le retirant
   // de tout autre compte qui le porterait encore. Best-effort, non bloquant.
-  Future<void> _claimTokenOnServer(String token) async {
+  Future<void> _claimTokenOnServer(String token, {String? lang}) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
@@ -157,11 +158,26 @@ class NotificationService {
           'Authorization': 'Bearer $idToken',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({'token': token}),
+        // (2026-10-20) + langue de l'app → notifications d'équipe dans cette
+        // langue (avant : toujours en français).
+        body: jsonEncode({'token': token, 'lang': lang ?? notifLang()}),
       ).timeout(const Duration(seconds: 15));
     } catch (_) {
       // non bloquant
     }
+  }
+
+  /// Langue de l'app transmise au serveur pour les notifications (« fr », « de »…).
+  @visibleForTesting
+  static String notifLang() => (Intl.defaultLocale ?? 'fr').split(RegExp('[_-]')).first;
+
+  /// (2026-10-20) Après un changement de langue dans l'app : prévient le serveur
+  /// pour que les prochaines notifications arrivent dans la nouvelle langue.
+  Future<void> syncLanguage(String lang) async {
+    if (kIsWeb) return;
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(_tokenPrefsKey);
+    if (token != null) await _claimTokenOnServer(token, lang: lang);
   }
 
   // Removes the current token from Firestore on sign-out so this device

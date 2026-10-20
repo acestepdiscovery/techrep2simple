@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -10,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../shared/utils/safe_image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../shared/utils/share_origin.dart';
+import '../../../shared/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/app_build.dart';
@@ -2424,6 +2426,8 @@ class _LanguageTileState extends State<_LanguageTile> {
                   await context.deleteSaveLocale();
                   if (!mounted) return;
                   await context.resetLocale();
+                  unawaited(NotificationService().syncLanguage(
+                      WidgetsBinding.instance.platformDispatcher.locale.languageCode));
                   if (sheetCtx.mounted) Navigator.pop(sheetCtx);
                   if (mounted) setState(() => _followSystem = true);
                 },
@@ -2441,6 +2445,8 @@ class _LanguageTileState extends State<_LanguageTile> {
                     await prefs.setBool('lang_follow_system', false);
                     if (!mounted) return;
                     await context.setLocale(Locale(e.key));
+                    // (2026-10-20) notifications d'équipe dans la nouvelle langue
+                    unawaited(NotificationService().syncLanguage(e.key));
                     if (sheetCtx.mounted) Navigator.pop(sheetCtx);
                     if (mounted) setState(() => _followSystem = false);
                   },
