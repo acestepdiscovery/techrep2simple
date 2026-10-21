@@ -1,0 +1,58 @@
+# (2026-10-21) Codemagic — APERÇU iPhone / iPad sur SIMULATEUR (sans Mac, sans signature Apple).
+#
+# But : voir l'app tourner sur un iPhone et un iPad simulés, la manipuler à la souris, et
+# faire les captures des stores, depuis le PC (bureau à distance VNC).
+# Ce fichier ne touche PAS au workflow de publication iOS existant.
+#
+# Mode d'emploi (aussi dans le GUI, Mémo « 🍏 Simulateur iPhone / iPad ») :
+#  1. Codemagic › ajouter l'app (même dépôt GitHub) en configuration « codemagic.yaml »
+#     (ou, si l'app y est déjà en YAML : choisir ce workflow).
+#  2. « Start new build » › workflow « ios-simulator-preview » › cocher « Enable SSH/VNC access ».
+#  3. Quand l'étape « À toi » démarre : panneau « Explore build machine » › identifiants VNC
+#     › les ouvrir avec un logiciel VNC (ex. RealVNC Viewer, gratuit).
+#  4. Sur le bureau du Mac : l'iPhone et l'iPad simulés sont déjà ouverts, l'app lancée.
+#     La souris = le doigt. Capture : menu File › Save Screen (ou Cmd+S) → enregistrée sur le
+#     Bureau du Mac.
+#  5. Fini ? Créer un dossier nommé « fini » sur le Bureau du Mac (clic droit › Nouveau dossier),
+#     ou attendre 40 min. Les captures sont alors récupérées : page du build › Artifacts.
+# Minutes : ~10 min de compilation + le temps de la séance (500 min gratuites / mois sur M2).
+workflows:
+  ios-simulator-preview:
+    name: iOS – aperçu sur simulateur (VNC) + captures
+    instance_type: mac_mini_m2
+    max_build_duration: 75
+    environment:
+      flutter: 3.38.9
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Dépendances
+        script: flutter pub get
+      - name: Compilation pour simulateur (aucune signature Apple nécessaire)
+        script: flutter build ios --simulator --debug
+      - name: Ouvrir l'iPhone et l'iPad simulés, installer et lancer l'app
+        script: |
+          set -e
+          udid() { xcrun simctl list devices available | grep -m1 "$1" | sed -E 's/.*\(([A-F0-9-]{36})\).*/\1/'; }
+          IPHONE=$(udid "iPhone 16 Pro Max" || true); [ -z "$IPHONE" ] && IPHONE=$(udid "Pro Max")
+          IPAD=$(udid "iPad Pro 13-inch" || true); [ -z "$IPAD" ] && IPAD=$(udid "iPad Pro")
+          echo "iPhone: $IPHONE / iPad: $IPAD"
+          for D in $IPHONE $IPAD; do
+            xcrun simctl boot "$D" || true
+            xcrun simctl install "$D" build/ios/iphonesimulator/Runner.app
+            xcrun simctl launch "$D" com.tec.reportnew1cld || true
+          done
+          open -a Simulator
+      - name: À toi (connexion VNC) — 40 min max, ou dossier « fini » sur le Bureau
+        script: |
+          for i in $(seq 1 240); do
+            if [ -e "$HOME/Desktop/fini" ]; then echo "Séance terminée."; break; fi
+            sleep 10
+          done
+      - name: Récupérer les captures du Bureau
+        script: |
+          mkdir -p captures
+          cp "$HOME"/Desktop/*.png captures/ 2>/dev/null || true
+          ls -la captures
+    artifacts:
+      - captures/*.png
