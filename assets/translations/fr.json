@@ -1356,6 +1356,7 @@
   "td_cancel_request": "Annuler ma demande",
   "td_left_team": "Vous avez quitté l'équipe.",
   "photo_access_denied": "Accès aux photos ou à l'appareil photo refusé. Autorisez-le dans les réglages du téléphone.",
+  "photo_recovered": "Une photo prise pendant la fermeture de l'app a été récupérée et ajoutée à votre rapport.",
   "tax_rate_invalid": "Taux entre 0 et 100 %",
   "app_brand": "Rapport Technique IA",
   "common_link_failed": "Impossible d'ouvrir le lien.",

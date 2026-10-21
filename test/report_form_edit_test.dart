@@ -15,6 +15,7 @@ import 'package:reportnew1cld/features/reports/screens/create_report_screen.dart
 import 'package:reportnew1cld/features/settings/providers/settings_provider.dart';
 import 'package:reportnew1cld/features/subscription/subscription_provider.dart';
 import 'package:reportnew1cld/shared/services/local_db_service.dart';
+import 'package:reportnew1cld/shared/services/pending_capture.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -365,5 +366,55 @@ void main() {
     expect(find.byKey(const ValueKey('nav_missing_5')), findsOneWidget, reason: 'description manquante');
     expect(find.byKey(const ValueKey('nav_done_5')), findsNothing);
     await closeForm(tester);
+  });
+  // (2026-10-21) Retour utilisateur (Benoit) : Android fermait l'app pendant la prise
+  // de vue → rapport et photo perdus (reproduit sur émulateur). Avant d'ouvrir
+  // l'appareil photo, le brouillon est enregistré et le rapport noté.
+  testWidgets('avant la prise de vue : brouillon enregistré + rapport noté pour la photo', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    await openForm(tester, null,
+        preset: ReportPreset(
+            id: 'p-cam', name: 'x', createdAt: DateTime(2026, 10, 21),
+            data: const {'client_name': 'Client Photo Perdue'}));
+    // Section Photos ouverte (onglet), puis « Ajouter des photos ».
+    await tester.tap(find.text('Photos').first);
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    tester.widget<OutlinedButton>(find.ancestor(
+        of: find.text('Ajouter des photos'), matching: find.byWidgetPredicate((w) => w is OutlinedButton))).onPressed!();
+    await tester.pump(const Duration(milliseconds: 300));
+    // « Prendre une photo » (appel direct : la feuille est tout en bas de l'écran de test).
+    tester.widget<ListTile>(find.widgetWithText(ListTile, 'Prendre une photo')).onTap!();
+    for (var i = 0; i < 6; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    final pending = await tester.runAsync(() => PendingCapture.pendingReportId());
+    expect(pending, isNotNull, reason: 'rapport noté avant d\'ouvrir l\'appareil photo');
+    final saved = await tester.runAsync(() => LocalDbService().getReport(pending!));
+    expect(saved?.clientName, 'Client Photo Perdue', reason: 'brouillon déjà en base');
+    await closeForm(tester);
+  });
+
+  test('photo récupérée : ajoutée au rapport noté (créé s\'il n\'existait pas)', () async {
+    final r = await seed('rec-1');
+    await PendingCapture.attach('rec-1', ['/x/recup.jpg']);
+    final got = await LocalDbService().getReport('rec-1');
+    expect(got!.photosPaths, [...r.photosPaths, '/x/recup.jpg']);
+    expect(got.clientName, 'Client Test');
+    await PendingCapture.attach('rec-neuf', ['/x/seule.jpg']);
+    final neuf = await LocalDbService().getReport('rec-neuf');
+    expect(neuf!.photosPaths, ['/x/seule.jpg']);
+    expect(neuf.status, ReportStatus.draft);
+  });
+
+  test('rapport noté : oublié après 6 h', () async {
+    SharedPreferences.setMockInitialValues({});
+    await PendingCapture.mark('r-1');
+    expect(await PendingCapture.pendingReportId(), 'r-1');
+    expect(await PendingCapture.pendingReportId(now: DateTime.now().add(const Duration(hours: 7))), isNull);
+    await PendingCapture.clear();
+    expect(await PendingCapture.pendingReportId(), isNull);
   });
 }

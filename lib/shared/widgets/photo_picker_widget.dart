@@ -11,14 +11,22 @@ class PhotoPickerWidget extends StatelessWidget {
   final void Function(XFile) onAdd;
   final void Function(int) onRemove;
 
+  /// (2026-10-21) Appelé AVANT d'ouvrir l'appareil photo / la galerie : le
+  /// formulaire enregistre son brouillon (Android peut fermer l'app pendant la
+  /// prise de vue sur un téléphone qui manque de mémoire).
+  final Future<void> Function()? onBeforePick;
+
   const PhotoPickerWidget({
     super.key,
     required this.photos,
     required this.onAdd,
     required this.onRemove,
+    this.onBeforePick,
   });
 
   Future<void> _pick(BuildContext context, ImageSource source) async {
+    await onBeforePick?.call();
+    if (!context.mounted) return;
     final picked = await pickImageSafe(
       context,
       source: source,

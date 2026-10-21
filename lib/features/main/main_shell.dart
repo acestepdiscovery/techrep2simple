@@ -10,6 +10,8 @@ import '../../core/constants/app_colors.dart';
 import '../auth/providers/auth_provider.dart';
 import '../subscription/subscription_provider.dart';
 import '../../shared/services/local_db_service.dart';
+import '../../shared/services/pending_capture.dart';
+import '../reports/providers/reports_provider.dart';
 import 'setup_screen.dart';
 
 class MainShell extends ConsumerStatefulWidget {
@@ -33,6 +35,9 @@ class _MainShellState extends ConsumerState<MainShell> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // (2026-10-21) D'abord : photo prise pendant qu'Android fermait l'app →
+      // ajoutée au rapport, formulaire rouvert, et AUCUN autre message par-dessus.
+      if (await _recoverLostPhoto()) return;
       await _checkBroadcast();
       await _checkFeedbackNudge();
       await _checkReportMilestone();
@@ -147,6 +152,22 @@ class _MainShellState extends ConsumerState<MainShell> {
     );
   }
 
+  Future<bool> _recoverLostPhoto() async {
+    try {
+      final id = await PendingCapture.recover();
+      if (id == null || !mounted) return false;
+      await ref.read(reportsProvider.notifier).refresh();
+      if (!mounted) return true;
+      context.push('/create-report?id=$id');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('photo_recovered'.tr()), duration: const Duration(seconds: 6)),
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> _checkReportMilestone() async {
     try {
       final reports = await LocalDbService().getAllReports();
@@ -195,19 +216,25 @@ class _MainShellState extends ConsumerState<MainShell> {
         if (remote != null && remote.trim().isNotEmpty) body = remote.trim();
       } catch (_) {}
       if (!mounted) return; // l'écran a pu être quitté pendant la lecture
-      showDialog(
-        context: context,
-        builder: (dlg) => AlertDialog(
-          title: Text('$emoji $title'),
-          content: Text(body),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(dlg),
-              child: Text('milestone_thanks'.tr()),
-            ),
-          ],
-        ),
+      // (2026-10-21) Retour utilisateur : la fenêtre « félicitations » gênait
+      // (« message complètement inutile »). Désormais un simple bandeau en bas,
+      // qui disparaît seul et ne bloque rien. Ancienne fenêtre gardée ci-dessous.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$emoji $title — $body'), duration: const Duration(seconds: 5)),
       );
+      // showDialog(
+      //   context: context,
+      //   builder: (dlg) => AlertDialog(
+      //     title: Text('$emoji $title'),
+      //     content: Text(body),
+      //     actions: [
+      //       FilledButton(
+      //         onPressed: () => Navigator.pop(dlg),
+      //         child: Text('milestone_thanks'.tr()),
+      //       ),
+      //     ],
+      //   ),
+      // );
     } catch (_) {}
   }
 
@@ -296,9 +323,21 @@ class _MainShellState extends ConsumerState<MainShell> {
                       selectedIcon: const Icon(Icons.assignment),
                       label: 'nav_reports'.tr(),
                     ),
+                    // (2026-10-21) Badge « PRO » (remplace le bandeau, voir kProBadgeInsteadOfBar).
                     NavigationDestination(
-                      icon: const Icon(Icons.account_circle_outlined),
-                      selectedIcon: const Icon(Icons.account_circle),
+                      icon: Badge(
+                        key: const ValueKey('nav_pro_badge'),
+                        isLabelVisible: kProBadgeInsteadOfBar && isPro,
+                        label: const Text('PRO', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold)),
+                        backgroundColor: AppColors.primary,
+                        child: const Icon(Icons.account_circle_outlined),
+                      ),
+                      selectedIcon: Badge(
+                        isLabelVisible: kProBadgeInsteadOfBar && isPro,
+                        label: const Text('PRO', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold)),
+                        backgroundColor: AppColors.primary,
+                        child: const Icon(Icons.account_circle),
+                      ),
                       label: 'nav_account'.tr(),
                     ),
                     NavigationDestination(
@@ -375,7 +414,9 @@ class _SetupStatusBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isPro = ref.watch(effectiveSubscriptionProvider);
-    if (isPro) return const _ProBar();
+    // (2026-10-21) Pro : plus de bandeau, un badge « PRO » sur Mon compte.
+    // Ancien comportement (kProBadgeInsteadOfBar = false) : `return const _ProBar();`
+    if (isPro) return kProBadgeInsteadOfBar ? const SizedBox.shrink() : const _ProBar();
 
     final user = ref.watch(firebaseUserProvider).valueOrNull;
     final isLoggedIn = user != null;

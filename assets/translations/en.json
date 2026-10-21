@@ -1356,6 +1356,7 @@
   "td_cancel_request": "Cancel my request",
   "td_left_team": "You left the team.",
   "photo_access_denied": "Access to photos or the camera was denied. Allow it in your phone settings.",
+  "photo_recovered": "A photo taken while the app was closing has been recovered and added to your report.",
   "tax_rate_invalid": "Rate between 0 and 100%",
   "app_brand": "Service Report AI",
   "common_link_failed": "Couldn't open the link.",

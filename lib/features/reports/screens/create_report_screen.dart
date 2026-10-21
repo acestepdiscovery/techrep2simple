@@ -34,6 +34,7 @@ import '../../team/screens/team_dashboard_screen.dart' show teamTabRequestProvid
 import '../../settings/screens/settings_screen.dart' show settingsExpandCompanyProvider;
 import 'signature_screen.dart';
 import '../../../shared/services/photo_storage.dart';
+import '../../../shared/services/pending_capture.dart';
 
 class CreateReportScreen extends ConsumerStatefulWidget {
   final String? reportId;
@@ -426,6 +427,20 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     if (!_hasAnyContent()) return false;
     final base = _baseline;
     return base == null || _contentKey() != base;
+  }
+
+  /// (2026-10-21) Avant d'ouvrir l'appareil photo / la galerie (voir PendingCapture).
+  Future<void> _saveBeforeCapture() async {
+    _autoSaveTimer?.cancel();
+    // Tout contenu (même un modèle pas encore modifié) : le rapport doit exister en
+    // base pour recevoir la photo récupérée avec ses autres informations.
+    if (_hasAnyContent()) {
+      _baseline = _contentKey();
+      await ref
+          .read(reportsProvider.notifier)
+          .upsertSilently(_buildReport(ReportStatus.draft));
+    }
+    await PendingCapture.mark(_reportId);
   }
 
   Future<void> _autoSave() async {
@@ -1820,17 +1835,28 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
               onToggle: () => _toggleSection(6),
               child: PhotoPickerWidget(
                 photos: _photos,
+                // (2026-10-21) Brouillon enregistré + rapport noté AVANT la prise de
+                // vue : si Android ferme l'app, la photo est récupérée au démarrage
+                // (PendingCapture) au lieu d'être perdue avec le rapport.
+                onBeforePick: _saveBeforeCapture,
                 // (2026-10-14) Copie en stockage PERMANENT : le sélecteur dépose
                 // la photo dans le cache, que le système vide → photos perdues.
                 onAdd: (xFile) async {
                   final kept = await PhotoStorage.persist(xFile.path);
+                  await PendingCapture.clear();
                   if (!mounted) return;
                   setState(() {
                     _photos.add(XFile(kept));
                     _sectionExpanded[6] = true;
                   });
+                  // (2026-10-21) Avant : ajouter une photo n'enregistrait PAS le
+                  // brouillon (seul le texte le faisait).
+                  _scheduleAutoSave();
                 },
-                onRemove: (i) => setState(() => _photos.removeAt(i)),
+                onRemove: (i) {
+                  setState(() => _photos.removeAt(i));
+                  _scheduleAutoSave();
+                },
               ),
             ),
 

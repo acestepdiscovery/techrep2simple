@@ -96,6 +96,16 @@ void main() {
             currencyCode: 'CAD',
           );
           expect(quebec.length, greaterThan(1000));
+          // (2026-10-21) Retour utilisateur : « un carré avec une croix » à la place de la
+          // ponctuation dans le nom de la société (version 1.0.0 : police sans ces signes,
+          // corrigé par la police Noto). Garde : aucun signe courant ne doit manquer.
+          const punct = 'L’Atelier « Dupont & Fils » — SARL : n° 42 ; ok ! ? … ‘a’ “b” '
+              '·•° % € \$ £ @ # / ( ) [ ] ½ ™ ® © – ’ ±'; // (« ≈ » absent de la police : jamais dans un nom)
+          for (final tpl in ['simple', 'professionnel']) {
+            await PdfService().generateReport(_report,
+                companyName: punct, pdfTemplate: tpl, currencyCode: 'EUR');
+          }
+          await PdfService().generateInvoice(_report, companyName: punct, currencyCode: 'EUR');
         },
         zoneSpecification: ZoneSpecification(print: (self, parent, zone, line) {
           final m = RegExp(r'Unable to find a font to draw "(.+?)"').firstMatch(line);

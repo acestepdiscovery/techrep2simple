@@ -107,6 +107,10 @@ const bool kEnableNewNavLayout = true;
 // once subscribed. Tap opens a checklist bottom sheet.
 const bool kEnableSetupBar = true;
 
+// (2026-10-21) Abonnés Pro : petit badge « PRO » sur l'onglet Mon compte AU LIEU du
+// bandeau « VERSION PRO » sous chaque écran. Remettre `false` = retour à l'ancien bandeau.
+const bool kProBadgeInsteadOfBar = true;
+
 // "Profil" tab in the bottom navigation bar.
 // When true: adds a 6th "Profil" tab showing the full account setup checklist.
 // Both kEnableSetupBar and kEnableProfileTab can be true simultaneously.

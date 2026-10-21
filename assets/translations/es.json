@@ -1356,6 +1356,7 @@
   "td_cancel_request": "Cancelar mi solicitud",
   "td_left_team": "Has abandonado el equipo.",
   "photo_access_denied": "Acceso a las fotos o a la cámara denegado. Permítelo en los ajustes del teléfono.",
+  "photo_recovered": "Se ha recuperado una foto tomada mientras la app se cerraba y se ha añadido a tu informe.",
   "tax_rate_invalid": "Tipo entre 0 y 100 %",
   "app_brand": "Parte de Trabajo IA",
   "common_link_failed": "No se ha podido abrir el enlace.",
