@@ -147,6 +147,27 @@ void main() {
     expect(simple.tax, 24.69);
   });
 
+  // (2026-10-21) Pays francophones ajoutés (téléchargements vus au Maroc et au Bénin).
+  test('Maroc, Tunisie, Afrique de l\'Ouest : taxe, devise et format par défaut', () {
+    expect(defaultCurrencyCode(region: 'MA'), 'MAD');
+    expect(defaultCurrencyCode(region: 'TN'), 'TND');
+    for (final r in ['SN', 'CI', 'BJ']) {
+      expect(defaultCurrencyCode(region: r), 'XOF', reason: r);
+      expect(defaultTaxConfig(region: r).rate, 18, reason: r);
+    }
+    expect(defaultTaxConfig(region: 'MA').rate, 20);
+    expect(defaultTaxConfig(region: 'TN').rate, 19);
+    // Franc CFA sans centimes, dinar tunisien à 3 décimales.
+    final xof = formatMoney(12500, code: 'XOF', locale: 'fr');
+    expect(xof.contains(','), isFalse, reason: xof);
+    expect(xof, contains('F CFA'));
+    expect(formatMoney(1.5, code: 'TND', locale: 'fr'), contains('1,500'));
+    expect(formatMoney(10, code: 'MAD', locale: 'fr'), contains('10,00'));
+    for (final c in ['MAD', 'TND', 'XOF']) {
+      expect(kCurrencyCodes, contains(c));
+    }
+  });
+
   test('searchFold : recherche sans accents ni majuscules', () {
     expect(searchFold('Société Générale').contains(searchFold('societe')), isTrue);
     expect(searchFold('Müller GmbH').contains('muller'), isTrue);

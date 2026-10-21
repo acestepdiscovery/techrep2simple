@@ -99,6 +99,28 @@ class KillSwitchService {
   static KillSwitchResult? _cache;
   static DateTime? _cacheTime;
 
+  /// (2026-10-21) Derniers champs bruts de config/app_control (messages par page).
+  static Map<String, dynamic>? lastFields;
+
+  /// (2026-10-21) Message d'une page (« ai »…), ou null si rien n'est réglé.
+  /// Champs : page_msg_PAGE_id, page_msg_PAGE (ou _LANGUE), _style, _max_build.
+  static PageMessage? pageMessageFromFields(Map<String, dynamic>? fields, String page,
+      {int currentBuild = 0, String lang = 'fr'}) {
+    String? str(String k) {
+      final v = (fields?[k] as Map<String, dynamic>?)?['stringValue'] as String?;
+      return (v == null || v.trim().isEmpty) ? null : v;
+    }
+
+    final p = 'page_msg_$page';
+    final id = str('${p}_id');
+    final text = str('${p}_$lang') ?? str(p);
+    if (id == null || text == null) return null;
+    final rawMax = (fields?['${p}_max_build'] as Map<String, dynamic>?)?['integerValue'];
+    final maxBuild = rawMax is int ? rawMax : int.tryParse('${rawMax ?? ''}');
+    if (maxBuild != null && currentBuild > 0 && currentBuild > maxBuild) return null;
+    return PageMessage(id: id, text: text, alert: str('${p}_style') == 'alert');
+  }
+
   static void clearCache() {
     _cache = null;
     _cacheTime = null;
@@ -129,6 +151,7 @@ class KillSwitchService {
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       final fields = body['fields'] as Map<String, dynamic>?;
+      lastFields = fields;
       final lang = (Intl.defaultLocale ?? 'fr').split(RegExp('[_-]')).first;
       return _cacheAndReturn(
           fromFields(fields, currentBuild: currentBuild, lang: lang));
@@ -211,4 +234,12 @@ class KillSwitchService {
     _cacheTime = DateTime.now();
     return result;
   }
+}
+
+/// (2026-10-21) Message affiché en haut d'une page (voir PageMessageCard).
+class PageMessage {
+  final String id;
+  final String text;
+  final bool alert; // rouge si vrai, bleu sinon
+  const PageMessage({required this.id, required this.text, this.alert = false});
 }

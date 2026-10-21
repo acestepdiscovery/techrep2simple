@@ -1164,7 +1164,11 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
             const SizedBox(width: 8),
             Text(successTitle),
           ]),
-          content: Column(
+          // (2026-10-21) Lien vide = fichier envoyé mais lien de partage indisponible
+          // (Dropbox sans droit « partage ») : on confirme l'envoi quand même.
+          content: link.isEmpty
+              ? Text('rd_cloud_sent_no_link'.tr(args: [serviceName]))
+              : Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1179,6 +1183,7 @@ ${billingRows.isNotEmpty ? section('pdf_sec_billing'.tr(), billingRows.toString(
             TextButton(
                 onPressed: () => Navigator.pop(dlg),
                 child: Text('common_close'.tr())),
+            if (link.isNotEmpty)
             ElevatedButton.icon(
               onPressed: () {
                 final messenger = ScaffoldMessenger.of(dlg);

@@ -23,6 +23,7 @@ import '../../subscription/paywall_bottom_sheet.dart';
 import '../../subscription/subscription_provider.dart';
 import '../../../shared/utils/error_text.dart';
 import '../ai_fill_ins.dart';
+import '../../../shared/widgets/page_message_card.dart';
 
 class AiScreen extends ConsumerStatefulWidget {
   const AiScreen({super.key});
@@ -248,6 +249,9 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // (2026-10-21) Message de la page IA, invisible tant que rien n'est réglé
+          // dans config/app_control (page_msg_ai_id + page_msg_ai…).
+          const PageMessageCard(page: 'ai'),
           // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),

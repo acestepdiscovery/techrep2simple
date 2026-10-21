@@ -26,11 +26,20 @@ const Map<String, String> kCurrencySymbol = {
   'DKK': 'kr',
   'NOK': 'kr',
   'INR': '₹',
+  // (2026-10-21) Maroc, Tunisie, Afrique de l'Ouest (UEMOA).
+  'MAD': 'DH',
+  'TND': 'DT',
+  'XOF': 'F CFA',
 };
+
+/// (2026-10-21) Décimales affichées quand ce n'est pas 2 : le franc CFA n'a pas de
+/// centimes, le dinar tunisien a des millimes (3 décimales).
+const Map<String, int> kCurrencyDecimals = {'XOF': 0, 'TND': 3};
 
 /// Ordre d'affichage dans le sélecteur.
 const List<String> kCurrencyCodes = [
   'EUR', 'GBP', 'USD', 'CHF', 'CAD', 'AUD', 'NZD', 'PLN', 'SEK', 'DKK', 'NOK', 'INR',
+  'MAD', 'TND', 'XOF',
 ];
 
 /// Variable GLOBALE de devise courante (même principe que `Intl.defaultLocale`) :
@@ -43,6 +52,7 @@ const Map<String, String> _countryCurrency = {
   'ES': 'EUR', 'IT': 'EUR', 'PT': 'EUR', 'IE': 'EUR', 'FI': 'EUR', 'GR': 'EUR',
   'CH': 'CHF', 'GB': 'GBP', 'US': 'USD', 'CA': 'CAD', 'AU': 'AUD', 'NZ': 'NZD',
   'PL': 'PLN', 'SE': 'SEK', 'DK': 'DKK', 'NO': 'NOK', 'IN': 'INR',
+  'MA': 'MAD', 'TN': 'TND', 'SN': 'XOF', 'CI': 'XOF', 'BJ': 'XOF',
 };
 
 String _languageCurrency(String? language) {
@@ -85,7 +95,7 @@ String formatMoney(num amount, {String? code, String? locale}) {
   final f = NumberFormat.currency(
     locale: locale, // null → Intl.defaultLocale (langue de l'app)
     symbol: currencySymbolOf(c),
-    decimalDigits: 2,
+    decimalDigits: kCurrencyDecimals[c] ?? 2,
   );
   return f.format(amount);
 }

@@ -81,9 +81,10 @@ class OneDriveService {
     }
 
     final folder = _resolveFolder(folderPattern, companyName, technicianName);
-    // (2026-10-21) L'envoi par chemin ne crée PAS les sous-dossiers du dossier de l'app
-    // (404 itemNotFound vu au test) → on les crée d'abord, un par un.
-    await _ensureFolders(token, folder);
+    // (2026-10-21) Création préalable des sous-dossiers RETIRÉE après le test : le 404
+    // venait du OneDrive non activé du compte (« pending provisioning »), et une fois
+    // activé, l'envoi par chemin crée bien les dossiers (création préalable → 400).
+    // await _ensureFolders(token, folder);
 
     final uploadUrl = Uri.parse(
       'https://graph.microsoft.com/v1.0/me/drive/special/approot:/'
@@ -180,6 +181,7 @@ class OneDriveService {
 
   /// (2026-10-21) Crée chaque dossier du chemin dans le dossier de l'app ; « existe
   /// déjà » (409) n'est pas une erreur. Les autres erreurs sont laissées à l'envoi.
+  // ignore: unused_element
   static Future<void> _ensureFolders(String token, String folder) async {
     final segs = folder.split('/').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
     for (var i = 0; i < segs.length; i++) {

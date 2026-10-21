@@ -166,6 +166,28 @@ const List<TaxCountry> kTaxCountries = [
   TaxCountry('NZ', 'tax_country_NZ', [
     TaxPreset('GST', 15),
   ]),
+  // (2026-10-21) Afrique du Nord et de l'Ouest francophone (téléchargements vus au
+  // Maroc et au Bénin). UEMOA (Sénégal, Côte d'Ivoire, Bénin…) : TVA 18 %, franc CFA.
+  TaxCountry('MA', 'tax_country_MA', [
+    TaxPreset('TVA', 20),
+    TaxPreset('TVA', 14),
+    TaxPreset('TVA', 10),
+    TaxPreset('TVA', 7),
+  ]),
+  TaxCountry('TN', 'tax_country_TN', [
+    TaxPreset('TVA', 19),
+    TaxPreset('TVA', 13),
+    TaxPreset('TVA', 7),
+  ]),
+  TaxCountry('SN', 'tax_country_SN', [
+    TaxPreset('TVA', 18),
+  ]),
+  TaxCountry('CI', 'tax_country_CI', [
+    TaxPreset('TVA', 18),
+  ]),
+  TaxCountry('BJ', 'tax_country_BJ', [
+    TaxPreset('TVA', 18),
+  ]),
   TaxCountry('IN', 'tax_country_IN', [
     TaxPreset('GST', 18),
     TaxPreset('GST', 12),

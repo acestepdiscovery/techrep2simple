@@ -234,6 +234,11 @@ class NotificationService {
   // Tapped from system tray while app was in background/terminated.
   void _onTap(RemoteMessage msg) => _navigate(msg.data);
 
+  /// (2026-10-21) Rapport d'équipe à ouvrir après un appui sur « Nouveau rapport » :
+  /// l'onglet Équipe l'ouvre dès que la liste est chargée (avant : on arrivait
+  /// seulement sur l'onglet Équipe et il fallait chercher le rapport).
+  static final ValueNotifier<String?> pendingTeamReport = ValueNotifier<String?>(null);
+
   void _navigate(Map<String, dynamic> data) {
     final router = _router;
     if (router == null) return;
@@ -245,6 +250,7 @@ class NotificationService {
       // est celui d'un technicien, il n'est PAS sur ce téléphone → onglet Équipe
       // (avant : écran « rapport introuvable »).
       case 'report_submitted':
+        pendingTeamReport.value = reportId;
         router.go('/team-tab');
       case 'report_validated':
       case 'report_rejected':

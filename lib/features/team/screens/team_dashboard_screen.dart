@@ -28,6 +28,8 @@ import '../../../shared/widgets/zoomable_pdf_view.dart';
 import '../../../shared/widgets/status_badge.dart';
 import '../../../shared/utils/error_text.dart';
 import '../../../shared/services/photo_storage.dart';
+import '../../../shared/services/notification_service.dart';
+import '../team_report_badges.dart';
 
 // (M/J) Demande d'ouverture d'un SOUS-ONGLET précis de la page Équipe (0=Gérer,
 // 1=Rapports, 2=Réglages équipe), avec déroulé optionnel de la carte « infos
@@ -52,6 +54,36 @@ class TeamDashboardScreen extends ConsumerStatefulWidget {
 
 class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
   String _filterStatus = 'all';
+
+  // (2026-10-21) Rapport à ouvrir (notification « Nouveau rapport » touchée).
+  String? _openReportId;
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationService.pendingTeamReport.addListener(_onOpenRequest);
+    _onOpenRequest(); // appli lancée par la notification
+  }
+
+  @override
+  void dispose() {
+    NotificationService.pendingTeamReport.removeListener(_onOpenRequest);
+    super.dispose();
+  }
+
+  void _onOpenRequest() {
+    final id = NotificationService.pendingTeamReport.value;
+    if (id == null || !mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _openReportId = id;
+        _filterStatus = 'all';
+      });
+      ref.read(teamTabRequestProvider.notifier).state =
+          TeamTabRequest(tab: 1, nonce: DateTime.now().microsecondsSinceEpoch); // onglet Rapports
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -189,6 +221,22 @@ class _TeamDashboardScreenState extends ConsumerState<TeamDashboardScreen> {
                                   child: Text('common_error'.tr(args: [errorText(snap.error!)])));
                             }
                             final allReports = snap.data ?? [];
+                            // (2026-10-21) Ouvre le rapport demandé par la notification.
+                            final openId = _openReportId;
+                            if (openId != null) {
+                              final hit = allReports.where((r) => r['id'] == openId).firstOrNull;
+                              if (hit != null) {
+                                _openReportId = null;
+                                NotificationService.pendingTeamReport.value = null;
+                                final canV = canValidate &&
+                                    (team.isAdmin || hit['technician_id'] != myUid);
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  if (mounted) {
+                                    _openTeamReportSheet(context, hit, team.companyId!, canV);
+                                  }
+                                });
+                              }
+                            }
                             final filtered = _filterStatus == 'all'
                                 ? allReports
                                 : allReports
@@ -310,6 +358,38 @@ class _FilterBar extends StatelessWidget {
 
 // ─── Report tile ──────────────────────────────────────────────────────────────
 
+/// Fiche d'un rapport d'équipe (liste, ou notification « Nouveau rapport »).
+void _openTeamReportSheet(BuildContext context, Map<String, dynamic> data,
+    String companyId, bool canValidate) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    builder: (_) => _ReportDetailSheet(
+        data: data, companyId: companyId, canValidate: canValidate),
+  );
+}
+
+/// (2026-10-21) Petite pastille de la liste d'équipe (photos, signature, montant).
+class _TilePill extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final String tooltip;
+  final Color color;
+  const _TilePill(this.icon, this.text, this.tooltip, this.color, {super.key});
+
+  @override
+  Widget build(BuildContext context) => Tooltip(
+        message: tooltip,
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 3),
+          Text(text, style: TextStyle(fontSize: 12, color: color)),
+        ]),
+      );
+}
+
 class _ReportTile extends StatelessWidget {
   final Map<String, dynamic> data;
   final String companyId;
@@ -326,16 +406,8 @@ class _ReportTile extends StatelessWidget {
         orElse: () => ReportStatus.draft,
       );
 
-  void _showDetail(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => _ReportDetailSheet(
-          data: data, companyId: companyId, canValidate: canValidate),
-    );
-  }
+  void _showDetail(BuildContext context) =>
+      _openTeamReportSheet(context, data, companyId, canValidate);
 
   @override
   Widget build(BuildContext context) {
@@ -394,6 +466,27 @@ class _ReportTile extends StatelessWidget {
                           style: const TextStyle(
                               fontSize: 12, color: Colors.black45)),
                     ],
+                    // (2026-10-21) Pastilles : photos · signé · montant HT.
+                    const SizedBox(height: 6),
+                    Builder(builder: (context) {
+                      final photos = teamReportPhotoCount(data);
+                      final signed = teamReportSigned(data);
+                      final amount = teamReportAmount(data);
+                      return Wrap(spacing: 12, runSpacing: 4, children: [
+                        _TilePill(Icons.photo_camera_outlined, '$photos',
+                            'td_pill_photos'.tr(args: ['$photos']), Colors.black54,
+                            key: const ValueKey('pill_photos')),
+                        _TilePill(signed ? Icons.verified_outlined : Icons.draw_outlined,
+                            signed ? '✓' : '—',
+                            (signed ? 'td_pill_signed' : 'td_pill_not_signed').tr(),
+                            signed ? Colors.green.shade700 : Colors.black38,
+                            key: ValueKey(signed ? 'pill_signed' : 'pill_not_signed')),
+                        if (amount > 0)
+                          _TilePill(Icons.receipt_long_outlined, formatMoney(amount),
+                              'td_pill_amount'.tr(), Colors.black54,
+                              key: const ValueKey('pill_amount')),
+                      ]);
+                    }),
                   ],
                 ),
               ),

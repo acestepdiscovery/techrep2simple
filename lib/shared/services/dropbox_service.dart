@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -139,7 +140,12 @@ class DropboxService {
         if (links.isNotEmpty) return links.first['url'] as String?;
       }
     }
-    return null;
+    // (2026-10-21) Le PDF EST envoyé ; seul le lien de partage manque (ex. droit
+    // « sharing.write » absent dans l'App Console Dropbox). Avant : `null` = « annulé »
+    // → aucun message, l'utilisateur croyait que rien ne s'était passé (vu au test).
+    debugPrint('[dropbox] lien ${shareResp.statusCode} '
+        '${shareResp.body.length > 300 ? shareResp.body.substring(0, 300) : shareResp.body}');
+    return '';
   }
 
   static Future<String?> _getValidToken() async {
