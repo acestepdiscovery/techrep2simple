@@ -24,7 +24,9 @@
 // const int kAppBuildNumber = 23;
 // (2026-10-21) 24 : connexion OneDrive / Dropbox réparée (retour à l'app après « Accepter »,
 // dossiers OneDrive créés, message « OneDrive pas encore activé ») + ✓ sur les onglets du formulaire.
-const int kAppBuildNumber = 24;
+// const int kAppBuildNumber = 24;
+// (2026-10-21) 25 : « Votre rapport sur mesure » (envoi de modèle, Firebase Storage).
+const int kAppBuildNumber = 25;
 
 // Unique token baked into this specific build.
 // Change this value for each distinct distribution (demo, beta, prod release, etc.)

@@ -34,6 +34,7 @@ import '../widgets/tax_editor.dart';
 import '../providers/settings_provider.dart';
 import '../../../shared/utils/error_text.dart';
 import '../../../shared/widgets/cloud_guide.dart';
+import 'custom_report_request_screen.dart';
 import '../../../shared/services/photo_storage.dart';
 import '../../reports/models/invoice_terms.dart';
 
@@ -193,6 +194,17 @@ class SettingsScreen extends ConsumerWidget {
 
             _SectionTitle('settings_section_feedback'.tr()),
             const _FeedbackSection(),
+            // (2026-10-21) « Votre rapport sur mesure » (envoi de modèle de rapport).
+            ListTile(
+              key: const ValueKey('settings_custom_report'),
+              leading: const Icon(Icons.design_services_outlined, color: AppColors.primary),
+              title: Text('crr_tile_title'.tr()),
+              subtitle: Text('crr_tile_sub'.tr(),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CustomReportRequestScreen())),
+            ),
 
             _SectionTitle('settings_section_about'.tr()),
             const _VersionTile(),

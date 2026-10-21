@@ -2,9 +2,10 @@
   "name": "techreport-firestore-rules-test",
   "private": true,
   "type": "module",
-  "description": "Tests des règles Firestore (portion WORK 2) sur l'émulateur local — aucun accès au vrai projet.",
+  "description": "Tests des r\u00c3\u00a8gles Firestore (portion WORK 2) sur l'\u00c3\u00a9mulateur local \u00e2\u20ac\u201d aucun acc\u00c3\u00a8s au vrai projet.",
   "scripts": {
-    "test": "firebase emulators:exec --only firestore --project demo-techreport \"node --test rules.test.mjs\""
+    "test": "firebase emulators:exec --only firestore --project demo-techreport \"node --test rules.test.mjs\"",
+    "test:storage": "firebase emulators:exec --only storage --project demo-techreport \"node --test storage.test.mjs\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "6.0.0",
