@@ -18,7 +18,10 @@
 // const int kAppBuildNumber = 21;
 // (2026-10-20 soir) 22 : IA — dictée plus légère (32 kbit/s), attente 240 s (dictées
 // longues), « améliorer » reprend contact/contrat/horaires/durée apportés par une note.
-const int kAppBuildNumber = 22;
+// const int kAppBuildNumber = 22;
+// (2026-10-21) 23 : petite icône des notifications (silhouette, plus de carré blanc) +
+// l'app envoie son numéro de build à l'IA (bonus IA réservable aux versions à jour).
+const int kAppBuildNumber = 23;
 
 // Unique token baked into this specific build.
 // Change this value for each distinct distribution (demo, beta, prod release, etc.)

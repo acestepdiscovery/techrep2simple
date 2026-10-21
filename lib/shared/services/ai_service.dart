@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import '../../core/config/app_build.dart';
 import '../../core/config/cf_config.dart';
 
 class AiActionResult {
@@ -40,12 +41,22 @@ class AiActionResult {
 class AiService {
   static const _cfBaseUrl = kCfBaseUrl;
 
+  /// Champs ajoutés à chaque appel IA.
+  /// - (i18n IA) `lang` : langue de l'app (le serveur doit répondre dans cette
+  ///   langue). `Intl.defaultLocale` est synchronisé sur la langue active dans
+  ///   app.dart. Un `lang` explicite passé par l'appelant prime.
+  /// - (2026-10-21) `app_build` : numéro de build de l'app → le serveur peut
+  ///   réserver un bonus IA temporaire aux versions à jour (`ai_bonus_min_build`
+  ///   dans config/app_control). Les anciennes versions ne l'envoient pas.
+  static Map<String, dynamic> withDefaults(Map<String, dynamic> body) {
+    body['lang'] ??= (Intl.defaultLocale ?? 'fr').split('_').first;
+    body['app_build'] ??= kAppBuildNumber;
+    return body;
+  }
+
   Future<AiActionResult> _callCf(Map<String, dynamic> body) async {
     try {
-      // (i18n IA) Langue de l'app injectée par défaut (le serveur doit répondre
-      // dans cette langue). `Intl.defaultLocale` est synchronisé sur la langue
-      // active dans app.dart. Un `lang` explicite passé par l'appelant prime.
-      body['lang'] ??= (Intl.defaultLocale ?? 'fr').split('_').first;
+      withDefaults(body);
 
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return const AiActionResult(error: 'not_authenticated');
