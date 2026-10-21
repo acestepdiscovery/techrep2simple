@@ -215,7 +215,7 @@ class _GateScreenState extends State<GateScreen> {
   Widget build(BuildContext context) {
     // Loading splash
     if (!_checked) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: AppColors.primary,
         body: Center(
           child: Column(
@@ -223,8 +223,10 @@ class _GateScreenState extends State<GateScreen> {
             children: [
               CircularProgressIndicator(color: Colors.white),
               SizedBox(height: 24),
+              // (2026-10-21) Nom de la fiche dans la langue de l'app (avant : l'ancien
+              // nom « Compte Rendu Technique IA » en français pour tout le monde).
               Text(
-                'Compte Rendu Technique IA',
+                'app_brand'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
