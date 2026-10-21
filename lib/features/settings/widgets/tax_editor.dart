@@ -175,7 +175,8 @@ class _TaxEditorDialogState extends State<_TaxEditorDialog> {
                       final selected = !_custom &&
                           _labelCtrl.text == p.label &&
                           _currentRate == p.rate;
-                      final pct = '${formatTaxRate(p.rate)} %';
+                      final pct = '${formatTaxRate(p.rate)} %'
+                          '${p.hint.isNotEmpty ? ' · ${p.hint}' : ''}';
                       return ChoiceChip(
                         label: Text(
                           p.mention.isNotEmpty

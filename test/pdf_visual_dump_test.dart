@@ -179,6 +179,10 @@ void main() {
               pdfTemplate: tpl,
               currencyCode: currency));
         }
+        // (2026-10-21) Taxe composée du Canada : TPS / TVQ sur 2 lignes.
+        await run('facture_quebec', () => PdfService().generateInvoice(r,
+            companyName: 'Société Démo', taxRate: 14.975,
+            taxLabel: lang == 'fr' ? 'TPS + TVQ' : 'GST + QST', currencyCode: 'CAD'));
         await run('facture', () => PdfService().generateInvoice(r,
             companyName: 'Société Démo & Cie',
             companyAddress: '5 avenue de l’Île, 69002 Lyon',

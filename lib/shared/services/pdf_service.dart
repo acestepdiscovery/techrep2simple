@@ -1199,15 +1199,15 @@ class PdfService {
     final issueDate = fmt.format(report.endDate ?? report.date);
     final invoiceNum = invoiceNumber(report);
 
-    final t = invoiceTotals(report, report.taxRate ?? taxRate ?? 20.0);
-    final laborTotal = t.labor;
-    final subtotal = t.subtotal;
     // Taxe effective : override du rapport > valeur passée par l'appelant
     // (défaut global) > repli 20 %. taxRate est en POURCENT.
     final effRate = report.taxRate ?? taxRate ?? 20.0;
     final effLabel = (report.taxLabel != null && report.taxLabel!.trim().isNotEmpty)
         ? report.taxLabel!
         : ((taxLabel != null && taxLabel.trim().isNotEmpty) ? taxLabel : 'VAT');
+    final t = invoiceTotals(report, effRate, taxLabel: effLabel);
+    final laborTotal = t.labor;
+    final subtotal = t.subtotal;
     final effMention =
         (report.taxMention != null && report.taxMention!.trim().isNotEmpty)
             ? report.taxMention!
@@ -1411,8 +1411,13 @@ class PdfService {
               child: pw.Column(
                 children: [
                   _totalRow('pdf_subtotal'.tr(), subtotal),
-                  _totalRow(
-                      '$effLabel (${formatTaxRate(effRate)} %)', tva),
+                  // (2026-10-21) Taxe composée (Canada) : une ligne par taxe.
+                  if (t.parts.isNotEmpty)
+                    for (final (lbl, rate, amount) in t.parts)
+                      _totalRow('$lbl (${formatTaxRate(rate)} %)', amount)
+                  else
+                    _totalRow(
+                        '$effLabel (${formatTaxRate(effRate)} %)', tva),
                   pw.Divider(color: _divider),
                   _totalRow('pdf_total_ttc'.tr(), total, bold: true),
                 ],
@@ -1446,13 +1451,25 @@ class PdfService {
   /// Totaux de facture, chaque ligne arrondie au centime AVANT addition
   /// (2026-10-14) : les montants affichés s'additionnent toujours au centime près.
   /// [taxRatePercent] en pourcent.
-  static ({double labor, double subtotal, double tax, double total}) invoiceTotals(
-      ReportModel r, double taxRatePercent) {
+  /// (2026-10-21) [taxLabel] d'une taxe composée (« TPS + TVQ ») → `parts` = une ligne
+  /// par taxe, chacune arrondie au centime ; la taxe totale = leur somme (la facture
+  /// s'additionne toujours au centime près).
+  static ({double labor, double subtotal, double tax, double total,
+      List<(String, double, double)> parts}) invoiceTotals(
+      ReportModel r, double taxRatePercent, {String? taxLabel}) {
     final labor = roundMoney((r.laborHours ?? 0) * (r.laborRate ?? 0));
     final mats = r.materials.fold<double>(0, (a, m) => a + roundMoney(m.total));
     final subtotal = roundMoney(labor + mats);
-    final tax = roundMoney(subtotal * taxRatePercent / 100);
-    return (labor: labor, subtotal: subtotal, tax: tax, total: roundMoney(subtotal + tax));
+    final comps = taxLabel == null ? null : taxComponents(taxLabel, taxRatePercent);
+    final parts = [
+      for (final (lbl, rate) in comps ?? const <(String, double)>[])
+        (lbl, rate, roundMoney(subtotal * rate / 100)),
+    ];
+    final tax = parts.isEmpty
+        ? roundMoney(subtotal * taxRatePercent / 100)
+        : roundMoney(parts.fold<double>(0, (a, p) => a + p.$3));
+    return (labor: labor, subtotal: subtotal, tax: tax, total: roundMoney(subtotal + tax),
+        parts: parts);
   }
 
   /// N° de facture (« FAC-042-2026 ») : année de la date de fin d'intervention,

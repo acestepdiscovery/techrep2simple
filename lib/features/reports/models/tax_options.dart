@@ -23,7 +23,10 @@ class TaxPreset {
   final String label; // ex. « TVA », « MwSt. », « Sales Tax »
   final double rate; // en POURCENT : 20.0, 5.5, 0.0
   final String mention; // mention légale facultative (peut être '')
-  const TaxPreset(this.label, this.rate, [this.mention = '']);
+  // (2026-10-21) Indication affichée dans le choix SEULEMENT (pas sur la facture) :
+  // provinces du Canada (« QC », « ON »…).
+  final String hint;
+  const TaxPreset(this.label, this.rate, [this.mention = '', this.hint = '']);
 }
 
 class TaxCountry {
@@ -143,10 +146,18 @@ const List<TaxCountry> kTaxCountries = [
     // on ne la calcule jamais automatiquement → l'user entre SON taux.
     TaxPreset('Sales Tax', 0),
   ]),
+  // (2026-10-21) Canada par province. Taxes COMPOSÉES (« GST + QST »…) : la facture
+  // les détaille sur 2 lignes (voir kCompoundTaxes) ; avant : GST/HST 5/13/15 seulement.
   TaxCountry('CA', 'tax_country_CA', [
-    TaxPreset('GST/HST', 5),
-    TaxPreset('GST/HST', 13),
-    TaxPreset('GST/HST', 15),
+    TaxPreset('GST', 5, '', 'AB · YT · NT · NU'),
+    TaxPreset('HST', 13, '', 'ON'),
+    TaxPreset('HST', 14, '', 'NS'), // Nouvelle-Écosse : 14 % depuis le 1er avril 2025
+    TaxPreset('HST', 15, '', 'NB · NL · PE'),
+    TaxPreset('TPS + TVQ', 14.975, '', 'QC'), // Québec, factures en français
+    TaxPreset('GST + QST', 14.975, '', 'QC'), // Québec, factures en anglais
+    TaxPreset('GST + PST', 12, '', 'BC'), //     PST 7 %
+    TaxPreset('GST + PST', 11, '', 'SK'), //     PST 6 %
+    TaxPreset('GST + RST', 12, '', 'MB'), //     RST 7 %
   ]),
   TaxCountry('AU', 'tax_country_AU', [
     TaxPreset('GST', 10),
@@ -162,6 +173,27 @@ const List<TaxCountry> kTaxCountries = [
     TaxPreset('GST', 28),
   ]),
 ];
+
+/// (2026-10-21) Taxes COMPOSÉES : au Canada, la facture doit montrer chaque taxe sur
+/// sa propre ligne (Québec : TPS 5 % ET TVQ 9,975 %). Le stockage reste UN libellé +
+/// UN taux (« TPS + TVQ », 14,975) ; la facture retrouve ici les composantes. Un
+/// libellé ou un taux modifié à la main → une seule ligne, comme avant.
+const List<(String, double, List<(String, double)>)> kCompoundTaxes = [
+  ('TPS + TVQ', 14.975, [('TPS', 5), ('TVQ', 9.975)]),
+  ('GST + QST', 14.975, [('GST', 5), ('QST', 9.975)]),
+  ('GST + PST', 12, [('GST', 5), ('PST', 7)]),
+  ('GST + PST', 11, [('GST', 5), ('PST', 6)]),
+  ('GST + RST', 12, [('GST', 5), ('RST', 7)]),
+];
+
+/// Composantes d'une taxe composée (libellé + taux exacts), sinon null.
+List<(String, double)>? taxComponents(String label, double rate) {
+  final l = label.trim().toUpperCase();
+  for (final (name, total, parts) in kCompoundTaxes) {
+    if (name.toUpperCase() == l && (total - rate).abs() < 0.0005) return parts;
+  }
+  return null;
+}
 
 /// Code spécial « Autre / personnalisé » (hors liste) : tout saisi à la main.
 const String kTaxOtherCode = '_other';
@@ -258,8 +290,10 @@ TaxConfig resolveReportTax(
 /// Formate un taux pour l'affichage avec le séparateur décimal de la locale :
 /// 20 → « 20 », 5.5 → « 5,5 » (fr/de) / « 5.5 » (en). Pas de zéros superflus.
 String formatTaxRate(double rate, {String? locale}) {
+  // (2026-10-21) 3 décimales : la TVQ du Québec est à 9,975 % (vu en relecture
+  // visuelle : « 9,97 % » sur la facture avec 2 décimales).
   final f = NumberFormat.decimalPattern(locale)
     ..minimumFractionDigits = 0
-    ..maximumFractionDigits = 2;
+    ..maximumFractionDigits = 3;
   return f.format(rate);
 }

@@ -44,6 +44,7 @@ import '../../subscription/subscription_provider.dart';
 import '../../../shared/utils/error_text.dart';
 import '../models/invoice_terms.dart';
 import '../../../shared/services/review_prompt.dart';
+import '../../../shared/widgets/cloud_guide.dart';
 
 class ReportDetailScreen extends ConsumerWidget {
   final String reportId;
@@ -2679,6 +2680,9 @@ class _CloudOptionsSheetState extends State<_CloudOptionsSheet> {
               Text('rd_cloud_choose'.tr(),
                   style:
                       TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+              // (2026-10-21) Mini-guide de la 1re connexion (tant qu'un service n'est pas relié).
+              if (_googleEmail == null || !_oneDriveConnected || !_dropboxConnected)
+                const CloudGuideLink(),
               const SizedBox(height: 16),
 
               // ── Google Drive ──────────────────────────────────────────

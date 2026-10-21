@@ -87,6 +87,15 @@ void main() {
             currencyCode: lang == 'pl' ? 'PLN' : 'EUR',
           );
           expect(invoice.length, greaterThan(1000));
+          // (2026-10-21) Taxe composée du Québec : 2 lignes (TPS / TVQ) sur la facture.
+          final quebec = await PdfService().generateInvoice(
+            _report,
+            companyName: 'Société Démo',
+            taxRate: 14.975,
+            taxLabel: 'TPS + TVQ',
+            currencyCode: 'CAD',
+          );
+          expect(quebec.length, greaterThan(1000));
         },
         zoneSpecification: ZoneSpecification(print: (self, parent, zone, line) {
           final m = RegExp(r'Unable to find a font to draw "(.+?)"').firstMatch(line);

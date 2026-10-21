@@ -33,6 +33,7 @@ import '../../reports/models/currency_options.dart';
 import '../widgets/tax_editor.dart';
 import '../providers/settings_provider.dart';
 import '../../../shared/utils/error_text.dart';
+import '../../../shared/widgets/cloud_guide.dart';
 import '../../../shared/services/photo_storage.dart';
 import '../../reports/models/invoice_terms.dart';
 
@@ -554,6 +555,8 @@ class _CloudIntegrationsEntry extends StatelessWidget {
                 _GoogleDriveTile(),
                 _OneDriveTile(),
                 _DropboxTile(),
+                // (2026-10-21) Mini-guide de la 1re connexion.
+                Padding(padding: EdgeInsets.only(left: 8, top: 4), child: CloudGuideLink()),
               ],
             ),
           ),

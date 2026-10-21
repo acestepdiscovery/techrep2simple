@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:reportnew1cld/features/reports/models/currency_options.dart';
 import 'package:reportnew1cld/features/reports/models/report_model.dart';
 import 'package:reportnew1cld/features/reports/models/sector_options.dart';
+import 'package:reportnew1cld/features/reports/models/tax_options.dart';
 import 'package:reportnew1cld/shared/services/pdf_service.dart';
 import 'package:reportnew1cld/shared/utils/file_slug.dart';
 
@@ -110,6 +111,40 @@ void main() {
     expect(t.tax, 3.0);
     expect(t.total, 18.0);
     expect(roundMoney(t.subtotal + t.tax), t.total);
+  });
+
+  // (2026-10-21) Canada : TPS + TVQ (Québec) et GST + PST / RST sur 2 lignes séparées.
+  test('taxe composée : composantes reconnues (libellé + taux exacts)', () {
+    expect(taxComponents('TPS + TVQ', 14.975), [('TPS', 5.0), ('TVQ', 9.975)]);
+    expect(taxComponents(' tps + tvq ', 14.975), isNotNull, reason: 'casse / espaces');
+    expect(taxComponents('GST + PST', 12), [('GST', 5.0), ('PST', 7.0)]);
+    expect(taxComponents('GST + PST', 11), [('GST', 5.0), ('PST', 6.0)]);
+    expect(taxComponents('TPS + TVQ', 15), isNull, reason: 'taux modifié à la main → 1 ligne');
+    expect(taxComponents('TVA', 20), isNull);
+    expect(formatTaxRate(9.975, locale: 'fr'), '9,975', reason: 'TVQ affichée en entier');
+    expect(formatTaxRate(5.5, locale: 'fr'), '5,5');
+    expect(formatTaxRate(20, locale: 'fr'), '20');
+    // Chaque préréglage composé du Canada est bien décomposable.
+    final ca = taxCountryByCode('CA')!;
+    for (final p in ca.presets.where((p) => p.label.contains('+'))) {
+      expect(taxComponents(p.label, p.rate), isNotNull, reason: '${p.label} ${p.rate}');
+    }
+    expect(ca.presets.any((p) => p.label == 'TPS + TVQ' && p.rate == 14.975), isTrue);
+  });
+
+  test('taxe composée : chaque ligne arrondie, la taxe totale = leur somme', () {
+    final r = ReportModel(
+      id: 'q', clientName: 'C', date: DateTime(2026),
+      laborHours: 1, laborRate: 123.45,
+      createdAt: DateTime(2026), updatedAt: DateTime(2026));
+    final t = PdfService.invoiceTotals(r, 14.975, taxLabel: 'TPS + TVQ');
+    expect(t.subtotal, 123.45);
+    expect(t.parts, [('TPS', 5.0, 6.17), ('TVQ', 9.975, 12.31)]);
+    expect(t.tax, 18.48, reason: '6,17 + 12,31 (un seul taux donnerait 18,49)');
+    expect(t.total, 141.93);
+    final simple = PdfService.invoiceTotals(r, 20, taxLabel: 'TVA');
+    expect(simple.parts, isEmpty);
+    expect(simple.tax, 24.69);
   });
 
   test('searchFold : recherche sans accents ni majuscules', () {
