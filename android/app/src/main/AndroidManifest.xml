@@ -18,7 +18,6 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
@@ -81,6 +80,12 @@
             </intent-filter>
         </activity>
         <!--
+            (2026-10-21) PAS de android:taskAffinity="" sur MainActivity (ligne du modèle
+            Flutter, retirée) : avec elle, après « Accepter » chez Microsoft/Dropbox,
+            l'onglet de connexion restait devant, l'app restait en arrière-plan (mise en
+            pause par Android) → l'envoi échouait (« impossible de joindre le serveur »).
+            Doc flutter_web_auth_2 : launchMode singleTop + aucun taskAffinity = configuration
+            garantie. Vérifié par test/android_manifest_test.dart.
             OAuth callback pour OneDrive + Dropbox via flutter_web_auth_2.
             Scheme : com.tec.reportnew1cld (≠ raptech://)
             NE PAS ajouter raptech:// ici — ça créerait un double enregistrement

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -68,10 +70,24 @@ class OneDriveService {
     var token = await _getValidToken();
     if (token == null) return null; // user cancelled
 
+    // (2026-10-21) Crée d'abord le dossier de l'app (« Applications/<nom de l'app> ») :
+    // sur un compte où l'app n'avait encore rien envoyé, l'envoi direct dans
+    // approot:/… répondait 404 (vu au test sur émulateur).
+    if (await _ensureAppFolder(token) == 401) {
+      if (!await _refresh()) return null;
+      token = (await SharedPreferences.getInstance()).getString(_tokenKey);
+      if (token == null) return null;
+      await _ensureAppFolder(token);
+    }
+
     final folder = _resolveFolder(folderPattern, companyName, technicianName);
+    // (2026-10-21) L'envoi par chemin ne crée PAS les sous-dossiers du dossier de l'app
+    // (404 itemNotFound vu au test) → on les crée d'abord, un par un.
+    await _ensureFolders(token, folder);
 
     final uploadUrl = Uri.parse(
-      'https://graph.microsoft.com/v1.0/me/drive/special/approot:/$folder/$filename:/content',
+      'https://graph.microsoft.com/v1.0/me/drive/special/approot:/'
+      '${graphPath([...folder.split('/'), filename])}:/content',
     );
 
     var resp = await http.put(
@@ -100,7 +116,11 @@ class OneDriveService {
     }
 
     if (resp.statusCode != 200 && resp.statusCode != 201) {
-      throw Exception('cloud_err_upload'.tr(args: ['OneDrive', '${resp.statusCode}']));
+      // (2026-10-21) + code d'erreur Microsoft (ex. « itemNotFound ») : diagnostic possible.
+      final body = resp.body.length > 300 ? resp.body.substring(0, 300) : resp.body;
+      debugPrint('[onedrive] envoi ${resp.statusCode} $body');
+      throw Exception('cloud_err_upload'.tr(
+          args: ['OneDrive', '${resp.statusCode}${graphErrorCode(resp.body)}']));
     }
 
     final data = jsonDecode(resp.body) as Map<String, dynamic>;
@@ -121,6 +141,80 @@ class OneDriveService {
     }
 
     return data['webUrl'] as String?;
+  }
+
+  /// (2026-10-21) GET approot = crée le dossier de l'app s'il n'existe pas encore.
+  static Future<int> _ensureAppFolder(String token) async {
+    try {
+      final r = await http.get(
+        Uri.parse('https://graph.microsoft.com/v1.0/me/drive/special/approot'),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 30));
+      if (r.statusCode != 200) {
+        debugPrint('[onedrive] approot ${r.statusCode} ${r.body.length > 300 ? r.body.substring(0, 300) : r.body}');
+      }
+      // (2026-10-21) Compte Microsoft dont le OneDrive n'a jamais été ouvert : Microsoft
+      // répond 503 « User is pending provisioning » → message clair (vu au test).
+      if (isPendingProvisioning(r.body)) {
+        throw Exception('cloud_err_onedrive_not_ready'.tr());
+      }
+      return r.statusCode;
+    } on TimeoutException {
+      return 0; // réseau : l'envoi qui suit donnera le vrai message
+    } on http.ClientException {
+      return 0;
+    }
+  }
+
+  /// OneDrive pas encore activé pour ce compte (« itemDisabledDueToPendingProvisioning »).
+  static bool isPendingProvisioning(String body) =>
+      body.contains('itemDisabledDueToPendingProvisioning') ||
+      body.contains('User is pending provisioning');
+
+  /// Chemin Graph : segments vides retirés, chacun encodé (espaces, accents, « & »…).
+  static String graphPath(List<String> segments) => segments
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .map(Uri.encodeComponent)
+      .join('/');
+
+  /// (2026-10-21) Crée chaque dossier du chemin dans le dossier de l'app ; « existe
+  /// déjà » (409) n'est pas une erreur. Les autres erreurs sont laissées à l'envoi.
+  static Future<void> _ensureFolders(String token, String folder) async {
+    final segs = folder.split('/').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    for (var i = 0; i < segs.length; i++) {
+      final parent = graphPath(segs.sublist(0, i));
+      final url = parent.isEmpty
+          ? 'https://graph.microsoft.com/v1.0/me/drive/special/approot/children'
+          : 'https://graph.microsoft.com/v1.0/me/drive/special/approot:/$parent:/children';
+      try {
+        final r = await http.post(
+          Uri.parse(url),
+          headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'name': segs[i],
+            'folder': <String, dynamic>{},
+            '@microsoft.graph.conflictBehavior': 'fail',
+          }),
+        ).timeout(const Duration(seconds: 30));
+        if (r.statusCode != 201 && r.statusCode != 409) {
+          debugPrint('[onedrive] dossier « ${segs[i]} » ${r.statusCode} '
+              '${r.body.length > 200 ? r.body.substring(0, 200) : r.body}');
+        }
+      } catch (_) {}
+    }
+  }
+
+  /// Code d'erreur Microsoft Graph lisible (« {"error":{"code":"itemNotFound"…}} » →
+  /// « itemNotFound »), préfixé d'un espace ; '' si absent.
+  static String graphErrorCode(String body) {
+    try {
+      final err = (jsonDecode(body) as Map<String, dynamic>)['error'];
+      final code = err is Map ? err['code'] : null;
+      return code is String && code.isNotEmpty ? ' $code' : '';
+    } catch (_) {
+      return '';
+    }
   }
 
   static Future<String?> _getValidToken() async {

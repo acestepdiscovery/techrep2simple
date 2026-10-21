@@ -336,4 +336,34 @@ void main() {
     expect(r.startTime?.minute, 30);
     expect(r.aiEnhanced, isTrue);
   });
+  // (2026-10-21) Onglets de sections : ✓ quand la section est remplie (pendant la
+  // saisie), point rouge sur une section obligatoire vide après un essai d'envoi.
+  testWidgets('onglets : ✓ section remplie, point rouge si obligatoire manquant', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'instance_token_last_check_ms': DateTime.now().millisecondsSinceEpoch,
+      'instance_token_blocked': false,
+    });
+    await openForm(tester, null,
+        preset: ReportPreset(
+            id: 'p-nav', name: 'x', createdAt: DateTime(2026, 10, 21),
+            data: const {'intervention_type': 'Dépannage'}));
+    expect(find.byKey(const ValueKey('nav_done_2')), findsOneWidget, reason: 'mission remplie par le modèle');
+    expect(find.byKey(const ValueKey('nav_done_1')), findsNothing, reason: 'client vide');
+    expect(find.byKey(const ValueKey('nav_missing_1')), findsNothing, reason: 'pas de rouge avant un envoi');
+    final client = tester
+        .widget<TextField>(find.byWidgetPredicate((w) =>
+            w is TextField && (w.decoration?.labelText ?? '') == 'Nom du client *'))
+        .controller!;
+    client.text = 'Boulangerie Martin';
+    await tester.pump();
+    expect(find.byKey(const ValueKey('nav_done_1')), findsOneWidget, reason: '✓ dès la saisie');
+    await tester.tap(find.text('Soumettre le rapport'));
+    for (var i = 0; i < 6; i++) {
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    expect(find.byKey(const ValueKey('nav_missing_5')), findsOneWidget, reason: 'description manquante');
+    expect(find.byKey(const ValueKey('nav_done_5')), findsNothing);
+    await closeForm(tester);
+  });
 }

@@ -1395,6 +1395,33 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
     });
   }
 
+  // (2026-10-21) Onglets de sections : ✓ vert quand la section est remplie, point rouge
+  // quand un champ obligatoire manque (après un essai d'envoi, comme les titres rouges).
+  // Idée retenue par le user parmi les améliorations proposées.
+  late final Listenable _navFill = Listenable.merge([
+    _clientName, _interventionType, _equipmentType, _equipmentBrand, _equipmentModel,
+    _equipmentSerial, _description, _laborHours,
+  ]);
+
+  bool _navDone(int idx) {
+    bool any(List<TextEditingController> cs) => cs.any((c) => c.text.trim().isNotEmpty);
+    switch (idx) {
+      case 1: return any([_clientName]);
+      case 2: return any([_interventionType]);
+      case 3: return any([_equipmentType, _equipmentBrand, _equipmentModel, _equipmentSerial]);
+      case 5: return any([_description]);
+      case 6: return _photos.isNotEmpty;
+      case 7: return _sigClientStartData != null || _sigTechStartData != null ||
+          _sigClientData != null || _sigTechData != null;
+      case 8: return any([_laborHours]) || _materials.isNotEmpty;
+      default: return false; // Type : toujours choisi, pas de ✓
+    }
+  }
+
+  bool _navMissing(int idx) =>
+      (idx == 1 && _clientSectionError && _clientName.text.trim().isEmpty) ||
+      (idx == 5 && _travauxSectionError && _description.text.trim().isEmpty);
+
   PreferredSizeWidget _buildNavBar() {
     final items = [
       (0, Icons.category_outlined, 'cr_nav_type'.tr()),
@@ -1411,7 +1438,9 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
-        child: Row(
+        child: ListenableBuilder(
+          listenable: _navFill,
+          builder: (context, _) => Row(
           children: items.map((item) {
             final (keyIdx, icon, label) = item;
             // Multi-highlight: show all currently visible sections as active.
@@ -1457,12 +1486,29 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
                               active ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
+                      if (_navDone(keyIdx))
+                        Padding(
+                          padding: const EdgeInsets.only(left: 3),
+                          child: Icon(Icons.check_circle,
+                              key: ValueKey('nav_done_$keyIdx'),
+                              size: 12, color: const Color(0xFF7CD63A)),
+                        )
+                      else if (_navMissing(keyIdx))
+                        Container(
+                          key: ValueKey('nav_missing_$keyIdx'),
+                          margin: const EdgeInsets.only(left: 4),
+                          width: 7,
+                          height: 7,
+                          decoration: const BoxDecoration(
+                              color: Colors.redAccent, shape: BoxShape.circle),
+                        ),
                     ],
                   ),
                 ),
               ),
             );
           }).toList(),
+        ),
         ),
       ),
     );

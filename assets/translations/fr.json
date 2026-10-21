@@ -1250,6 +1250,7 @@
   "special_code_err_too_many": "Trop de tentatives. Réessayez dans une minute.",
   "cr_number_taken": "Le n° {} est déjà utilisé par un autre rapport : leurs factures auraient le même numéro.",
   "cloud_err_upload": "Échec de l'envoi vers {} (code {}). Réessayez.",
+  "cloud_err_onedrive_not_ready": "Votre espace OneDrive n'est pas encore activé. Ouvrez une fois onedrive.live.com avec ce compte Microsoft, puis réessayez.",
   "cloud_err_google_token": "Connexion à Google impossible. Réessayez.",
   "team_err_create": "Impossible de créer l'équipe. Vérifiez la connexion et réessayez.",
   "ai_record_max": "Enregistrement arrêté au bout de {} min (durée maximale).",

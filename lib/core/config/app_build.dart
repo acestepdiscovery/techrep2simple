@@ -21,7 +21,10 @@
 // const int kAppBuildNumber = 22;
 // (2026-10-21) 23 : petite icône des notifications (silhouette, plus de carré blanc) +
 // l'app envoie son numéro de build à l'IA (bonus IA réservable aux versions à jour).
-const int kAppBuildNumber = 23;
+// const int kAppBuildNumber = 23;
+// (2026-10-21) 24 : connexion OneDrive / Dropbox réparée (retour à l'app après « Accepter »,
+// dossiers OneDrive créés, message « OneDrive pas encore activé ») + ✓ sur les onglets du formulaire.
+const int kAppBuildNumber = 24;
 
 // Unique token baked into this specific build.
 // Change this value for each distinct distribution (demo, beta, prod release, etc.)

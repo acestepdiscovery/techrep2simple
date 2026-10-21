@@ -1250,6 +1250,7 @@
   "special_code_err_too_many": "Demasiados intentos. Vuelve a intentarlo en un minuto.",
   "cr_number_taken": "El n.º {} ya lo usa otro informe: sus facturas tendrían el mismo número.",
   "cloud_err_upload": "Error al subir a {} (código {}). Vuelve a intentarlo.",
+  "cloud_err_onedrive_not_ready": "Tu OneDrive aún no está activado. Abre una vez onedrive.live.com con esta cuenta de Microsoft y vuelve a intentarlo.",
   "cloud_err_google_token": "No se pudo conectar con Google. Vuelve a intentarlo.",
   "team_err_create": "No se pudo crear el equipo. Comprueba la conexión y vuelve a intentarlo.",
   "ai_record_max": "Grabación detenida a los {} min (duración máxima).",
