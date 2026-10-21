@@ -60,10 +60,10 @@ class NotificationService {
         ?.createNotificationChannel(channel);
 
     // Local notifications init.
-    // NOTE: replace '@mipmap/ic_launcher' with a white-on-transparent drawable
-    //       'ic_notification' once the asset is created.
+    // (2026-10-21) Silhouette blanche res/drawable/ic_notification.xml (l'icône
+    // couleur de l'app s'affichait en carré blanc).
     const initSettings = InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      android: AndroidInitializationSettings('@drawable/ic_notification'),
       iOS: DarwinInitializationSettings(),
     );
     await _local.initialize(

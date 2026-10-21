@@ -97,11 +97,14 @@
             </intent-filter>
         </activity>
         <!-- FCM notification channel and icon.
-             Replace @mipmap/ic_launcher with a white-on-transparent drawable
-             (e.g. res/drawable/ic_notification.png) for a proper notification icon. -->
+             (2026-10-21) Icône = silhouette blanche res/drawable/ic_notification.xml
+             (avant : @mipmap/ic_launcher → carré blanc dans la barre de notifications). -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@mipmap/ic_launcher"/>
+            android:resource="@drawable/ic_notification"/>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_accent"/>
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="raptech_default"/>
