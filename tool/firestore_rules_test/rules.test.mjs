@@ -128,6 +128,16 @@ describe('✅ ce que fait l\'app', () => {
     await assertSucceeds(setDoc(doc(db, `${CO}/members_raptech1/newbie`), pendingMember('newbie')));
   });
 
+  // (2026-10-23) joinTeam() lit d'abord SA propre fiche pour ne jamais rétrograder le
+  // responsable / un membre actif (client Bruno). Fiche absente → lecture REFUSÉE
+  // (l'app la traite comme « pas de fiche » et crée sa demande) ; fiche présente → permise.
+  test('rejoindre : lecture de SA fiche (refusée si absente, permise si elle existe)', async () => {
+    await assertFails(getDoc(doc(as('newbie'), `${CO}/members_raptech1/newbie`)));
+    await assertSucceeds(getDoc(doc(as('boss'), `${CO}/members_raptech1/boss`)));
+    await assertSucceeds(getDoc(doc(as('tech'), `${CO}/members_raptech1/tech`)));
+    await assertSucceeds(getDoc(doc(as('pend'), `${CO}/members_raptech1/pend`)));
+  });
+
   test('membre en attente : voit l\'équipe et la liste, peut annuler sa demande', async () => {
     const db = as('pend');
     await assertSucceeds(getDoc(doc(db, CO)));

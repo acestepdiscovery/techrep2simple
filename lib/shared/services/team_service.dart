@@ -12,6 +12,21 @@ import '../../core/config/cf_config.dart';
 
 const _kCfUrl = kCfBaseUrl;
 
+/// (2026-10-23) Résultat de « Rejoindre une équipe » ([TeamService.joinTeam]).
+class JoinResult {
+  final CompanyModel company;
+
+  /// Rôle réel dans l'équipe : 'admin' (responsable) ou 'tech'.
+  final String role;
+
+  /// true = la personne faisait déjà partie de l'équipe (responsable ou membre
+  /// actif) : rien n'a été écrit, l'équipe est simplement restaurée.
+  final bool alreadyMember;
+
+  const JoinResult(
+      {required this.company, required this.role, required this.alreadyMember});
+}
+
 class TeamService {
   static final TeamService _instance = TeamService._internal();
   factory TeamService() => _instance;
@@ -103,7 +118,32 @@ class TeamService {
 
   /// (#3) Rejoindre une équipe par CODE SEUL (plus de nom requis) : le code est
   /// unique, donc renommer l'équipe ne casse plus le flux de jointure.
+  /// (2026-10-23) Voir [joinTeam] (renvoie aussi le rôle réel).
   Future<CompanyModel?> joinCompany({
+    required String inviteCode,
+    required String uid,
+    required String email,
+    required String displayName,
+  }) async =>
+      (await joinTeam(
+              inviteCode: inviteCode,
+              uid: uid,
+              email: email,
+              displayName: displayName))
+          ?.company;
+
+  /// (2026-10-23) Rejoindre une équipe SANS jamais rétrograder quelqu'un qui en fait
+  /// déjà partie. Client réel (Bruno, app iOS 1.0.8) : le responsable a tapé le code
+  /// de SA propre équipe → sa fiche a été réécrite « technicien en attente » → plus
+  /// de bouton « Accepter » pendant un mois (équipe payée). Désormais :
+  ///  - responsable de l'équipe, ou membre déjà ACTIF → rien n'est écrit, on renvoie
+  ///    son vrai rôle (l'app restaure simplement l'équipe) ;
+  ///  - fiche en attente / désactivée, ou absente → demande « en attente » (comme
+  ///    avant). Responsable sans fiche : la demande créée est remise « admin actif »
+  ///    par le serveur (fonction on_member_joined) — les règles interdisent à l'app
+  ///    de s'activer elle-même.
+  /// Renvoie null si le code est inconnu.
+  Future<JoinResult?> joinTeam({
     required String inviteCode,
     required String uid,
     required String email,
@@ -111,6 +151,29 @@ class TeamService {
   }) async {
     final matched = await _findByInviteCode(inviteCode);
     if (matched == null) return null;
+    final isOwner = (matched.data()['admin_id'] as String?) == uid;
+
+    // Fiche déjà présente ? (lecture refusée par les règles = pas de fiche)
+    final memberRef = matched.reference.collection('members_raptech1').doc(uid);
+    Map<String, dynamic>? existing;
+    try {
+      final snap = await memberRef
+          .get(const GetOptions(source: Source.server))
+          .timeout(const Duration(seconds: 15));
+      existing = snap.exists ? snap.data() : null;
+    } on FirebaseException catch (e) {
+      if (e.code != 'permission-denied') rethrow;
+    }
+    if (existing != null) {
+      final current = TeamMemberModel.fromMap(uid, existing);
+      if (isOwner || current.active) {
+        return JoinResult(
+          company: CompanyModel.fromMap(matched.id, matched.data()),
+          role: isOwner ? 'admin' : current.role,
+          alreadyMember: true,
+        );
+      }
+    }
 
     // Seat limit check (best-effort, UX only).
     // (4h) Un non-membre ne peut PAS lister les membres (règles Firestore) :
@@ -137,7 +200,7 @@ class TeamService {
 
     final company = CompanyModel.fromMap(matched.id, matched.data());
 
-    await matched.reference.collection('members_raptech1').doc(uid).set(
+    await memberRef.set(
           TeamMemberModel(
             uid: uid,
             email: email,
@@ -148,7 +211,8 @@ class TeamService {
           ).toMap(),
         );
 
-    return company;
+    return JoinResult(
+        company: company, role: isOwner ? 'admin' : 'tech', alreadyMember: false);
   }
 
   Future<CompanyModel?> getCompany(String companyId) async {

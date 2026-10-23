@@ -211,21 +211,30 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
 
     setState(() { _loading = true; _error = null; });
     try {
-      final company = await TeamService().joinCompany(
+      // (2026-10-23) joinTeam : ne rétrograde jamais le responsable ni un membre
+      // actif, et donne le VRAI rôle. Avant : joinCompany + rôle « tech » d'office
+      // (le responsable qui tapait son propre code devenait technicien en attente).
+      final joined = await TeamService().joinTeam(
         inviteCode: _inviteCode.text.trim().toUpperCase(),
         uid: _user.uid,
         email: _user.email ?? '',
         displayName: _user.displayName ?? _user.email ?? '',
       );
-      if (company == null) {
+      if (joined == null) {
         setState(() { _error = 'ts_invalid_code'.tr(); });
         return;
       }
-      await ref.read(teamStateProvider.notifier).saveTeam(company, 'tech');
+      final company = joined.company;
+      await ref.read(teamStateProvider.notifier).saveTeam(company, joined.role);
       await ref
           .read(settingsProvider.notifier)
           .set('company_name', company.name);
-      if (mounted) context.go('/home');
+      if (!mounted) return;
+      if (joined.alreadyMember) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('ts_already_in_team'.tr(args: [company.name]))));
+      }
+      context.go('/home');
     } catch (e) {
       setState(() { _error = 'common_error'.tr(args: [errorText(e)]); });
     } finally {

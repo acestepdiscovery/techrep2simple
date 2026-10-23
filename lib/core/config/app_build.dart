@@ -28,7 +28,10 @@
 // (2026-10-21) 25 : « Votre rapport sur mesure » (envoi de modèle, Firebase Storage).
 // const int kAppBuildNumber = 25;
 // (2026-10-21) 26 : textes de « Votre rapport sur mesure » reformulés (rapport idéal → l'app le produit).
-const int kAppBuildNumber = 26;
+// const int kAppBuildNumber = 26;
+// (2026-10-23) 27 : « Rejoindre une équipe » ne rétrograde plus le responsable ni un membre actif
+// (client Bruno : responsable devenu « technicien en attente » dans sa propre équipe).
+const int kAppBuildNumber = 27;
 
 // Unique token baked into this specific build.
 // Change this value for each distinct distribution (demo, beta, prod release, etc.)

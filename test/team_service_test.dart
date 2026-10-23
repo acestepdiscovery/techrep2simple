@@ -69,6 +69,74 @@ void main() {
       expect(m['active'], isFalse);
       expect(m['role'], 'tech');
     });
+    // (2026-10-23) Client réel (Bruno, app iOS 1.0.8) : le responsable a tapé le code
+    // de SA propre équipe → sa fiche a été réécrite « technicien en attente » → plus
+    // de bouton « Accepter », équipe payée inutilisable. Rejoindre ne doit JAMAIS
+    // rétrograder le responsable ni un membre déjà actif.
+    test('le responsable tape le code de SA équipe : sa fiche reste admin active', () async {
+      await db.doc('companies_raptech1/$_co/members_raptech1/boss').set({
+        'email': 'boss@x.fr', 'display_name': 'Boss', 'role': 'admin',
+        'joined_at': '2026-10-01T08:00:00+00:00', 'status': 'active', 'active': true,
+        'can_validate': false, 'can_invite': false,
+      });
+      final c = await team.joinCompany(
+          inviteCode: 'ABC234', uid: 'boss', email: 'boss@x.fr', displayName: 'Boss');
+      expect(c?.id, _co);
+      final m = (await db.doc('companies_raptech1/$_co/members_raptech1/boss').get()).data()!;
+      expect(m['role'], 'admin');
+      expect(m['status'], 'active');
+      expect(m['active'], isTrue);
+      expect(m['joined_at'], '2026-10-01T08:00:00+00:00', reason: 'fiche non réécrite');
+    });
+    test('un membre ACTIF retape le code : il reste actif (pas de nouvelle demande)', () async {
+      await db.doc('companies_raptech1/$_co/members_raptech1/t7').set({
+        'email': 't7@x.fr', 'display_name': 'Tom', 'role': 'tech',
+        'joined_at': '2026-10-02T08:00:00', 'status': 'active', 'active': true,
+        'can_validate': true, 'can_invite': false,
+      });
+      await team.joinCompany(
+          inviteCode: 'ABC234', uid: 't7', email: 't7@x.fr', displayName: 'Tom');
+      final m = (await db.doc('companies_raptech1/$_co/members_raptech1/t7').get()).data()!;
+      expect(m['status'], 'active');
+      expect(m['active'], isTrue);
+      expect(m['can_validate'], isTrue, reason: 'ses droits sont gardés');
+    });
+    test('rôle renvoyé : responsable = admin, membre actif = son rôle, nouveau = tech', () async {
+      await db.doc('companies_raptech1/$_co/members_raptech1/boss').set(
+          {'role': 'admin', 'status': 'active', 'active': true});
+      await db.doc('companies_raptech1/$_co/members_raptech1/t7').set(
+          {'role': 'tech', 'status': 'active', 'active': true});
+      final b = await team.joinTeam(
+          inviteCode: 'ABC234', uid: 'boss', email: 'b@x.fr', displayName: 'B');
+      expect((b!.role, b.alreadyMember), ('admin', true));
+      final t = await team.joinTeam(
+          inviteCode: 'ABC234', uid: 't7', email: 't@x.fr', displayName: 'T');
+      expect((t!.role, t.alreadyMember), ('tech', true));
+      final n = await team.joinTeam(
+          inviteCode: 'ABC234', uid: 'new1', email: 'n@x.fr', displayName: 'N');
+      expect((n!.role, n.alreadyMember), ('tech', false));
+      expect(await team.joinTeam(
+          inviteCode: 'NOPE00', uid: 'x', email: 'x@x.fr', displayName: 'X'), isNull);
+    });
+    test('responsable SANS fiche (supprimée par une ancienne version) : demande créée, '
+        'rôle admin (le serveur la remet admin actif)', () async {
+      final r = await team.joinTeam(
+          inviteCode: 'ABC234', uid: 'boss', email: 'b@x.fr', displayName: 'B');
+      expect((r!.role, r.alreadyMember), ('admin', false));
+      final m = (await db.doc('companies_raptech1/$_co/members_raptech1/boss').get()).data()!;
+      expect(m['status'], 'pending', reason: 'les règles interdisent de s\'activer soi-même');
+    });
+    test('un membre DÉSACTIVÉ peut redemander à rejoindre (en attente)', () async {
+      await db.doc('companies_raptech1/$_co/members_raptech1/t8').set({
+        'email': 't8@x.fr', 'display_name': 'Zoé', 'role': 'tech',
+        'joined_at': '2026-10-02T08:00:00', 'status': 'disabled', 'active': false,
+      });
+      await team.joinCompany(
+          inviteCode: 'ABC234', uid: 't8', email: 't8@x.fr', displayName: 'Zoé');
+      final m = (await db.doc('companies_raptech1/$_co/members_raptech1/t8').get()).data()!;
+      expect(m['status'], 'pending');
+      expect(m['active'], isFalse);
+    });
     test('date de création au format Firestore : ne plante plus', () {
       final c = CompanyModel.fromMap('x', {
         'name': 'N', 'invite_code': 'C', 'admin_id': 'a',
