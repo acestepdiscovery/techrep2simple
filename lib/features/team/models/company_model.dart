@@ -5,12 +5,17 @@ class CompanyModel {
   final String adminId;
   final DateTime createdAt;
 
+  /// (2026-10-23) true = le serveur a renvoyé l'équipe EXISTANTE de ce responsable au
+  /// lieu d'en créer une 2e (règle « un responsable = une équipe », cas Bruno).
+  final bool existing;
+
   const CompanyModel({
     required this.id,
     required this.name,
     required this.inviteCode,
     required this.adminId,
     required this.createdAt,
+    this.existing = false,
   });
 
   factory CompanyModel.fromMap(String id, Map<String, dynamic> m) => CompanyModel(

@@ -31,7 +31,10 @@
 // const int kAppBuildNumber = 26;
 // (2026-10-23) 27 : « Rejoindre une équipe » ne rétrograde plus le responsable ni un membre actif
 // (client Bruno : responsable devenu « technicien en attente » dans sa propre équipe).
-const int kAppBuildNumber = 27;
+// const int kAppBuildNumber = 27;
+// (2026-10-23) 28 : bandeau du développeur en direct + « J'ai lu » ; pas de 2e équipe pour un
+// responsable (après « Créer mon équipe » depuis l'accueil, cas Bruno).
+const int kAppBuildNumber = 28;
 
 // Unique token baked into this specific build.
 // Change this value for each distinct distribution (demo, beta, prod release, etc.)
@@ -117,6 +120,11 @@ const bool kEnableSetupBar = true;
 // (2026-10-21) Abonnés Pro : petit badge « PRO » sur l'onglet Mon compte AU LIEU du
 // bandeau « VERSION PRO » sous chaque écran. Remettre `false` = retour à l'ancien bandeau.
 const bool kProBadgeInsteadOfBar = true;
+
+// (2026-10-23) Bandeau « message du développeur » v2 (AppBanner) : en DIRECT (sans
+// redémarrer), fond plein, bouton « J'ai lu ». false = ancien bandeau (pâle, croix,
+// lu au démarrage) — son code est gardé dans reports_list_screen.dart (_AppBanner).
+const bool kLiveBanner = true;
 
 // "Profil" tab in the bottom navigation bar.
 // When true: adds a 6th "Profil" tab showing the full account setup checklist.

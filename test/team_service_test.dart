@@ -126,6 +126,21 @@ void main() {
       final m = (await db.doc('companies_raptech1/$_co/members_raptech1/boss').get()).data()!;
       expect(m['status'], 'pending', reason: 'les règles interdisent de s\'activer soi-même');
     });
+    // (2026-10-23) Cas Bruno (reproduit en 1.0.8) : « Se déconnecter » → accueil « Créer mon
+    // équipe » → « Se connecter » → l'app ouvrait « Créer votre entreprise » → 2e équipe.
+    test('après connexion : « créer » + compte déjà en équipe → accueil (pas de 2e équipe)', () {
+      expect(TeamService.routeAfterSignIn(teamIntent: 'create', hasTeam: true), '/home');
+      expect(TeamService.routeAfterSignIn(teamIntent: 'create', hasTeam: false), '/team-setup');
+      expect(TeamService.routeAfterSignIn(teamIntent: 'join', hasTeam: true), '/team-setup',
+          reason: 'rejoindre une autre équipe reste possible (écran avec ses garde-fous)');
+      expect(TeamService.routeAfterSignIn(teamIntent: null, hasTeam: false), '/home');
+    });
+    test('équipe renvoyée par le serveur : « existing » lu, faux par défaut', () {
+      final c = CompanyModel(id: 'x', name: 'N', inviteCode: 'C', adminId: 'a',
+          createdAt: DateTime(2026, 10, 23), existing: true);
+      expect(c.existing, isTrue);
+      expect(CompanyModel.fromMap('y', {'name': 'N'}).existing, isFalse);
+    });
     test('un membre DÉSACTIVÉ peut redemander à rejoindre (en attente)', () async {
       await db.doc('companies_raptech1/$_co/members_raptech1/t8').set({
         'email': 't8@x.fr', 'display_name': 'Zoé', 'role': 'tech',

@@ -70,6 +70,12 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
 
   Future<void> _createCompany() async {
     if (!_createFormKey.currentState!.validate()) return;
+    // (2026-10-23) Déjà RESPONSABLE d'une équipe → pas de 2e équipe (cas Bruno).
+    final current = ref.read(teamStateProvider).valueOrNull;
+    if ((current?.hasTeam ?? false) && current!.isAdmin) {
+      setState(() { _error = 'ts_already_in_team'.tr(args: [current.companyName ?? '']); });
+      return;
+    }
     setState(() { _loading = true; _error = null; });
     try {
       final company = await TeamService().createCompany(
@@ -82,6 +88,15 @@ class _TeamSetupScreenState extends ConsumerState<TeamSetupScreen>
       await ref
           .read(settingsProvider.notifier)
           .set('company_name', company.name);
+      // (2026-10-23) Le serveur a renvoyé l'équipe EXISTANTE (déjà responsable) :
+      // on la restaure et on le dit, au lieu d'afficher « Équipe créée ! ».
+      if (company.existing) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('ts_already_in_team'.tr(args: [company.name]))));
+        context.go('/home');
+        return;
+      }
       if (mounted) {
         _showInviteCodeDialog(company.inviteCode, company.name, () async {
           // (3a) Si la création d'équipe a été lancée DEPUIS le paywall, on rouvre

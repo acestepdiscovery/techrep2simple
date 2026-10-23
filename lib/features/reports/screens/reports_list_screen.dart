@@ -21,6 +21,7 @@ import '../../../shared/services/team_service.dart';
 import '../providers/photo_request_provider.dart';
 import '../../../shared/widgets/clients_icon.dart';
 import '../../../shared/widgets/badged_icon.dart';
+import '../../../shared/widgets/app_banner.dart';
 import '../../../shared/utils/error_text.dart';
 import '../widgets/sample_reports_sheet.dart';
 import '../../../shared/utils/file_slug.dart';
@@ -291,7 +292,7 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
       body: _showTeamView && showToggle
           ? Column(
               children: [
-                const _AppBanner(),
+                kLiveBanner ? const AppBanner() : const _AppBanner(),
                 Expanded(
                   child: _TeamReportsMergedSection(
                     companyId: teamState.companyId ?? '',
@@ -306,7 +307,7 @@ class _ReportsListScreenState extends ConsumerState<ReportsListScreen>
           : Column(
               children: [
                 // Developer broadcast banner
-                const _AppBanner(),
+                kLiveBanner ? const AppBanner() : const _AppBanner(),
                 // Pending approval banner for new team members
                 Consumer(builder: (context, ref, _) {
                   final member = ref.watch(currentMemberProvider).valueOrNull;

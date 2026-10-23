@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/services/account_switch_guard.dart';
+import '../../../shared/services/team_service.dart';
 
 enum _AuthMode { login, register }
 
@@ -66,10 +67,33 @@ class _AuthScreenState extends State<AuthScreen> {
     if (!mounted) return;
     final teamIntent = prefs.getString('team_intent');
     if (!mounted) return;
-    if (teamIntent != null) {
-      context.go('/team-setup');
-    } else {
-      context.go('/home');
+    // (2026-10-23) « Créer mon équipe » alors que le compte a DÉJÀ une équipe (cas
+    // Bruno) → on ne propose pas d'en créer une 2e : l'équipe est restaurée à l'accueil.
+    // Avant : `teamIntent != null ? '/team-setup' : '/home'`.
+    var hasTeam = false;
+    if (teamIntent == 'create') hasTeam = await _accountHasTeam();
+    if (!mounted) return;
+    final route = TeamService.routeAfterSignIn(teamIntent: teamIntent, hasTeam: hasTeam);
+    if (route == '/home' && teamIntent != null) await prefs.remove('team_intent');
+    if (!mounted) return;
+    context.go(route);
+  }
+
+  /// (2026-10-23) Le compte est-il déjà lié à une équipe (users_raptech1.company_id) ?
+  /// Réseau indisponible → false (comportement d'avant).
+  Future<bool> _accountHasTeam() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return false;
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('users_raptech1')
+          .doc(uid)
+          .get()
+          .timeout(const Duration(seconds: 6));
+      final cid = snap.data()?['company_id'];
+      return cid is String && cid.isNotEmpty;
+    } catch (_) {
+      return false;
     }
   }
 

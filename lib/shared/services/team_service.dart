@@ -90,7 +90,19 @@ class TeamService {
       inviteCode: data['invite_code'] as String,
       adminId: data['admin_id'] as String,
       createdAt: DateTime.tryParse(data['created_at'] as String? ?? '') ?? DateTime.now(),
+      // (2026-10-23) Déjà responsable d'une équipe → le serveur renvoie celle-ci.
+      existing: data['existing'] == true,
     );
+  }
+
+  /// (2026-10-23) Où aller après la connexion. Cas Bruno (reproduit en 1.0.8) : après
+  /// « Se déconnecter », l'accueil propose « Créer mon équipe » ; en passant par là puis
+  /// « Se connecter », l'app ouvrait « Créer votre entreprise » même s'il avait déjà une
+  /// équipe → 2e équipe. Intention « créer » + équipe déjà liée au compte → accueil.
+  static String routeAfterSignIn({required String? teamIntent, required bool hasTeam}) {
+    if (teamIntent == null) return '/home';
+    if (teamIntent == 'create' && hasTeam) return '/home';
+    return '/team-setup';
   }
 
   /// (2026-10-19) Recherche de l'équipe par code, SUR LE SERVEUR : hors ligne,
