@@ -29,12 +29,16 @@ workflows:
       - name: Dépendances
         script: flutter pub get
       - name: Compilation pour simulateur (aucune signature Apple nécessaire)
-        script: flutter build ios --simulator --debug
+        # (2026-10-24) TR_CAPTURES=true : bouton caché « Démo captures » (Réglages › 7 appuis sur
+        # « Version ») → rapports et équipe de démo dans la langue de l'app, pour les captures.
+        script: flutter build ios --simulator --debug --dart-define=TR_CAPTURES=true
       - name: Ouvrir l'iPhone et l'iPad simulés, installer et lancer l'app
         script: |
           set -e
           udid() { xcrun simctl list devices available | grep -m1 "$1" | sed -E 's/.*\(([A-F0-9-]{36})\).*/\1/'; }
-          IPHONE=$(udid "iPhone 16 Pro Max" || true); [ -z "$IPHONE" ] && IPHONE=$(udid "Pro Max")
+          # (2026-10-24) Taille iPhone EXIGÉE par Apple = « Dynamic Island, écran moyen » 1206 × 2622
+          # (iPhone 16 Pro / 17 Pro, 6,3 pouces) ; le « Pro Max » (1320 × 2868) n'est plus obligatoire.
+          IPHONE=$(udid "iPhone 1[6-9] Pro (" || true); [ -z "$IPHONE" ] && IPHONE=$(udid "iPhone 16 Pro Max")
           IPAD=$(udid "iPad Pro 13-inch" || true); [ -z "$IPAD" ] && IPAD=$(udid "iPad Pro")
           echo "iPhone: $IPHONE / iPad: $IPAD"
           for D in $IPHONE $IPAD; do
