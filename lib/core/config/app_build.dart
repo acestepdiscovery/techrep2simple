@@ -34,7 +34,11 @@
 // const int kAppBuildNumber = 27;
 // (2026-10-23) 28 : bandeau du développeur en direct + « J'ai lu » ; pas de 2e équipe pour un
 // responsable (après « Créer mon équipe » depuis l'accueil, cas Bruno).
-const int kAppBuildNumber = 28;
+// const int kAppBuildNumber = 28;
+// (2026-10-24) 29 : devise / taxe par défaut / mentions de facture / assurance relues au
+// démarrage (perdues à chaque redémarrage) ; bouton Retour classique sur Android 16 (fermait
+// l'app depuis l'aperçu d'un exemple) ; montants d'équipe dans la bonne devise.
+const int kAppBuildNumber = 29;
 
 // Unique token baked into this specific build.
 // Change this value for each distinct distribution (demo, beta, prod release, etc.)

@@ -468,10 +468,17 @@ class _ReportTile extends StatelessWidget {
                     ],
                     // (2026-10-21) Pastilles : photos · signé · montant HT.
                     const SizedBox(height: 6),
-                    Builder(builder: (context) {
+                    Consumer(builder: (context, ref, _) {
                       final photos = teamReportPhotoCount(data);
                       final signed = teamReportSigned(data);
                       final amount = teamReportAmount(data);
+                      // (2026-10-24) Devise du réglage / du pays (comme le PDF) ; avant :
+                      // la devise « globale », posée seulement à l'ouverture d'un
+                      // formulaire → « € » affiché à un utilisateur en £ ou en zł.
+                      final currency = resolveCurrencyCode(
+                          ref.watch(settingsProvider).valueOrNull ?? const {},
+                          region: WidgetsBinding.instance.platformDispatcher.locale.countryCode,
+                          language: context.locale.languageCode);
                       return Wrap(spacing: 12, runSpacing: 4, children: [
                         _TilePill(Icons.photo_camera_outlined, '$photos',
                             'td_pill_photos'.tr(args: ['$photos']), Colors.black54,
@@ -482,7 +489,8 @@ class _ReportTile extends StatelessWidget {
                             signed ? Colors.green.shade700 : Colors.black38,
                             key: ValueKey(signed ? 'pill_signed' : 'pill_not_signed')),
                         if (amount > 0)
-                          _TilePill(Icons.receipt_long_outlined, formatMoney(amount),
+                          _TilePill(Icons.receipt_long_outlined,
+                              formatMoney(amount, code: currency),
                               'td_pill_amount'.tr(), Colors.black54,
                               key: const ValueKey('pill_amount')),
                       ]);

@@ -37,6 +37,7 @@ import '../../../shared/widgets/cloud_guide.dart';
 import 'custom_report_request_screen.dart';
 import '../../../shared/services/photo_storage.dart';
 import '../../reports/models/invoice_terms.dart';
+import '../../../shared/dev/capture_demo.dart';
 
 // (K) Demande de déroulé de la tuile « Mon entreprise » des Réglages (depuis le
 // toggle d'identité d'un rapport). Le nonce force le déroulé même si l'écran
@@ -2604,6 +2605,24 @@ class _Stage2DialogState extends State<_Stage2Dialog> {
     }
   }
 
+  Future<void> _demo({required bool clear}) async {
+    final c = ProviderScope.containerOf(context, listen: false);
+    final lang = context.locale.languageCode;
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.pop(context);
+    try {
+      var msg = 'Démo effacée';
+      if (clear) {
+        await clearCaptureDemo(c);
+      } else {
+        msg = await seedCaptureDemo(c, lang);
+      }
+      messenger.showSnackBar(SnackBar(content: Text(msg)));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Démo : $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Fenêtre volontairement anodine — rien n'indique la 2e manip.
@@ -2625,6 +2644,11 @@ class _Stage2DialogState extends State<_Stage2Dialog> {
         ],
       ),
       actions: [
+        // (2026-10-24) Build de captures seulement (--dart-define=TR_CAPTURES=true).
+        if (kCaptureTools) ...[
+          TextButton(onPressed: () => _demo(clear: true), child: const Text('Effacer démo')),
+          TextButton(onPressed: () => _demo(clear: false), child: const Text('Démo captures')),
+        ],
         TextButton(onPressed: () => Navigator.pop(context), child: Text('common_close'.tr())),
       ],
     );
